@@ -9,7 +9,7 @@ st.set_page_config(page_title="Lerna Summer Literacy", page_icon="📘", layout=
 # students = pd.read_csv("students.csv")
 
 # Display logo
-st.image("images/lernacentre_logo.png", width=180)  # Adjust path & size as needed
+st.image("images/lernacentre_logo-min.png", width=180)  # Adjust path & size as needed
 
 # Program title
 st.markdown(
