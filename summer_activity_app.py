@@ -3,7 +3,7 @@ import os
 import json
 
 # --- CONFIG ---
-DATA_DIR = "data/Group 7"
+DATA_DIR = "summer_activities/Group 7"
 st.set_page_config("📘 Literacy App", layout="centered")
 
 # --- HELPERS ---
