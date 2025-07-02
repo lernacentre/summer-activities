@@ -1,0 +1,357 @@
+{
+  "day_1": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "fascinated",
+          "observations",
+          "presentation",
+          "notebook",
+          "milkweed"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Write these words in your notebook: fascinated, observations, presentation, notebook, milkweed.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Break down the word 'presentation' into its root and suffix. Root: present, Suffix: -ation",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "Khalid and his brother discovered an unusual insect in the garden while playing their favorite game, making Khalid curious about the natural world.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What do you think Khalid might discover next in his garden? How does this remind you of any discoveries you have made?",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "Can you list any other words that mean 'unusual', which Khalid might use to describe his discovery in the garden?",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Write a short paragraph about a time when you and your brother played a game that led to an unexpected discovery. Use clear instructions to describe what happened.",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "Identify the nouns and verbs in this sentence: 'Khalid and his brother found a hidden nest while playing in the garden.'",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Create a fun rhyme using the words 'game', 'same', 'name', and 'flame' that could describe a day playing with your brother.",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  },
+  "day_2": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "concert",
+          "clutched",
+          "thunderous",
+          "enormous",
+          "gripped",
+          "audience"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Write a sentence using the words 'concert', 'enormous', and 'audience'.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Change the suffix of 'nervous' to create a new word. What is the new word and how does it change the meaning?",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "Khalid and his brother set up a small stage in their living room, where Khalid performed a magic trick, feeling both nervous and excited.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What connections can you make between Khalid's feeling during his performance and Jamie's feelings in the story?",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "Can you think of other words that describe feelings you might have while playing a game with your brother?",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Write a short paragraph about a fun game you and your brother invented, using words like 'exciting', 'challenging', and 'rewarding'.",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "Use Winston Grammar cards to arrange the sentence: 'Khalid and his brother excitedly planned their next game challenge.' Identify the nouns, verbs, and adjectives.",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Create a rhyme using the words 'clutched', 'concert', and 'bright' based on your favorite game with your brother.",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  },
+  "day_3": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "garden",
+          "project",
+          "section",
+          "brilliant",
+          "corner",
+          "summer",
+          "transformed"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Please write down the words: garden, project, section, brilliant, corner, summer, transformed, paying attention to closed syllables.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Modify the word 'excite' by adding suffixes to change its meaning (e.g., excited, exciting).",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "Khalid and his brother set up a gaming station in their living room, stacking games in neat, labeled sections for easy access.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What do you think Khalid and his brother will do next in their gaming adventure based on the setup described?",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "Can you think of words to describe the action and excitement of playing games with your brother?",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Write a short paragraph about a gaming experience with your brother. Include details about what made the experience special.",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "In the sentence 'Khalid and his brother played games all evening,' identify the subject, verb, and object.",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Let's play a quick rhyme game! How many words can you find that rhyme with 'game' and 'play'? Write them down!",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  },
+  "day_4": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "church",
+          "chamber",
+          "brushed",
+          "ancient",
+          "manuscripts",
+          "discovery"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Write a sentence using the words 'church' and 'ancient'. Then, try to spell 'manuscripts' and 'discovery' without looking.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Change the prefix of 'discover' to 'un-' to form a new word. What does it mean now?",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "During a game in the living room, Khalid and his brother discover an ancient map hidden beneath the board game box.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What do you think Khalid might find if he follows the map? List two predictions based on your understanding of maps and hidden treasures.",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "Think of words you might use to describe an ancient artifact you discovered while playing a game. Which of these words expresses the most excitement?",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Write a short paragraph about a thrilling game Khalid played with his brother, where they found hidden treasures around their house.",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "In the sentence, 'Khalid and his brother discovered an old chest in the attic,' identify the subject, verb, and object. How does this structure help tell who did what?",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Create a rhyme using the words 'map' and 'cap' that Khalid might sing while hunting for treasure.",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  },
+  "day_5": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "student",
+          "science",
+          "prepared",
+          "realised",
+          "paid",
+          "presentation"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Write the words 'student', 'science', 'prepared', 'realised', 'paid', 'presentation' on a separate piece of paper, focusing on their syllable breaks and vowel sounds.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Change the base form of 'discover' to 'discovery' by adding a suffix, and write a sentence using the new word.",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "Khalid noted down different strategies while playing a board game with his brother, comparing their tactics to his favourite game heroes.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What do you think Khalid could learn about strategy from observing game play, similar to how Emma observed the butterflies?",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "Think of different nouns that describe what Khalid might use or see while playing games with his brother. How do these terms help you understand the game better?",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Write about the time Khalid developed a new game strategy with his brother that turned the game around. What was your strategy and how did it make you feel?",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "Identify the nouns and verbs in the sentence: 'Khalid quickly grabbed the dice and rolled a six to win the game.'",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Create a rhyme using the words 'game', 'same', and 'claim'. Use these in a fun story about Khalid's gaming experiences.",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  }
+}

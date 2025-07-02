@@ -1,0 +1,357 @@
+{
+  "day_1": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "student",
+          "fascinated",
+          "observations",
+          "presentation",
+          "notebook",
+          "milkweed",
+          "lunchbreak"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Please spell the following words: student, fascinated, observations, presentation, notebook, milkweed, lunchbreak.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Change the root word 'present' by adding the suffix '-ation' to form a new word related to the lesson content.",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "Dana enjoyed playing on her iPad, exploring nature-themed games. During one game, she noticed a digital butterfly with unusual patterns which sparked her curiosity just like the monarch butterflies in Emma\u2019s story.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What do you think Dana might discover about the digital butterflies in her game? Use your previous knowledge about games and nature to make a prediction.",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "Can you think of any words that describe how Dana feels when she discovers something new in her iPad game? List as many descriptive words as you can.",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Write a short story about Dana discovering a hidden level in her favorite iPad game. How did she find it, and what was her reaction?",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "Using the sentence 'Dana found a hidden level in the game', identify the noun, verb, and adjective using the Winston Grammar cards.",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Let's play a rhyme match! Can you find words that rhyme with 'game' and 'iPad' from the lesson text, like 'lame', 'fad'?",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  },
+  "day_2": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "concert",
+          "clutched",
+          "audience",
+          "performed",
+          "nervous",
+          "enormous"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Write each word three times: concert, clutched, audience, performed, nervous, enormous.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Identify the suffix in 'nervous' and the root word in 'performed'. Change the suffix in 'nervous' to -ity to make a new word.",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "Dana was playing a new game on her iPad where she had to arrange a virtual concert. She carefully assigned roles like 'singer', 'drummer', and 'guitarist' to each character, making sure everyone was ready for the big performance.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What do you think Dana feels about organizing the virtual concert on her iPad? Use the characters and their roles to explain why.",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "Which words would Dana use to describe a successful concert in her iPad game? Think of at least three adjectives.",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Imagine Dana is planning a big gaming tournament at school. Write a short paragraph describing how she prepares and how she feels just before the tournament starts.",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "Create a sentence using the word 'concert' where Dana is the main subject. Include a time clause like 'After school,'.",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Play a quick game of rhyme match with Dana. Use words from today's lesson (concert, audience, nervous) and see who can come up with the most rhymes in a minute!",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  },
+  "day_3": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "garden",
+          "project",
+          "section",
+          "summer",
+          "corner",
+          "planted",
+          "brilliant"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Write each of these words in your spelling notebook: garden, project, section, summer, corner, planted, brilliant. Then, write a sentence using each word.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Identify the root word and suffix in 'carefully'. Root word: care, Suffix: -fully",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "Dana loves playing simulation games on her iPad where she designs and organizes her own digital garden, just like she's working on the community garden project at her school.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What do you think Dana might do next in her garden project? Recall how she organized the digital garden on her iPad for clues.",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "Think of five adjectives Dana could use to describe her digital garden on the iPad. How might these words help make her game more engaging?",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Dana, describe your ideal digital garden you'd like to create on your iPad. Include types of plants, colors, and any features that make it special to you.",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "Using the sentence 'Dana planted roses.', identify the noun, verb, and object using Winston Grammar cards.",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Let's play a rhyme game with words from our reading. Find words that rhyme with garden, project, and corner. Write them down and see if you can come up with funny sentences using the rhymes.",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  },
+  "day_4": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "church",
+          "chamber",
+          "brushed",
+          "ancient",
+          "discovery"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Write sentences using the words 'church', 'chamber', 'brushed', 'ancient', and 'discovery'.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Change the prefix in 'discover' from 'dis-' to 'un-' and discuss the new word meaning.",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "Dana discovered a hidden game level on her iPad while exploring an ancient, mysterious app.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What clues helped Dana discover the hidden game level? Discuss the parts of the story where Dana used her detective skills.",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "What words would you use to describe Dana's feelings when she unlocked a new game level on her iPad?",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Imagine you are Dana, who just unlocked a secret part of your favourite iPad game. Write a paragraph about how you discovered it and your reaction.",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "Identify the nouns and verbs in the sentence: 'Dana discovered a hidden chamber in her favourite game on the iPad.'",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Play a rhyme game with the words 'game', 'frame', 'same', and 'name' to create a fun poem about Dana's iPad adventures.",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  },
+  "day_5": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "fascinated",
+          "observations",
+          "presentation",
+          "notebook",
+          "lunchbreak"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Write down the words: fascinated, observations, presentation, notebook, lunchbreak. Then, spell them out loud.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "From the word 'observation', remove the suffix 'ation' and discuss what the base word 'observe' means.",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "While playing games on her iPad, Dana discovered a new app that let her observe and record different bird types at the park.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What similarities do you see between your game discoveries on the iPad and Emma's discovery in the garden?",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "List five different words Dana might use while describing an exciting game level she completed on her iPad.",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Write a paragraph about a challenging level Dana faced on her iPad game and how she felt after solving it, using compound and multisyllabic words.",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "Identify the noun and verb in the sentence: 'Dana observed butterflies in the game, reminding her of the school garden mystery.'",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Find rhyming words for 'iPad' and 'game' and use them to create a funny two-line rhyme.",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  }
+}

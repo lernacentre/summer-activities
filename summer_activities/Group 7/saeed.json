@@ -1,0 +1,360 @@
+{
+  "day_1": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "fascinated",
+          "observations",
+          "presentation",
+          "notebook",
+          "milkweed",
+          "butterfly",
+          "patterns"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Write down the words: fascinated, observations, presentation, notebook, milkweed, butterfly, patterns.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Change the suffix of 'discover' to form a noun indicating the action or process.",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "While playing a new video game, Saeed discovered a hidden level that no other player had found yet, just like scientists discovering unknown species.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What clues in the text helped Saeed realize he had found something unique in his game, and how does it relate to his experience in gaming?",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "What synonyms can you think of for the word 'discovered' that might be used in both science and video gaming?",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Write a short story about a day when Saeed used his gaming skills to solve a mystery in real life.",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "Using Winston Grammar cards, identify the nouns and verbs in the sentence: 'Saeed unlocked a secret achievement during his game play yesterday.'",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Create a rhyming pair for the word 'game'. Example: 'Game, fame'. Try to make a fun rhyme involving a gaming scenario.",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  },
+  "day_2": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "concert",
+          "clutched",
+          "audience",
+          "nervous",
+          "performed",
+          "brilliant",
+          "enormous"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Write the following words from the story: concert, clutched, audience, nervous, performed, brilliant, enormous.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "The word 'performed' contains the root word 'form'. Can you find another word in the story that also uses this root?",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "In the latest virtual game, Saeed faced a crucial moment where he had to perform a solo mission to save his team, just like Jamie did with his violin performance.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What connections can you make between Saeed's experiences in games and Jamie's experience at the concert?",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "Think about words related to gaming. Could 'challenge', 'strategy', or 'victory' have similar feelings or intensities to 'nervous' or 'brilliant'? Discuss with a partner.",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Write a short paragraph about a time Saeed faced a challenging level in a game. What strategies did you use to overcome it?",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "Identify the nouns and verbs in the sentence 'Saeed clutched his controller as he faced the final boss in the game.'",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Let\u2019s play a word chain game! Saeed starts with the word 'game', each following word must begin with the last letter of the previous word. How many can you link back to gaming?",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  },
+  "day_3": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "garden",
+          "project",
+          "section",
+          "corner",
+          "summer",
+          "planted",
+          "beautiful"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Write these words in your notebook: garden, project, section, corner, summer, planted, beautiful.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Change the suffix in 'planting' to make a new word related to gardening.",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "Saeed decided to create a gaming themed section in the community garden, planting green and purple shrubs that reminded him of his favorite video game landscapes.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What do you think Saeed felt when he saw his gaming themed garden section coming to life? Use clues from the text to explain your answer.",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "What adjectives could Saeed use to describe the exciting features of his gaming themed garden?",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Imagine and write a paragraph about a new game that includes elements of gardening. What skills would players need? What would the challenges be?",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "In the sentence 'Saeed and his friends enthusiastically planted new seeds', identify the subject, verb, and object using your Winston Grammar cards.",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Quick game: Who can come up with a rhyme for 'plant' faster? Let's make it fun and related to gaming!",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  },
+  "day_4": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "church",
+          "chamber",
+          "brushed",
+          "ancient",
+          "discover"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Write down the correct spelling for the following sounds: /ch/ in 'church', /sh/ in 'brushed'.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Change the prefix in 'discover' to 'un' to form a new word.",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "Saeed uncovers a hidden level in his favorite game, revealing secrets that other players hadn't found.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What might Saeed discover next in the game? Use clues from what you have read to predict.",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "List some words that you might use to describe a new game level that Saeed could discover.",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Imagine you're Saeed and you've just discovered a hidden chamber in a game. Describe the chamber and what you found inside it.",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "Identify the nouns and verbs in the sentence: 'Saeed discovers a secret chamber filled with ancient artifacts.'",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Create a rhyme using the words 'discover' and 'chamber'.",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  },
+  "day_5": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "fascinated",
+          "observations",
+          "presentation",
+          "butterfly",
+          "different",
+          "pattern",
+          "science"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Dictation Task: Write down the following words: fascinated, observations, presentation, butterfly, different, pattern, science.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Change the suffix of 'present' to create a word meaning 'the act of presenting': presentation.",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "Saeed, an avid gamer, stumbled upon a hidden level in his favourite video game, noting intricate details that others might overlook.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What skills from gaming do you think helped Saeed notice details others missed? How can you apply this to your daily observations?",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "What words would you use to describe discovering a hidden level in a game? List them and rank them from most exciting to least exciting.",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Imagine you are Saeed, and you've just found a hidden level in a game. Write a paragraph describing how you discovered it and how it made you feel.",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "Using the sentence 'Saeed discovered a hidden level in his favourite game,' identify the noun, verb, and adjective with Winston Grammar cards.",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Word Search: Find and circle words related to gaming hidden in a grid: joystick, console, level, score, quest.",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  }
+}

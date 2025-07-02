@@ -1,0 +1,362 @@
+{
+  "day_1": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "fascinated",
+          "observations",
+          "presentation",
+          "variations",
+          "documented"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Write down these words from the story: fascinated, observations, presentation, variations, documented.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": {
+          "root": "observe",
+          "suffix": "ation",
+          "combined": "observation"
+        },
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "During her horse riding competition, Valentina noticed an unusual pattern in the way the horses galloped, sparking her curiosity to learn more.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What might Valentina learn about her observations at the horse riding event? How could this be important?",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "What descriptive words might Valentina use to explain the unique galloping patterns she observed during horse riding?",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Write a paragraph about a thrilling moment Valentina experienced while horse riding. Use clear instructions to describe what she did, saw, and felt.",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "Using the Winston Grammar cards, help Valentina construct a sentence describing her horse\u2019s best qualities. Identify the nouns, verbs, and adjectives you use.",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Quick Quiz: Can Valentina match the vocabulary 'presentation', 'variations', and 'observations' with their meanings from her horse riding experiences?",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  },
+  "day_2": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "concert",
+          "clutched",
+          "audience",
+          "perform",
+          "nervous",
+          "bright",
+          "gripped"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Spell the words where Jamie felt nervous but confident: 'nervous', 'perform', and 'bright'.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Identify and discuss the suffix in 'nervous'. What does it signify? Change 'nervous' to 'nervously'.",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "Valentina clutched her riding hat tightly as she stepped into the arena. Today was her first solo jump, and though her hands felt clammy, clear instructions had always guided her well.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "After reading about Valentina's riding event, use the CSR Click and Clunk Strategy to discuss any difficult words. Can you think of any personal experiences that connect to Valentina's feeling?",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "What are some words related to horse riding that express excitement or nervousness? Can you use those words to describe Valentina's feelings during her solo jump?",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Write a short paragraph about a time Valentina felt excited or nervous about a riding event, using the sentence starters from our lesson: 'During the summer show, I felt...'.",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "Using Winston Grammar cards: Identify the noun, verb, and adjective in the sentence 'Valentina rode gracefully through the course.'",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Word scramble: Unscramble these words related to today's lesson and Valentina's interests: tcorcen, deacnieu, ingdrir, vwionli.",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  },
+  "day_3": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "garden",
+          "project",
+          "section",
+          "brilliant",
+          "summer",
+          "excited",
+          "corner"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Write the following words in your notebook, focusing on breaking them into syllables: garden, project, section, brilliant, summer.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Change the root word 'excite' by adding the suffix '-ed' to form a new word.",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "Valentina rode her horse through the stables, moving clearly and confidently as she planned her route around the newly built jumps, feeling the excitement of the upcoming competition.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "Why do you think Valentina feels excited about the competition? How does clear planning help her confidence?",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "What are some words you associate with horse riding that also reflect a clear and organized approach, similar to Valentina's planning for the competition?",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Describe a day when Valentina experienced a successful ride during practice or a competition. Use descriptive language and include details about the surroundings and her feelings.",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "Using the Winston Grammar cards, identify the subject, verb, and object in this sentence: 'Valentina confidently led her horse over the first jump.'",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Can you find a rhyme for 'horse'? Use this word to create a fun two-line rhyme about Valentina's riding experience.",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  },
+  "day_4": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "church",
+          "chamber",
+          "brushed",
+          "ancient",
+          "manuscripts",
+          "discovery"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Write out the words: church, chamber, brushed, ancient, manuscripts, discovery, carefully observing the digraphs and blends.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Break down the word 'archaeologist' into its roots and suffix: archae + olog + ist. What does each part mean?",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "Valentina discovered an ancient, sunken horse riding arena while exploring an old estate's grounds, using clues she found in a dusty, forgotten map in the estate's library.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What do you think motivated Valentina to explore the old estate's grounds? Use clues from the text to support your answer.",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "Think of words that describe the ancient arena Valentina discovered. How do these words help paint a picture in your mind of what she found?",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Imagine Valentina writes a journal entry about her discovery of the ancient horse riding arena. Start with: 'Today was unforgettable because I found...'. Make sure to include sensory details!",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "In the sentence 'Valentina carefully examined the old map', identify the noun, verb, and adverb. How do they work together to describe the action?",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Create a rhyme using the words 'map', 'lap', and 'cap' that might describe Valentina\u2019s adventure discovering the horse riding arena.",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  },
+  "day_5": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "decoding",
+        "label": "Decoding",
+        "content": [
+          "fascinated",
+          "observations",
+          "presentation",
+          "notebook",
+          "milkweed",
+          "lunchbreak"
+        ],
+        "type": "checkbox"
+      },
+      {
+        "id": "encoding",
+        "label": "Encoding",
+        "content": "Write the words 'milkweed', 'notebook', and 'presentation' in your best handwriting. Pay attention to the double consonants and syllable breaks.",
+        "type": "text_input"
+      },
+      {
+        "id": "morphology",
+        "label": "Morphology",
+        "content": "Break down the word 'presentation' into its base word and suffix, and explain what each part means.",
+        "type": "text_input"
+      },
+      {
+        "id": "reading_text",
+        "label": "Reading Text",
+        "content": "Valentina noticed a new pattern in the hoofprints during her usual horse riding session alongside the tranquil river path. She decided to sketch and study them, discovering a rare new finding.",
+        "type": "static"
+      },
+      {
+        "id": "reading_strategy",
+        "label": "Reading Strategy",
+        "content": "What could Valentina learn from observing the hoofprints closely? How might it help her in understanding her horse better?",
+        "type": "text_area"
+      },
+      {
+        "id": "vocabulary_building",
+        "label": "Vocabulary Building",
+        "content": "Think of words that describe your best horse riding experience. How would you explain the feeling of riding through an open field?",
+        "type": "text_area"
+      },
+      {
+        "id": "writing",
+        "label": "Writing",
+        "content": "Write a short paragraph about a time when you discovered something new while riding your horse. Use descriptive words and phrases to bring your experience to life.",
+        "type": "text_area"
+      },
+      {
+        "id": "grammar",
+        "label": "Grammar",
+        "content": "Using Winston Grammar cards, structure the sentence: 'Valentina enjoyed a beautiful ride through the lush, green meadow.' Identify the noun, verb, and adjectives.",
+        "type": "text_area"
+      },
+      {
+        "id": "bonus",
+        "label": "Bonus",
+        "content": "Create a fun rhyme using the words from your horse riding adventures and the OG list: fascinated, presentation, milkweed.",
+        "type": "radio",
+        "options": [
+          "option_1",
+          "option_2",
+          "option_3"
+        ]
+      }
+    ]
+  }
+}
