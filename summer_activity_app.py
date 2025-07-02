@@ -55,6 +55,12 @@ if selected_name != "-- Select --":
         st.balloons()
         st.stop()
 
+    # Prevent infinite rerun loop
+    if st.session_state.get("completed_day") == next_day:
+        st.success(f"✅ {next_day.replace('_', ' ').title()} marked as complete!")
+        del st.session_state["completed_day"]
+        st.rerun()
+
     st.subheader(f"📘 Activity: {next_day.replace('_', ' ').title()}")
 
     # ---------- FORM ----------
@@ -83,8 +89,9 @@ if selected_name != "-- Select --":
 
         submitted = st.form_submit_button("✅ Submit")
 
+    # ---------- SUBMIT HANDLER ----------
     if submitted:
         student_data[next_day]["complete"] = True
         save_student_data(student_id, student_data)
-        st.success(f"✅ {next_day.replace('_', ' ').title()} marked as complete!")
-        st.rerun()
+        st.session_state["completed_day"] = next_day
+        st.experimental_rerun()
