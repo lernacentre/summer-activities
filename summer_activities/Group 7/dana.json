@@ -1,0 +1,665 @@
+{
+  "day_1": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Auditory",
+              "component": "Dictation",
+              "time_allocation": "2 minutes",
+              "instructions": "Choose the correct sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says: 'The gentle ripple made a subtle noise.'",
+                  "options": [
+                    "The gentle ripple made a subtle noise.",
+                    "The jentel ripple made a sutble noise.",
+                    "The gentel ripple made a subtel noise.",
+                    "The gentle ripple maid a sutble noise."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "Text-OG Analysis",
+              "component": "Vocabulary Review",
+              "time_allocation": "3 minutes",
+              "instructions": "Choose the word that fits the definition given by the teacher.",
+              "questions": [
+                {
+                  "prompt": "A large, detailed image that shows many features of an object.",
+                  "options": [
+                    "sketch",
+                    "picture",
+                    "portray",
+                    "depict"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "CSR Strategy",
+              "component": "Reading Comprehension",
+              "time_allocation": "3 minutes",
+              "instructions": "Choose the best summary of the paragraph the teacher reads aloud.",
+              "questions": [
+                {
+                  "prompt": "Emma noticed a significant variation in the butterflies\u2019 wing patterns, which led to an important discovery.",
+                  "options": [
+                    "Emma spent a lunch break drawing butterflies.",
+                    "Emma and her teacher visited the university.",
+                    "Emma\u2019s observation led to a scientific find.",
+                    "Butterflies have colorful wings."
+                  ],
+                  "correct": [
+                    2
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "Winston Grammar",
+              "component": "Grammar Identification",
+              "time_allocation": "4 minutes",
+              "instructions": "Choose the function of the highlighted word in the sentence read by the teacher.",
+              "questions": [
+                {
+                  "prompt": "In the sentence 'Emma carefully sketched the butterflies,' what is the function of 'carefully'?",
+                  "options": [
+                    "Noun",
+                    "Verb",
+                    "Adjective",
+                    "Adverb"
+                  ],
+                  "correct": [
+                    3
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "Expository Writing",
+              "component": "Writing Skills Check",
+              "time_allocation": "3 minutes",
+              "instructions": "Choose the sentence that best enhances the detail of the basic sentence given.",
+              "questions": [
+                {
+                  "prompt": "Emma saw something unusual.",
+                  "options": [
+                    "Emma noticed a strange pattern.",
+                    "Emma looked around.",
+                    "Emma wandered off.",
+                    "Emma like butterflies."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ],
+          "feedback": {
+            "prompt": "How did you feel about today's activity?",
+            "options": [
+              "\ud83d\udc4d Great!",
+              "\ud83d\ude0a Good",
+              "\ud83d\ude10 Okay",
+              "\ud83d\udc4e Hard"
+            ]
+          }
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_2": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Auditory",
+              "component": "Dictation",
+              "time_allocation": "2 minutes",
+              "instructions": "Choose the correct sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says: 'The gentle ripple made a subtle noise.'",
+                  "options": [
+                    "The gentle ripple made a subtle noise.",
+                    "The jentel ripple made a sutble noise.",
+                    "The gentel ripple made a subtel noise.",
+                    "The gentle ripple maid a sutble noise."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Decoding",
+              "component": "Closed Syllable Recognition",
+              "time_allocation": "3 minutes",
+              "instructions": "Choose the correct way to divide the word into syllables",
+              "questions": [
+                {
+                  "prompt": "'Performance'",
+                  "options": [
+                    "Per-for-mance",
+                    "Pe-rfor-mance",
+                    "Per-form-ance",
+                    "Perf-or-mance"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                },
+                {
+                  "prompt": "'Audience'",
+                  "options": [
+                    "Au-die-nce",
+                    "Audi-ence",
+                    "Aud-i-ence",
+                    "Au-di-ence"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "OG-Vocabulary",
+              "component": "Suffix Recognition",
+              "time_allocation": "3 minutes",
+              "instructions": "Choose the word that correctly uses the suffix",
+              "questions": [
+                {
+                  "prompt": "The word with the suffix '-ous' meaning full of",
+                  "options": [
+                    "nervouse",
+                    "nervus",
+                    "nervous",
+                    "nervoes"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                },
+                {
+                  "prompt": "The word with the suffix '-ed' indicating past tense",
+                  "options": [
+                    "clapped",
+                    "clapt",
+                    "clapd",
+                    "clappd"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "OG-Sentence Structure",
+              "component": "Identify Correct Sentence",
+              "time_allocation": "4 minutes",
+              "instructions": "Choose the sentence with correct use of pronouns and verbs",
+              "questions": [
+                {
+                  "prompt": "Choose the correct sentence involving an action",
+                  "options": [
+                    "She played the violin beautifully.",
+                    "She play the violin beautifully.",
+                    "She plays the violins beautiful.",
+                    "She played the violin beauty."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                },
+                {
+                  "prompt": "Choose the correct sentence explaining past event",
+                  "options": [
+                    "He was thrilled.",
+                    "He was thrill.",
+                    "He were thrilled.",
+                    "He was thrills."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ],
+          "feedback": {
+            "prompt": "How did you feel about today's activity?",
+            "options": [
+              "\ud83d\udc4d Great!",
+              "\ud83d\ude0a Good",
+              "\ud83d\ude10 Okay",
+              "\ud83d\udc4e Hard"
+            ]
+          }
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_3": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Vocabulary",
+              "component": "Multiple Choice",
+              "time_allocation": "3 minutes",
+              "instructions": "Dana, read the sentence and choose the word that best fits the meaning.",
+              "questions": [
+                {
+                  "prompt": "Mrs Adams watched the pupils collaborate as they worked on the garden. 'Collaborate' most nearly means:",
+                  "options": [
+                    "argue",
+                    "work together",
+                    "work alone",
+                    "leave"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Reading Comprehension",
+              "component": "Multiple Choice",
+              "time_allocation": "4 minutes",
+              "instructions": "Dana, predict what might happen next in the story about the community garden based on the paragraph you read.",
+              "questions": [
+                {
+                  "prompt": "What could be the next step after planting the garden?",
+                  "options": [
+                    "The pupils abandon the project",
+                    "The garden starts to grow",
+                    "They start playing video games",
+                    "It snows heavily"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "OG-Grammar",
+              "component": "Multiple Choice",
+              "time allocation": "3 minutes",
+              "instructions": "Select the option that correctly identifies the subject, verb, and object in the sentence.",
+              "questions": [
+                {
+                  "prompt": "'Tom raised his hand eagerly to plant the vegetables.' In this sentence, identify the subject, verb, and object.",
+                  "options": [
+                    "Subject: Tom, Verb: raised, Object: vegetables",
+                    "Subject: hand, Verb: plant, Object: vegetables",
+                    "Subject: vegetables, Verb: raised, Object: hand",
+                    "Subject: hand, Verb: raised, Object: Tom"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "OG-Syntax",
+              "component": "Multiple Choice",
+              "time_allocation": "3 minutes",
+              "instructions": "Choose the sentence that uses the correct syntactic structure.",
+              "questions": [
+                {
+                  "prompt": "Which sentence is correctly constructed?",
+                  "options": [
+                    "The pupils were works hard all morning.",
+                    "All morning was the pupils working hard.",
+                    "The pupils worked hard all morning.",
+                    "Working hard all morning was the pupils."
+                  ],
+                  "correct": [
+                    2
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "OG-Phonics",
+              "component": "Multiple Choice",
+              "time_allocation": "2 minutes",
+              "instructions": "Dana, select the word that has a closed syllable as discussed.",
+              "questions": [
+                {
+                  "prompt": "Which of these words contains a closed syllable?",
+                  "options": [
+                    "project",
+                    "open",
+                    "idea",
+                    "through"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ],
+          "feedback": {
+            "prompt": "How did you feel about today's activities, Dana?",
+            "options": [
+              "\ud83d\udc4d Great!",
+              "\ud83d\ude0a Good",
+              "\ud83d\ude10 Okay",
+              "\ud83d\udc4e Hard"
+            ]
+          }
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_4": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Auditory",
+              "component": "Dictation",
+              "time_allocation": "2 minutes",
+              "instructions": "Choose the correct sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says: 'Dana played games on the ancient tablet she found.'",
+                  "options": [
+                    "Dana played games on the ancient tablet she found.",
+                    "Dana played games on the anchent tablet she found.",
+                    "Danna played games on the ancient tablet she fownd.",
+                    "Danna played game on the ancient tablet she found."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Visual",
+              "component": "Word Sorting",
+              "time_allocation": "3 minutes",
+              "instructions": "Sort the words based on their prefixes",
+              "questions": [
+                {
+                  "prompt": "Which words start with the prefix 'dis-'?",
+                  "options": [
+                    "discover, dislike",
+                    "uncover, disappoint",
+                    "redo, replay",
+                    "none of the above"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "OG-Kinesthetic",
+              "component": "Grammar Card Sorting",
+              "time_allocation": "4 minutes",
+              "instructions": "Use Winston Grammar cards to identify parts of speech in the sentences",
+              "questions": [
+                {
+                  "prompt": "Identify the nouns in the sentence: 'Dana discovered a hidden chamber beneath the church.'",
+                  "options": [
+                    "Dana, discovered, hidden, chamber, church",
+                    "Dana, chamber, church",
+                    "discovered, hidden, beneath",
+                    "beneath"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "OG-Kinesthetic",
+              "component": "Suffix Sorting",
+              "time_allocation": "3 minutes",
+              "instructions": "Identify the correct suffix for the given words",
+              "questions": [
+                {
+                  "prompt": "What is the correct suffix for 'excite' to make it past tense?",
+                  "options": [
+                    "-ed",
+                    "-ing",
+                    "-ly",
+                    "-s"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "OG-Auditory",
+              "component": "Listening Comprehension",
+              "time_allocation": "3 minutes",
+              "instructions": "Listen to the sentence and choose the correct meaning of the underlined word",
+              "questions": [
+                {
+                  "prompt": "Dana's grandfather told her about ancient manuscripts. What does 'ancient' mean?",
+                  "options": [
+                    "New and modern",
+                    "Very old",
+                    "Colorful",
+                    "Craftily made"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            }
+          ],
+          "feedback": {
+            "prompt": "How did you feel about today's activity?",
+            "options": [
+              "\ud83d\udc4d Great!",
+              "\ud83d\ude0a Good",
+              "\ud83d\ude10 Okay",
+              "\ud83d\udc4e Hard"
+            ]
+          }
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_5": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Auditory",
+              "component": "Dictation",
+              "time_allocation": "2 minutes",
+              "instructions": "Choose the correct sentence that matches what the teacher says, focusing on consonant blends, suffixes, and prefixes.",
+              "questions": [
+                {
+                  "prompt": "The teacher says: 'Dana observed a peculiar pattern in the butterfly wings.'",
+                  "options": [
+                    "Dana observed a peculiar pattern in the butterfly wings.",
+                    "Dana obseved a peculiar patern in the butterfly wings.",
+                    "Dana observed a peculier pattern in the butterfly wings.",
+                    "Dana observed a peculiar patern in the butterfly wings."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "Text-OG Analysis",
+              "component": "Word Recognition",
+              "time_allocation": "3 minutes",
+              "instructions": "Identify the word that correctly matches the focus on compound words and suffixes.",
+              "questions": [
+                {
+                  "prompt": "Which word is a correctly spelled compound word?",
+                  "options": [
+                    "notebook",
+                    "notebok",
+                    "notbook",
+                    "notebuk"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                },
+                {
+                  "prompt": "Which word correctly uses the suffix '-tion'?",
+                  "options": [
+                    "observasion",
+                    "obervation",
+                    "observation",
+                    "obserbation"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "Text-OG Review",
+              "component": "Grammar",
+              "time_allocation": "2 minutes",
+              "instructions": "Select the phrase that uses suffixes and prefixes correctly.",
+              "questions": [
+                {
+                  "prompt": "Which phrase correctly uses 'discovered' and 'recording'?",
+                  "options": [
+                    "Dana discovered a new reaction while recording.",
+                    "Dana discovred a new reaktion while recording.",
+                    "Dana discovered a new reactin while recording.",
+                    "Dana discovered a new reaction while recordeing."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "Reading Comprehension",
+              "component": "Multiple Choice Comprehension",
+              "time_allocation": "5 minutes",
+              "instructions": "Based on the text about Dana's discovery, choose the correct answers.",
+              "questions": [
+                {
+                  "prompt": "What did Dana notice that was different about the butterflies?",
+                  "options": [
+                    "Their size",
+                    "Their color",
+                    "Their wing patterns",
+                    "Their speed"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                },
+                {
+                  "prompt": "Who did Dana share her observations with?",
+                  "options": [
+                    "Her headteacher",
+                    "Her science teacher",
+                    "Her mathematics teacher",
+                    "Her parents"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            }
+          ],
+          "feedback": {
+            "prompt": "How did you feel about today's activity?",
+            "options": [
+              "\ud83d\udc4d Great!",
+              "\ud83d\ude0a Good",
+              "\ud83d\ude10 Okay",
+              "\ud83d\udc4e Hard"
+            ]
+          }
+        },
+        "type": "text_area"
+      }
+    ]
+  }
+}
