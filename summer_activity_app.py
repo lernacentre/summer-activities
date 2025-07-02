@@ -62,6 +62,7 @@ if selected_name != "-- Select --":
         st.rerun()
 
     st.subheader(f"📘 Activity: {next_day.replace('_', ' ').title()}")
+    st.caption(f"🔍 {len(activity['fields'])} fields in this activity.")
 
     # ---------- FORM ----------
     with st.form("activity_form"):
@@ -76,14 +77,16 @@ if selected_name != "-- Select --":
             st.markdown(f"**{label}**")
 
             if ftype == "text_input":
-                responses[fid] = st.text_input("", key=f"{fid}_{i}")
+                responses[fid] = st.text_input("Your answer", key=f"{fid}_{i}")
             elif ftype == "text_area":
-                responses[fid] = st.text_area("", key=f"{fid}_{i}")
+                responses[fid] = st.text_area("Your answer", key=f"{fid}_{i}")
             elif ftype == "static":
                 st.info(content)
             elif ftype == "checkbox":
+                responses[fid] = []
                 for j, word in enumerate(content):
-                    st.checkbox(word, key=f"{fid}_{j}")
+                    if st.checkbox(word, key=f"{fid}_{j}"):
+                        responses[fid].append(word)
             elif ftype == "radio":
                 responses[fid] = st.radio("Choose one:", options=field["options"], key=f"{fid}_{i}")
 
