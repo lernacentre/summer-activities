@@ -2,7 +2,7 @@ import streamlit as st
 import os
 import json
 
-DATA_DIR = "summer_activities/Group7"
+DATA_DIR = "summer_activities/Group 7"
 
 # Get all student files
 student_files = [f for f in os.listdir(DATA_DIR) if f.endswith(".json")]
