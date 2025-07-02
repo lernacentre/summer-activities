@@ -1,33 +1,26 @@
 import streamlit as st
-import pandas as pd
-from PIL import Image
+import os
+import json
 
-# Set page title and icon
-st.set_page_config(page_title="Lerna Summer Literacy", page_icon="📘", layout="centered")
+DATA_DIR = "data/Group7"
 
-# Load student data (if needed later)
-# students = pd.read_csv("students.csv")
+# Get all student files
+student_files = [f for f in os.listdir(DATA_DIR) if f.endswith(".json")]
 
-# Display logo
-st.image("images/Lerna_Logo-min.png", width=180)  # Adjust path & size as needed
+# Extract names from filenames
+student_names = [f.replace(".json", "").replace("_", " ").title() for f in student_files]
 
-# Program title
-st.markdown(
-    "<h1 style='text-align: center; color: #2a5d84;'>📘 Lerna Summer Literacy Program</h1>",
-    unsafe_allow_html=True
-)
+# Dropdown login
+selected_name = st.selectbox("Select your name", ["-- Select --"] + student_names)
 
-st.markdown("---")  # Horizontal line
+if selected_name and selected_name != "-- Select --":
+    student_id = selected_name.lower().replace(" ", "_")
+    json_path = os.path.join(DATA_DIR, f"{student_id}.json")
 
-# Login form
-st.subheader("🔐 Student Login")
-name = st.text_input("Username")
-password = st.text_input("Password", type="password")
-
-if st.button("Login"):
-    # You can replace this with a real authentication check later
-    if name.strip() != "" and password.strip() != "":
-        st.success(f"Welcome back, {name.title()}! 🎉")
-        st.info("We'll load your personalized dashboard next...")
+    if os.path.exists(json_path):
+        with open(json_path, "r") as f:
+            student_data = json.load(f)
+        st.success(f"✅ Welcome, {selected_name}!")
+        # ... continue with activity display ...
     else:
-        st.error("Please enter both username and password.")
+        st.error("Could not load student file.")
