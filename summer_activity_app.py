@@ -62,33 +62,35 @@ if selected_name != "-- Select --":
         st.rerun()
 
     st.subheader(f"📘 Activity: {next_day.replace('_', ' ').title()}")
-    st.caption(f"🔍 {len(activity['fields'])} fields in this activity.")
+    st.caption(f"🔍 This activity has {len(activity['fields'])} fields.")
 
     # ---------- FORM ----------
     with st.form("activity_form"):
         responses = {}
 
         for i, field in enumerate(activity["fields"]):
-            fid = field["id"]
-            label = field["label"]
-            ftype = field["type"]
+            fid = field.get("id", f"field_{i}")
+            label = field.get("label", f"Field {i}")
+            ftype = field.get("type", "text_input")
             content = field.get("content", "")
 
             st.markdown(f"**{label}**")
 
             if ftype == "text_input":
-                responses[fid] = st.text_input("Your answer", key=f"{fid}_{i}")
+                responses[fid] = st.text_input("Your answer", key=f"text_input_{fid}")
             elif ftype == "text_area":
-                responses[fid] = st.text_area("Your answer", key=f"{fid}_{i}")
+                responses[fid] = st.text_area("Your answer", key=f"text_area_{fid}")
             elif ftype == "static":
                 st.info(content)
             elif ftype == "checkbox":
                 responses[fid] = []
                 for j, word in enumerate(content):
-                    if st.checkbox(word, key=f"{fid}_{j}"):
+                    if st.checkbox(word, key=f"checkbox_{fid}_{j}"):
                         responses[fid].append(word)
             elif ftype == "radio":
-                responses[fid] = st.radio("Choose one:", options=field["options"], key=f"{fid}_{i}")
+                responses[fid] = st.radio("Choose one:", options=field.get("options", []), key=f"radio_{fid}")
+            else:
+                st.warning(f"⚠️ Unknown field type: {ftype}")
 
         submitted = st.form_submit_button("✅ Submit")
 
