@@ -2,9 +2,11 @@ import streamlit as st
 import os
 import json
 import time
+import hashlib
 
 # ---------- SETTINGS ----------
 DATA_DIR = "summer_activities/Group 7"
+PASSWORD_FILE = os.path.join(DATA_DIR, "passwords.json")
 st.set_page_config("📘 Literacy App", layout="centered")
 
 # ---------- HELPERS ----------
@@ -33,12 +35,40 @@ def get_day_number(day_key):
     # Extract day number from day_key (e.g., "day_1" -> 1)
     return int(day_key.split("_")[1])
 
-# ---------- PASSWORD SETUP ----------
-# You can modify these passwords as needed
-STUDENT_PASSWORDS = {
-    "ahmed_al_balushi": "sketch123",
-    # Add more students and passwords here
-}
+# ---------- PASSWORD MANAGEMENT ----------
+def hash_password(password):
+    """Hash password for secure storage"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def load_passwords():
+    """Load passwords from file"""
+    if os.path.exists(PASSWORD_FILE):
+        with open(PASSWORD_FILE, 'r') as f:
+            return json.load(f)
+    return {}
+
+def save_passwords(passwords):
+    """Save passwords to file"""
+    with open(PASSWORD_FILE, 'w') as f:
+        json.dump(passwords, f, indent=2)
+
+def check_password(student_id, password):
+    """Check if password is correct"""
+    passwords = load_passwords()
+    if student_id in passwords:
+        return passwords[student_id] == hash_password(password)
+    return False
+
+def set_password(student_id, password):
+    """Set or update password for student"""
+    passwords = load_passwords()
+    passwords[student_id] = hash_password(password)
+    save_passwords(passwords)
+
+def student_has_password(student_id):
+    """Check if student has already set a password"""
+    passwords = load_passwords()
+    return student_id in passwords
 
 # ---------- SESSION STATE INITIALIZATION ----------
 if "authenticated" not in st.session_state:
@@ -51,35 +81,120 @@ if "show_welcome" not in st.session_state:
     st.session_state.show_welcome = False
 if "activity_started" not in st.session_state:
     st.session_state.activity_started = False
+if "show_reset_password" not in st.session_state:
+    st.session_state.show_reset_password = False
 
 # ---------- LOGIN PAGE ----------
 if not st.session_state.authenticated:
     st.title("🎓 Summer Literacy Activities")
     st.subheader("Please log in to continue")
     
-    with st.form("login_form"):
-        student_files = [f for f in os.listdir(DATA_DIR) if f.endswith(".json")]
-        student_names = [f.replace(".json", "").replace("_", " ").title() for f in student_files]
+    # Get list of students
+    student_files = [f for f in os.listdir(DATA_DIR) if f.endswith(".json") and f != "passwords.json"]
+    student_names = [f.replace(".json", "").replace("_", " ").title() for f in student_files]
+    
+    # Check if we're in password reset mode
+    if st.session_state.show_reset_password:
+        st.info("🔐 Reset Your Password")
         
-        selected_name = st.selectbox("Select your name:", ["-- Select --"] + student_names)
-        password = st.text_input("Enter your password:", type="password")
-        login_button = st.form_submit_button("🔐 Login")
-        
-        if login_button:
+        with st.form("reset_password_form"):
+            selected_name = st.selectbox("Select your name:", ["-- Select --"] + student_names)
+            new_password = st.text_input("Enter new password:", type="password")
+            confirm_password = st.text_input("Confirm new password:", type="password")
+            col1, col2 = st.columns(2)
+            with col1:
+                reset_button = st.form_submit_button("✅ Reset Password", use_container_width=True)
+            with col2:
+                cancel_button = st.form_submit_button("❌ Cancel", use_container_width=True)
+            
+            if reset_button:
+                if selected_name != "-- Select --":
+                    if new_password and confirm_password:
+                        if new_password == confirm_password:
+                            if len(new_password) >= 4:
+                                student_id = selected_name.lower().replace(" ", "_")
+                                set_password(student_id, new_password)
+                                st.success("✅ Password reset successfully! You can now log in.")
+                                st.session_state.show_reset_password = False
+                                time.sleep(2)
+                                st.rerun()
+                            else:
+                                st.error("❌ Password must be at least 4 characters long.")
+                        else:
+                            st.error("❌ Passwords don't match. Please try again.")
+                    else:
+                        st.error("❌ Please enter and confirm your password.")
+                else:
+                    st.warning("⚠️ Please select your name.")
+            
+            if cancel_button:
+                st.session_state.show_reset_password = False
+                st.rerun()
+    
+    else:
+        # Normal login form
+        with st.form("login_form"):
+            selected_name = st.selectbox("Select your name:", ["-- Select --"] + student_names)
+            
+            # Check if this is first time login
             if selected_name != "-- Select --":
                 student_id = selected_name.lower().replace(" ", "_")
-                
-                # Check password
-                if student_id in STUDENT_PASSWORDS and password == STUDENT_PASSWORDS[student_id]:
-                    st.session_state.authenticated = True
-                    st.session_state.student_name = selected_name
-                    st.session_state.student_id = student_id
-                    st.session_state.show_welcome = True
-                    st.rerun()
+                if not student_has_password(student_id):
+                    st.info("👋 Welcome! Please create a password for your first login.")
+                    password = st.text_input("Create a password (at least 4 characters):", type="password")
+                    confirm_password = st.text_input("Confirm password:", type="password")
                 else:
-                    st.error("❌ Incorrect password. Please try again.")
+                    password = st.text_input("Enter your password:", type="password")
+                    confirm_password = None
             else:
-                st.warning("⚠️ Please select your name.")
+                password = st.text_input("Enter your password:", type="password", disabled=True)
+            
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                login_button = st.form_submit_button("🔐 Login", use_container_width=True)
+            with col2:
+                forgot_button = st.form_submit_button("Forgot?")
+            
+            if login_button:
+                if selected_name != "-- Select --":
+                    student_id = selected_name.lower().replace(" ", "_")
+                    
+                    # First time login - create password
+                    if not student_has_password(student_id):
+                        if password and confirm_password:
+                            if password == confirm_password:
+                                if len(password) >= 4:
+                                    set_password(student_id, password)
+                                    st.session_state.authenticated = True
+                                    st.session_state.student_name = selected_name
+                                    st.session_state.student_id = student_id
+                                    st.session_state.show_welcome = True
+                                    st.success("✅ Password created successfully!")
+                                    time.sleep(1)
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Password must be at least 4 characters long.")
+                            else:
+                                st.error("❌ Passwords don't match. Please try again.")
+                        else:
+                            st.error("❌ Please enter and confirm your password.")
+                    
+                    # Regular login
+                    else:
+                        if check_password(student_id, password):
+                            st.session_state.authenticated = True
+                            st.session_state.student_name = selected_name
+                            st.session_state.student_id = student_id
+                            st.session_state.show_welcome = True
+                            st.rerun()
+                        else:
+                            st.error("❌ Incorrect password. Please try again.")
+                else:
+                    st.warning("⚠️ Please select your name.")
+            
+            if forgot_button:
+                st.session_state.show_reset_password = True
+                st.rerun()
 
 # ---------- WELCOME SCREEN ----------
 elif st.session_state.show_welcome and not st.session_state.activity_started:
