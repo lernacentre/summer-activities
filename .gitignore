@@ -1,1 +1,32 @@
+# API Keys and secrets
+.env
+.env.local
+.env.production
+*.env
+passwords.json
 
+# Generated files
+summer_activities/
+audio_files/
+*.mp3
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.Python
+env/
+venv/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
