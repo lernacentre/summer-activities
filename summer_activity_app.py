@@ -83,6 +83,8 @@ if "activity_started" not in st.session_state:
     st.session_state.activity_started = False
 if "show_reset_password" not in st.session_state:
     st.session_state.show_reset_password = False
+if "responses" not in st.session_state:
+    st.session_state.responses = {}
 
 # ---------- LOGIN PAGE ----------
 if not st.session_state.authenticated:
@@ -219,6 +221,7 @@ elif st.session_state.show_welcome and not st.session_state.activity_started:
             if st.button("🚀 Start Today's Activity", use_container_width=True):
                 st.session_state.activity_started = True
                 st.session_state.show_welcome = False
+                st.session_state.responses = {}  # Clear previous responses
                 st.rerun()
         else:
             st.success("🎉 You've completed all your activities!")
@@ -244,6 +247,7 @@ else:
             st.session_state.student_id = None
             st.session_state.show_welcome = False
             st.session_state.activity_started = False
+            st.session_state.responses = {}
             st.rerun()
     
     try:
@@ -262,108 +266,130 @@ else:
         st.metric("Days Completed", f"{completed_days}/{len(student_data)}")
     
     # ---------- NEXT ACTIVITY ----------
-    next_day, activity = get_next_day(student_data)
+    next_day, day_data = get_next_day(student_data)
     
     if not next_day:
         st.success("🎉 Congratulations! You've completed all your activities!")
         st.balloons()
         st.stop()
     
-    # Prevent infinite rerun loop
-    if st.session_state.get("completed_day") == next_day:
-        st.success(f"✅ Day {get_day_number(next_day)} completed! Great job!")
-        del st.session_state["completed_day"]
-        time.sleep(2)
-        st.session_state.show_welcome = True
-        st.session_state.activity_started = False
-        st.rerun()
-    
     day_number = get_day_number(next_day)
     st.subheader(f"📘 Day {day_number} Activity")
-    st.caption(f"This activity has {len(activity['fields'])} sections to complete.")
     
-    # ---------- FORM ----------
-    with st.form("activity_form"):
-        responses = {}
+    # Get the activity pack content
+    activity_pack = None
+    for field in day_data.get("fields", []):
+        if field.get("id") == "activity_pack":
+            activity_pack = field.get("content", {})
+            break
+    
+    if not activity_pack:
+        st.error("Activity pack not found!")
+        st.stop()
+    
+    # Display duration
+    st.caption(f"Duration: {activity_pack.get('duration', '15 minutes')}")
+    
+    # Display activities
+    activities = activity_pack.get("activities", [])
+    total_questions = sum(len(activity.get("questions", [])) for activity in activities)
+    
+    # Initialize responses in session state if not present
+    if "current_responses" not in st.session_state:
+        st.session_state.current_responses = {}
+    
+    # Display each activity
+    for activity_idx, activity in enumerate(activities):
+        st.markdown("---")
+        st.markdown(f"### Activity {activity.get('activity_number', activity_idx + 1)}: {activity.get('component', 'Activity')}")
+        st.caption(f"Source: {activity.get('source', 'Unknown')} | Time: {activity.get('time_allocation', '5 minutes')}")
         
-        for i, field in enumerate(activity["fields"]):
-            fid = field.get("id", f"field_{i}")
-            label = field.get("label", f"Field {i}")
-            ftype = field.get("type", "text_input")
-            content = field.get("content", "")
+        instructions = activity.get("instructions", "")
+        if instructions:
+            st.info(f"📋 **Instructions:** {instructions}")
+        
+        # Display questions
+        questions = activity.get("questions", [])
+        for q_idx, question in enumerate(questions):
+            question_key = f"activity_{activity_idx}_question_{q_idx}"
+            st.markdown(f"**Question {q_idx + 1}:**")
+            st.write(question.get("prompt", ""))
             
-            # Display the field label
-            st.markdown(f"**{i+1}. {label}**")
-            
-            if ftype == "text_input":
-                # Display content as instruction if present
-                if content:
-                    st.info(content)
-                responses[fid] = st.text_input("Your answer:", key=f"text_input_{fid}")
+            options = question.get("options", [])
+            if options:
+                # Store the selected answer
+                selected = st.radio(
+                    "Choose your answer:",
+                    options=options,
+                    key=question_key,
+                    index=None
+                )
                 
-            elif ftype == "text_area":
-                # Display content as instruction if present
-                if content:
-                    st.info(content)
-                responses[fid] = st.text_area("Your answer:", key=f"text_area_{fid}", height=100)
+                if selected:
+                    st.session_state.current_responses[question_key] = {
+                        "selected": options.index(selected),
+                        "correct": question.get("correct", [])[0] if question.get("correct") else None
+                    }
+    
+    # Feedback question
+    st.markdown("---")
+    feedback = activity_pack.get("feedback", {})
+    if feedback:
+        st.markdown("### Feedback")
+        st.write(feedback.get("prompt", "How did you feel about today's activity?"))
+        feedback_options = feedback.get("options", ["👍 Great!", "😊 Good", "😐 Okay", "👎 Hard"])
+        feedback_response = st.radio(
+            "Select one:",
+            options=feedback_options,
+            key="feedback_response",
+            index=None
+        )
+        
+        if feedback_response:
+            st.session_state.current_responses["feedback"] = feedback_response
+    
+    # Submit button
+    st.markdown("---")
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        # Check if all questions are answered
+        expected_responses = sum(len(activity.get("questions", [])) for activity in activities) + 1  # +1 for feedback
+        actual_responses = len(st.session_state.current_responses)
+        
+        if st.button("✅ Submit Day's Activity", use_container_width=True):
+            if actual_responses >= expected_responses:
+                # Calculate score
+                correct_answers = 0
+                total_answers = 0
                 
-            elif ftype == "static":
-                # Just display the content
-                st.info(content)
+                for key, response in st.session_state.current_responses.items():
+                    if key != "feedback" and isinstance(response, dict):
+                        total_answers += 1
+                        if response.get("selected") == response.get("correct"):
+                            correct_answers += 1
                 
-            elif ftype == "checkbox":
-                # Display checkboxes for each item in content
-                if isinstance(content, list):
-                    st.caption("Check the words you've practiced:")
-                    responses[fid] = []
-                    cols = st.columns(min(len(content), 3))  # Create columns for better layout
-                    for j, word in enumerate(content):
-                        with cols[j % len(cols)]:
-                            if st.checkbox(word, key=f"checkbox_{fid}_{j}"):
-                                responses[fid].append(word)
+                # Save responses and mark day as complete
+                student_data[next_day]["responses"] = st.session_state.current_responses
+                student_data[next_day]["score"] = {
+                    "correct": correct_answers,
+                    "total": total_answers,
+                    "percentage": round((correct_answers / total_answers * 100) if total_answers > 0 else 0, 1)
+                }
+                student_data[next_day]["complete"] = True
+                save_student_data(st.session_state.student_id, student_data)
                 
-            elif ftype == "radio":
-                # Display content as instruction if present
-                if content:
-                    st.info(content)
-                options = field.get("options", [])
-                if options:
-                    responses[fid] = st.radio("Choose one:", options=options, key=f"radio_{fid}")
-                else:
-                    st.warning("No options provided for radio field")
-                    
+                # Show completion message
+                st.success(f"✅ Day {day_number} completed! You got {correct_answers}/{total_answers} questions correct!")
+                st.balloons()
+                
+                # Clear responses and go back to welcome screen
+                st.session_state.current_responses = {}
+                st.session_state.show_welcome = True
+                st.session_state.activity_started = False
+                time.sleep(3)
+                st.rerun()
             else:
-                st.warning(f"⚠️ Unknown field type: {ftype}")
-            
-            # Add spacing between fields
-            st.markdown("---")
-        
-        # Submit button
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            submitted = st.form_submit_button("✅ Submit Day's Activity", use_container_width=True)
+                st.error(f"⚠️ Please answer all questions before submitting! ({actual_responses}/{expected_responses} answered)")
     
-    # ---------- SUBMIT HANDLER ----------
-    if submitted:
-        # Validate that required fields are filled
-        all_filled = True
-        for field in activity["fields"]:
-            fid = field.get("id", "")
-            ftype = field.get("type", "")
-            
-            if ftype in ["text_input", "text_area"] and fid in responses:
-                if not responses[fid].strip():
-                    all_filled = False
-                    break
-            elif ftype == "checkbox" and fid in responses:
-                if not responses[fid]:
-                    all_filled = False
-                    break
-        
-        if all_filled:
-            student_data[next_day]["complete"] = True
-            save_student_data(student_id, student_data)
-            st.session_state["completed_day"] = next_day
-            st.rerun()
-        else:
-            st.error("⚠️ Please complete all fields before submitting!")
+    # Progress indicator at the bottom
+    st.caption(f"Questions answered: {len(st.session_state.current_responses)}/{expected_responses}")
