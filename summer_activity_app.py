@@ -1,426 +1,539 @@
+import streamlit as st
 import os
-import re
 import json
-import pandas as pd
-import pdfplumber
-from docx import Document
-import openai
-from elevenlabs import client as elevenlabs_client
-from elevenlabs import save
+import time
 import hashlib
 
-# --- SETTINGS ---
-BASE_DIR = '../../SLG_Mar25/OG_Lesson Plans/LRC_Final_OG_Lesson Plans/'
-OUTPUT_DIR = os.path.join(BASE_DIR, "Summer_Activities")
-AUDIO_DIR = os.path.join(OUTPUT_DIR, "audio_files")
-my_api_key = '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'
-ELEVENLABS_API_KEY = 'your_elevenlabs_api_key_here'  # Add your ElevenLabs API key
+# ---------- SETTINGS ----------
+DATA_DIR = "summer_activities/Group 7"
+AUDIO_DIR = "summer_activities/audio_files/Group 7"
+PASSWORD_FILE = os.path.join(DATA_DIR, "passwords.json")
 
-os.makedirs(OUTPUT_DIR, exist_ok=True)
-os.makedirs(AUDIO_DIR, exist_ok=True)
+# Page configuration
+st.set_page_config(
+    page_title="📘 Summer Literacy Activities",
+    page_icon="📚",
+    layout="centered",
+    initial_sidebar_state="collapsed"
+)
 
-# Initialize clients
-openai_client = openai.OpenAI(api_key=my_api_key)
-elevenlabs = elevenlabs_client.ElevenLabs(api_key=ELEVENLABS_API_KEY)
+# Custom CSS for better styling
+st.markdown("""
+<style>
+    .stButton > button {
+        width: 100%;
+        background-color: #4CAF50;
+        color: white;
+        font-weight: bold;
+    }
+    .stRadio > div > label {
+        font-size: 16px;
+        padding: 10px;
+    }
+    .question-box {
+        background-color: #f0f2f6;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 10px 0;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-# --- AUDIO GENERATION ---
-def generate_audio_elevenlabs(text, student_name, activity_type="dictation"):
-    """
-    Generate audio using ElevenLabs API
-    Uses British voices for UK curriculum
-    """
+# ---------- HELPERS ----------
+def load_student_data(student_id):
+    """Load student progress data"""
+    path = os.path.join(DATA_DIR, f"{student_id}.json")
+    with open(path, "r") as f:
+        return json.load(f)
+
+def save_student_data(student_id, data):
+    """Save student progress data"""
+    path = os.path.join(DATA_DIR, f"{student_id}.json")
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2)
+
+def get_next_day(data):
+    """Get the next incomplete day"""
+    for day_key, day_data in data.items():
+        if not day_data.get("complete"):
+            return day_key, day_data
+    return None, None
+
+def calculate_progress(data):
+    """Calculate overall progress percentage"""
+    total = len(data)
+    completed = sum(1 for d in data.values() if d.get("complete"))
+    return int((completed / total) * 100)
+
+def get_day_number(day_key):
+    """Extract day number from day_key"""
+    return int(day_key.split("_")[1])
+
+# ---------- PASSWORD MANAGEMENT ----------
+def hash_password(password):
+    """Hash password for secure storage"""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def load_passwords():
+    """Load passwords from file"""
+    if os.path.exists(PASSWORD_FILE):
+        with open(PASSWORD_FILE, 'r') as f:
+            return json.load(f)
+    return {}
+
+def save_passwords(passwords):
+    """Save passwords to file"""
+    with open(PASSWORD_FILE, 'w') as f:
+        json.dump(passwords, f, indent=2)
+
+def check_password(student_id, password):
+    """Check if password is correct"""
+    passwords = load_passwords()
+    if student_id in passwords:
+        return passwords[student_id] == hash_password(password)
+    return False
+
+def set_password(student_id, password):
+    """Set or update password for student"""
+    passwords = load_passwords()
+    passwords[student_id] = hash_password(password)
+    save_passwords(passwords)
+
+def student_has_password(student_id):
+    """Check if student has already set a password"""
+    passwords = load_passwords()
+    return student_id in passwords
+
+# ---------- SESSION STATE INITIALIZATION ----------
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "student_name" not in st.session_state:
+    st.session_state.student_name = None
+if "student_id" not in st.session_state:
+    st.session_state.student_id = None
+if "show_welcome" not in st.session_state:
+    st.session_state.show_welcome = False
+if "activity_started" not in st.session_state:
+    st.session_state.activity_started = False
+if "show_reset_password" not in st.session_state:
+    st.session_state.show_reset_password = False
+if "current_responses" not in st.session_state:
+    st.session_state.current_responses = {}
+
+# ---------- LOGIN PAGE ----------
+if not st.session_state.authenticated:
+    st.title("🎓 Summer Literacy Activities")
+    st.subheader("Welcome to your personalised learning journey!")
+    
+    # Get list of students
     try:
-        # Generate unique filename
-        text_hash = hashlib.md5(text.encode()).hexdigest()[:8]
-        filename = f"{student_name.lower().replace(' ', '_')}_{activity_type}_{text_hash}.mp3"
-        filepath = os.path.join(AUDIO_DIR, filename)
+        student_files = [f for f in os.listdir(DATA_DIR) if f.endswith(".json") and f != "passwords.json"]
+        student_names = [f.replace(".json", "").replace("_", " ").title() for f in student_files]
+    except FileNotFoundError:
+        st.error("Student data directory not found. Please check the file structure.")
+        st.stop()
+    
+    if not student_names:
+        st.error("No student files found. Please check the data directory.")
+        st.stop()
+    
+    # Password reset mode
+    if st.session_state.show_reset_password:
+        st.info("🔐 Reset Your Password")
         
-        # Skip if already exists
-        if os.path.exists(filepath):
-            print(f"   🔊 Audio already exists: {filename}")
-            return filepath
+        with st.form("reset_password_form"):
+            selected_name = st.selectbox("Select your name:", ["-- Select --"] + student_names)
+            new_password = st.text_input("Enter new password:", type="password", 
+                                       help="Minimum 4 characters")
+            confirm_password = st.text_input("Confirm new password:", type="password")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                reset_button = st.form_submit_button("✅ Reset Password", use_container_width=True)
+            with col2:
+                cancel_button = st.form_submit_button("❌ Cancel", use_container_width=True)
+            
+            if reset_button:
+                if selected_name != "-- Select --":
+                    if new_password and confirm_password:
+                        if new_password == confirm_password:
+                            if len(new_password) >= 4:
+                                student_id = selected_name.lower().replace(" ", "_")
+                                set_password(student_id, new_password)
+                                st.success("✅ Password reset successfully! You can now log in.")
+                                st.session_state.show_reset_password = False
+                                time.sleep(2)
+                                st.rerun()
+                            else:
+                                st.error("❌ Password must be at least 4 characters long.")
+                        else:
+                            st.error("❌ Passwords don't match. Please try again.")
+                    else:
+                        st.error("❌ Please enter and confirm your password.")
+                else:
+                    st.warning("⚠️ Please select your name.")
+            
+            if cancel_button:
+                st.session_state.show_reset_password = False
+                st.rerun()
+    
+    else:
+        # Normal login form
+        with st.form("login_form"):
+            selected_name = st.selectbox("Select your name:", ["-- Select --"] + student_names)
+            
+            # Dynamic password field based on selection
+            if selected_name != "-- Select --":
+                student_id = selected_name.lower().replace(" ", "_")
+                if not student_has_password(student_id):
+                    st.info("👋 Welcome! Please create a password for your first login.")
+                    password = st.text_input("Create a password (at least 4 characters):", type="password")
+                    confirm_password = st.text_input("Confirm password:", type="password")
+                else:
+                    password = st.text_input("Enter your password:", type="password")
+                    confirm_password = None
+            else:
+                password = st.text_input("Enter your password:", type="password", disabled=True)
+            
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                login_button = st.form_submit_button("🔐 Login", use_container_width=True)
+            with col2:
+                forgot_button = st.form_submit_button("Forgot?")
+            
+            if login_button:
+                if selected_name != "-- Select --":
+                    student_id = selected_name.lower().replace(" ", "_")
+                    
+                    # First time login - create password
+                    if not student_has_password(student_id):
+                        if password and confirm_password:
+                            if password == confirm_password:
+                                if len(password) >= 4:
+                                    set_password(student_id, password)
+                                    st.session_state.authenticated = True
+                                    st.session_state.student_name = selected_name
+                                    st.session_state.student_id = student_id
+                                    st.session_state.show_welcome = True
+                                    st.success("✅ Password created successfully!")
+                                    time.sleep(1)
+                                    st.rerun()
+                                else:
+                                    st.error("❌ Password must be at least 4 characters long.")
+                            else:
+                                st.error("❌ Passwords don't match. Please try again.")
+                        else:
+                            st.error("❌ Please enter and confirm your password.")
+                    
+                    # Regular login
+                    else:
+                        if check_password(student_id, password):
+                            st.session_state.authenticated = True
+                            st.session_state.student_name = selected_name
+                            st.session_state.student_id = student_id
+                            st.session_state.show_welcome = True
+                            st.rerun()
+                        else:
+                            st.error("❌ Incorrect password. Please try again.")
+                else:
+                    st.warning("⚠️ Please select your name.")
+            
+            if forgot_button:
+                st.session_state.show_reset_password = True
+                st.rerun()
+
+# ---------- WELCOME SCREEN ----------
+elif st.session_state.show_welcome and not st.session_state.activity_started:
+    try:
+        student_data = load_student_data(st.session_state.student_id)
+        next_day, _ = get_next_day(student_data)
         
-        # Generate audio with British voice
-        # Available British voices: "Charlotte", "Daniel", "Lily", "George"
-        audio = elevenlabs.generate(
-            text=text,
-            voice="Charlotte",  # British female voice
-            model="eleven_monolingual_v1"
+        if next_day:
+            day_number = get_day_number(next_day)
+            
+            # Welcome message with animation
+            st.balloons()
+            st.title(f"🌟 Hello {st.session_state.student_name}!")
+            st.header(f"Welcome to Day {day_number}")
+            
+            # Progress overview
+            progress = calculate_progress(student_data)
+            st.progress(progress / 100)
+            st.caption(f"{progress}% of activities completed")
+            
+            st.subheader("Ready for today's adventure? 📚")
+            
+            # Motivational message
+            if day_number == 1:
+                st.info("🎯 Your first day! Let's make it amazing!")
+            elif progress > 50:
+                st.info("🌟 You're doing fantastic! Keep going!")
+            else:
+                st.info("💪 Every day is a step forward!")
+            
+            # Start button
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("🚀 Start Today's Activity", use_container_width=True, type="primary"):
+                st.session_state.activity_started = True
+                st.session_state.show_welcome = False
+                st.session_state.current_responses = {}
+                st.rerun()
+                
+        else:
+            # All activities completed
+            st.success("🎉 Congratulations! You've completed all your activities!")
+            st.balloons()
+            
+            # Show final stats
+            st.subheader("Your Achievement Summary")
+            total_days = len(student_data)
+            st.metric("Days Completed", f"{total_days} / {total_days}")
+            
+            # Calculate average score
+            total_score = 0
+            total_questions = 0
+            for day_data in student_data.values():
+                if "score" in day_data:
+                    total_score += day_data["score"]["correct"]
+                    total_questions += day_data["score"]["total"]
+            
+            if total_questions > 0:
+                avg_score = (total_score / total_questions) * 100
+                st.metric("Average Score", f"{avg_score:.1f}%")
+            
+            st.markdown("### 🏆 You're a literacy champion!")
+            
+    except FileNotFoundError:
+        st.error("Student file not found.")
+        if st.button("🔙 Back to Login"):
+            st.session_state.authenticated = False
+            st.session_state.show_welcome = False
+            st.rerun()
+
+# ---------- ACTIVITY PAGE ----------
+else:
+    # Sidebar with logout
+    with st.sidebar:
+        st.write(f"👤 {st.session_state.student_name}")
+        if st.button("🚪 Logout", use_container_width=True):
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            st.rerun()
+    
+    st.title("🎓 Summer Literacy Activities")
+    
+    try:
+        student_data = load_student_data(st.session_state.student_id)
+    except FileNotFoundError:
+        st.error("Student file not found.")
+        st.stop()
+    
+    # Progress metrics
+    progress = calculate_progress(student_data)
+    col1, col2, col3 = st.columns([2, 2, 1])
+    with col1:
+        st.metric("Overall Progress", f"{progress}%")
+        st.progress(progress / 100)
+    with col2:
+        completed_days = sum(1 for d in student_data.values() if d.get("complete"))
+        st.metric("Days Completed", f"{completed_days}/{len(student_data)}")
+    with col3:
+        if st.button("📊 View Scores"):
+            with st.expander("Your Scores"):
+                for day_key, day_data in student_data.items():
+                    if day_data.get("complete") and "score" in day_data:
+                        day_num = get_day_number(day_key)
+                        score = day_data["score"]
+                        st.write(f"Day {day_num}: {score['correct']}/{score['total']} ({score['percentage']}%)")
+    
+    # Get next activity
+    next_day, day_data = get_next_day(student_data)
+    
+    if not next_day:
+        st.success("🎉 All activities completed!")
+        st.balloons()
+        st.stop()
+    
+    day_number = get_day_number(next_day)
+    st.subheader(f"📘 Day {day_number} Activity")
+    
+    # Get activity pack
+    activity_pack = None
+    for field in day_data.get("fields", []):
+        if field.get("id") == "activity_pack":
+            activity_pack = field.get("content", {})
+            break
+    
+    if not activity_pack:
+        st.error("Activity pack not found!")
+        st.stop()
+    
+    # Display duration
+    st.caption(f"⏱️ Duration: {activity_pack.get('duration', '15 minutes')}")
+    
+    # Progress bar for activities
+    activities = activity_pack.get("activities", [])
+    total_activities = len(activities)
+    
+    # Activity tabs
+    tabs = st.tabs([f"Activity {i+1}" for i in range(total_activities)])
+    
+    # Track total questions for progress
+    total_questions = sum(len(activity.get("questions", [])) for activity in activities) + 1  # +1 for feedback
+    
+    # Display each activity in tabs
+    for tab_idx, (tab, activity) in enumerate(zip(tabs, activities)):
+        with tab:
+            # Activity header
+            st.markdown(f"### {activity.get('component', 'Activity')}")
+            st.caption(f"Source: {activity.get('source', '')} | Time: {activity.get('time_allocation', '')}")
+            
+            # Instructions
+            if activity.get("instructions"):
+                st.info(f"📋 {activity.get('instructions')}")
+            
+            # Display passage if exists
+            passage = activity.get("passage", "")
+            if passage:
+                st.markdown("### 📖 Reading Passage")
+                
+                # Check for passage audio
+                if "passage_audio_file" in activity:
+                    audio_path = os.path.join(AUDIO_DIR, os.path.basename(activity["passage_audio_file"]))
+                    if os.path.exists(audio_path):
+                        st.audio(audio_path, format='audio/mp3')
+                        st.caption("🔊 Click to listen to the passage")
+                
+                # Display passage in a nice box
+                st.markdown(f"""
+                <div style='background-color: #f0f2f6; padding: 20px; border-radius: 10px; margin: 10px 0;'>
+                {passage}
+                </div>
+                """, unsafe_allow_html=True)
+                st.markdown("")
+            
+            # Display questions
+            questions = activity.get("questions", [])
+            for q_idx, question in enumerate(questions):
+                question_key = f"activity_{tab_idx}_question_{q_idx}"
+                
+                # Question container
+                with st.container():
+                    st.markdown(f"**Question {q_idx + 1}**")
+                    
+                    # Audio player if available
+                    if "audio_file" in question:
+                        audio_filename = os.path.basename(question["audio_file"])
+                        audio_path = os.path.join(AUDIO_DIR, audio_filename)
+                        
+                        if os.path.exists(audio_path):
+                            col1, col2 = st.columns([3, 1])
+                            with col1:
+                                st.audio(audio_path, format='audio/mp3')
+                            with col2:
+                                st.caption("🔊 Listen")
+                    
+                    # Question prompt
+                    prompt = question.get("prompt", "")
+                    if prompt:
+                        st.write(prompt)
+                    
+                    # Answer options
+                    options = question.get("options", [])
+                    if options:
+                        selected = st.radio(
+                            "Choose your answer:",
+                            options=options,
+                            key=question_key,
+                            index=None,
+                            label_visibility="collapsed"
+                        )
+                        
+                        if selected:
+                            st.session_state.current_responses[question_key] = {
+                                "selected": options.index(selected),
+                                "correct": question.get("correct", [])[0] if question.get("correct") else None
+                            }
+                    
+                    st.markdown("---")
+    
+    # Feedback section
+    st.markdown("### How did you feel about today's activities?")
+    feedback = activity_pack.get("feedback", {})
+    if feedback:
+        feedback_options = feedback.get("options", ["👍 Great!", "😊 Good", "😐 Okay", "👎 Hard"])
+        feedback_response = st.radio(
+            feedback.get("prompt", "Select one:"),
+            options=feedback_options,
+            key="feedback_response",
+            index=None,
+            horizontal=True
         )
         
-        # Save audio file
-        save(audio, filepath)
-        print(f"   🔊 Generated audio: {filename}")
-        return filepath
-        
-    except Exception as e:
-        print(f"   ⚠️ Audio generation failed: {e}")
-        return None
-
-def list_available_voices():
-    """List all available ElevenLabs voices"""
-    try:
-        voices = elevenlabs.voices.get_all()
-        british_voices = []
-        for voice in voices:
-            if voice.labels and any('british' in label.lower() or 'uk' in label.lower() for label in voice.labels.values()):
-                british_voices.append(voice.name)
-                print(f"British voice available: {voice.name}")
-        return british_voices
-    except Exception as e:
-        print(f"Error listing voices: {e}")
-        return []
-
-# --- HELPERS ---
-
-def extract_group_info(folder_name):
-    print(f"🔍 Attempting to extract group info from: {folder_name}")
-    group_match = re.search(r'Group(\d+)', folder_name)
-    year_match = re.search(r'Year(\d+)', folder_name)
-    skill_level_match = re.search(r'Skill Level\s*Year\d+', folder_name)
-
-    group_number = group_match.group(1) if group_match else None
-    year_level = year_match.group(1) if year_match else None
-    skill_level = skill_level_match.group(0) if skill_level_match else None
-
-    print(f"    ➤ group_number: {group_number}, year_level: {year_level}, skill_level: {skill_level}")
-    return group_number, year_level, skill_level
-
-def extract_text_from_docx(path):
-    try:
-        doc = Document(path)
-        return "\n".join(p.text for p in doc.paragraphs if p.text.strip())
-    except Exception as e:
-        print(f"⚠️ Error reading DOCX {path}: {e}")
-        return ""
-
-def extract_tables_from_pdf(pdf_path):
-    tables_text = []
-    try:
-        with pdfplumber.open(pdf_path) as pdf:
-            for page in pdf.pages:
-                tables = page.extract_tables()
-                for table in tables:
-                    for row in table:
-                        clean_row = [cell.strip() if cell else "" for cell in row]
-                        tables_text.append(" | ".join(clean_row))
-        return "\n".join(tables_text)
-    except Exception as e:
-        print(f"⚠️ Error reading PDF {pdf_path}: {e}")
-        return ""
-
-def normalize_student_profile(row):
-    return {
-        "name": row.get("Your Name"),
-        "interests": row.get("What are your hobbies or interests outside of school? \n📝 (Write or tell us what you like doing — games, music, sport, reading, etc.)"),
-        "enjoys": row.get("What helps you enjoy learning? (Tick any that apply)"),
-        "difficulties": row.get("What do you find difficult or want to improve?\n🛠️ (This could be something in school, at home, or in your learning.)"),
-        "preferred_work": row.get("What kind of work do you enjoy the most here?"),
-        "sentiment": row.get("How do you feel about your time at Lexicon Centre this half term?")
-    }
-
-def build_prompt(student, og_text, skills_text, year_level, skill_level, previous_content):
-    print('name: ', student['name'])
-    print('interests: ', student['interests'])
-    print('enjoys: ', student['enjoys'])
-    print('prefered work: ', student['preferred_work'])
-    print('difficulties', student['difficulties'])
+        if feedback_response:
+            st.session_state.current_responses["feedback"] = feedback_response
     
-    # Extract first name for more natural usage
-    student_first_name = student['name'].split()[0]
+    # Submit section
+    st.markdown("---")
     
-    # Format previous content for the prompt
-    previous_content_str = ""
-    if previous_content:
-        previous_content_str = "\n\nPREVIOUS CONTENT TO AVOID REPEATING:\n"
-        for day, content in previous_content.items():
-            previous_content_str += f"\n{day}:\n"
-            if 'dictation' in content:
-                previous_content_str += f"- Dictation: {content['dictation']}\n"
-            if 'passage' in content:
-                previous_content_str += f"- Passage Theme: {content['passage_theme']}\n"
-                previous_content_str += f"- Passage Extract: {content['passage'][:100]}...\n"
+    # Check completion
+    actual_responses = len(st.session_state.current_responses)
+    response_progress = actual_responses / total_questions if total_questions > 0 else 0
     
-    return f"""
-You are a British literacy tutor. Create a 15-minute phonics and comprehension activity pack for the following student:
-
-- Name: {student['name']} (use {student_first_name} in passages)
-- Interests: {student['interests']}
-- Struggles: {student['difficulties']}
-- Enjoys: {student['enjoys']}
-- Preferred work: {student['preferred_work']}
-- Target Year Level: Year {year_level}
-- Current Skill Level: {skill_level}
-
-LESSON CONTENT TO USE:
-OG Lesson Content:
-{og_text}
-
-SkillsApp Content:
-{skills_text}
-
-{previous_content_str}
-
-AUDIO REQUIREMENTS:
-For EVERY activity that involves listening (dictation, spelling, "teacher says"), include:
-- "audio_text": The EXACT text to be spoken (no quotation marks)
-- "audio_instructions": Brief instruction like "Listen carefully and choose the correct spelling"
-
-CRITICAL REQUIREMENTS:
-1. EXTRACT and USE the ACTUAL concepts from BOTH lessons
-2. Grammar must match SkillsApp lesson complexity (not basic nouns/verbs)
-3. Include vocabulary building strategies from SkillsApp
-4. Add multiple fill-in-the-blank writing exercises
-5. Test advanced concepts, not simplified versions
-6. Include audio_text for ALL listening activities
-
-EXPANDED ACTIVITY STRUCTURE (15 minutes total):
-
-1. DICTATION (1.5 minutes)
-   - Complex sentence about {student_first_name} using OG patterns
-   - MUST include "audio_text" field
-
-2. MORPHOLOGY - Greek/Latin Analysis (1 minute)
-   - Test actual roots/combining forms from OG lesson
-
-3. VOCABULARY BUILDING STRATEGY from SkillsApp (1.5 minutes)
-   - Apply specific strategy taught in lesson
-
-4. ADVANCED GRAMMAR from SkillsApp (1.5 minutes)
-   - Test complex concepts from lesson
-
-5. SENTENCE STRUCTURE - Fill in the Blank (1.5 minutes)
-   - Practice patterns from SkillsApp
-
-6. PARAGRAPH STRUCTURE - Fill in the Blank (1.5 minutes)
-   - Transition and cohesion practice
-
-7. PREFIX/SUFFIX APPLICATION (1 minute)
-   - Using morphemes from OG lesson
-
-8. INTEGRATED READING PASSAGE (4 minutes)
-   - Comprehensive passage with 6 varied questions
-
-9-11. Additional writing practice activities
-
-Return valid JSON with audio fields included:
-
-```json
-{{
-  "activity_pack": {{
-    "duration": "15 minutes",
-    "activities": [
-      {{
-        "activity_number": 1,
-        "source": "OG-Dictation",
-        "component": "Complex Sentence Dictation",
-        "time_allocation": "1.5 minutes",
-        "instructions": "Choose the correctly spelled sentence",
-        "questions": [
-          {{
-            "prompt": "The teacher says: '[Complex sentence]'",
-            "audio_text": "[Exact sentence without quotes]",
-            "audio_instructions": "Listen carefully and choose the correct spelling",
-            "options": [
-              "[Correct sentence]",
-              "[Error in Greek/Latin root spelling]",
-              "[Error in suffix attachment]",
-              "[Multiple morphological errors]"
-            ],
-            "correct": [0]
-          }}
-        ]
-      }},
-      // ... rest of activities with audio_text where needed
-    ]
-  }}
-}}
-
-Return valid JSON only — no extra explanation or text output."""
-
-def extract_content_for_tracking(activity_data):
-    """Extract dictation sentence and passage content for tracking"""
-    content = {}
+    # Progress indicator
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.progress(response_progress)
+        st.caption(f"Questions answered: {actual_responses}/{total_questions}")
     
-    if "activity_pack" in activity_data:
-        activities = activity_data["activity_pack"].get("activities", [])
-        
-        # Extract dictation sentence
-        for activity in activities:
-            if activity.get("source") == "OG-Dictation":
-                questions = activity.get("questions", [])
-                if questions:
-                    # Get audio_text if available, otherwise extract from prompt
-                    audio_text = questions[0].get("audio_text", "")
-                    if audio_text:
-                        content["dictation"] = audio_text
-                    else:
-                        prompt = questions[0].get("prompt", "")
-                        if "The teacher says:" in prompt:
-                            dictation = prompt.split("The teacher says:")[1].strip().strip("'\"")
-                            content["dictation"] = dictation
+    with col2:
+        # Submit button - only enabled when all questions answered
+        if st.button(
+            "✅ Submit Activity", 
+            use_container_width=True,
+            disabled=(actual_responses < total_questions),
+            type="primary"
+        ):
+            # Calculate score
+            correct_answers = 0
+            total_answers = 0
             
-            # Extract reading passage
-            if "Reading Passage" in activity.get("component", "") or "passage" in activity:
-                passage = activity.get("passage", "")
-                if passage:
-                    content["passage"] = passage
-                    content["passage_theme"] = passage[:100] + "..."
-    
-    return content
-
-def process_activity_audio(activity_data, student_name):
-    """Generate audio files for all listening activities"""
-    if "activity_pack" in activity_data:
-        activities = activity_data["activity_pack"].get("activities", [])
-        
-        for activity in activities:
-            activity_type = activity.get("component", "").lower()
-            questions = activity.get("questions", [])
+            for key, response in st.session_state.current_responses.items():
+                if key != "feedback" and isinstance(response, dict):
+                    total_answers += 1
+                    if response.get("selected") == response.get("correct"):
+                        correct_answers += 1
             
-            for q_idx, question in enumerate(questions):
-                # Check if this question needs audio
-                if "audio_text" in question:
-                    audio_text = question["audio_text"]
-                    
-                    # Generate audio file
-                    audio_file = generate_audio_elevenlabs(
-                        audio_text, 
-                        student_name,
-                        activity_type
-                    )
-                    
-                    if audio_file:
-                        # Add relative path for web access
-                        question["audio_file"] = os.path.relpath(audio_file, OUTPUT_DIR)
-                    else:
-                        print(f"   ⚠️ Failed to generate audio for: {audio_text[:50]}...")
-
-def call_gpt(prompt):
-    response = openai_client.chat.completions.create(
-        model="gpt-4-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        response_format={"type": "json_object"}
-    )
-    return response.choices[0].message.content
-
-# --- MAIN LOOP ---
-
-# First, check available voices
-print("\n🎤 Checking available ElevenLabs voices...")
-# list_available_voices()  # Uncomment to see all available voices
-
-for group_folder in os.listdir(BASE_DIR):
-    if group_folder == "Summer_Activities":
-        continue
-
-    group_path = os.path.join(BASE_DIR, group_folder)
-    if not os.path.isdir(group_path):
-        continue
-
-    print(f"\n🗂️ Scanning folder: {group_folder}")
-
-    group_number, year_level, skill_level = extract_group_info(group_folder)
-    if not (group_number and year_level and skill_level) or group_number != '7':
-        print(f"❌ Skipping folder: {group_folder} — group info missing or not Group 7")
-        continue
-
-    print(f"✅ Group {group_number} | Year {year_level} | Level {skill_level}")
-
-    group_output_dir = os.path.join(OUTPUT_DIR, f"Group{group_number}")
-    group_audio_dir = os.path.join(AUDIO_DIR, f"Group{group_number}")
-    os.makedirs(group_output_dir, exist_ok=True)
-    os.makedirs(group_audio_dir, exist_ok=True)
-
-    # --- Load OG Lessons ---
-    og_lessons = {}
-    for f in os.listdir(group_path):
-        if f.endswith(".docx") and "OG" in f:
-            og_lessons[f] = extract_text_from_docx(os.path.join(group_path, f))
-    print(f"📄 Found {len(og_lessons)} OG Lessons")
-
-    # --- Load SkillsApp Tables ---
-    skills_lessons = {}
-    skills_path = os.path.join(group_path, "skillsapp_lessons")
-    if os.path.exists(skills_path):
-        for f in os.listdir(skills_path):
-            if f.endswith(".pdf"):
-                skills_lessons[f] = extract_tables_from_pdf(os.path.join(skills_path, f))
-    print(f"📘 Found {len(skills_lessons)} SkillsApp PDFs")
-
-    # --- Load Reflection Form ---
-    reflection_data = []
-    for f in os.listdir(group_path):
-        if f.endswith(".xlsx") and "Reflection" in f:
-            print(f"📥 Reading: {f}")
-            df = pd.read_excel(os.path.join(group_path, f))
-            reflection_data = [normalize_student_profile(row) for _, row in df.iterrows()]
-            print(f"👧 Found {len(reflection_data)} students")
-            break
-
-    if not reflection_data:
-        print("⚠️ No reflection form data — skipping")
-        continue
-
-    # --- Generate Activities Per Student ---
-    for student in reflection_data:
-        if not student["name"]:
-            print("⚠️ Skipping unnamed student")
-            continue
-
-        student_id = student["name"].strip().lower().replace(" ", "_")
-        student_activities = {}
-        print(f"🧠 Generating for: {student['name']}")
-        
-        # Track previous content for this student
-        previous_content = {}
-
-        for day in range(1, 6):
-            og_text = list(og_lessons.values())[day % len(og_lessons)] if og_lessons else ""
-            skills_text = list(skills_lessons.values())[day % len(skills_lessons)] if skills_lessons else ""
-
-            prompt = build_prompt(student, og_text, skills_text, year_level, skill_level, previous_content)
-            try:
-                ai_response = call_gpt(prompt)
-                activity_data = json.loads(ai_response)
-                
-                # Extract the activity_pack directly
-                if "activity_pack" in activity_data:
-                    activity_content = activity_data["activity_pack"]
-                else:
-                    activity_content = activity_data
-                
-                # Generate audio files for this day's activities
-                print(f"   🎵 Generating audio for Day {day}...")
-                process_activity_audio(activity_data, student["name"])
-                
-                # Extract content for tracking
-                day_content = extract_content_for_tracking(activity_data)
-                if day_content:
-                    previous_content[f"Day {day}"] = day_content
-                    print(f"   📝 Tracked content for Day {day}")
-                    
-            except Exception as e:
-                print(f"[⚠️ Error] GPT failed for {student_id} Day {day}: {e}")
-                continue
-
-            # Create a single field with the activity pack content
-            student_activities[f"day_{day}"] = {
-                "complete": False,
-                "fields": [
-                    {
-                        "id": "activity_pack",
-                        "label": "Activity Pack",
-                        "content": activity_content,
-                        "type": "text_area"
-                    }
-                ]
+            # Save responses
+            student_data[next_day]["responses"] = dict(st.session_state.current_responses)
+            student_data[next_day]["score"] = {
+                "correct": correct_answers,
+                "total": total_answers,
+                "percentage": round((correct_answers / total_answers * 100) if total_answers > 0 else 0, 1)
             }
-
-        output_path = os.path.join(group_output_dir, f"{student_id}.json")
-        with open(output_path, "w") as f:
-            json.dump(student_activities, f, indent=2)
-        print(f"✅ Saved: {output_path}")
-
-print("\n🎉 All activity generation complete!")
-print(f"📂 Audio files saved in: {AUDIO_DIR}")
+            student_data[next_day]["complete"] = True
+            save_student_data(st.session_state.student_id, student_data)
+            
+            # Show results
+            st.success(f"✅ Day {day_number} completed!")
+            st.metric("Your Score", f"{correct_answers}/{total_answers}")
+            
+            if correct_answers == total_answers:
+                st.balloons()
+                st.markdown("### 🌟 Perfect score! Amazing work!")
+            elif correct_answers >= total_answers * 0.8:
+                st.markdown("### 🎯 Great job! Keep it up!")
+            else:
+                st.markdown("### 💪 Good effort! Every day you're improving!")
+            
+            # Reset for next day
+            st.session_state.current_responses = {}
+            st.session_state.show_welcome = True
+            st.session_state.activity_started = False
+            
+            time.sleep(3)
+            st.rerun()
+    
+    # Help text if not all answered
+    if actual_responses < total_questions:
+        st.info("💡 Please answer all questions before submitting.")
