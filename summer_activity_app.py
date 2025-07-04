@@ -308,6 +308,13 @@ else:
         if instructions:
             st.info(f"📋 **Instructions:** {instructions}")
         
+        # Display passage if it exists (for reading comprehension)
+        passage = activity.get("passage", "")
+        if passage:
+            st.markdown("**📖 Read this passage:**")
+            st.markdown(f"> {passage}")
+            st.markdown("")  # Add some spacing
+        
         # Display questions
         questions = activity.get("questions", [])
         for q_idx, question in enumerate(questions):
