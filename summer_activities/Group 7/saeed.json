@@ -1,0 +1,649 @@
+{
+  "day_1": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Auditory",
+              "component": "Dictation",
+              "time_allocation": "2 minutes",
+              "instructions": "Choose the correct sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says: 'Saeed discovered a rare creature in the garden.'",
+                  "options": [
+                    "Saeed discovered a rare creature in the garden.",
+                    "Saeed discovred a rare creacher in the garden.",
+                    "Saeed discovered a rair creature in the garden.",
+                    "Sayeed discovered a rare creature in the garden."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Visual",
+              "component": "Visual Discrimination",
+              "time_allocation": "2 minutes",
+              "instructions": "Choose the sentence with correct punctuation and spacing",
+              "questions": [
+                {
+                  "prompt": "The teacher shows: 'Saeed\u2019s discovery amazed everyone at school.'",
+                  "options": [
+                    "Saeed's discovery amazed everyone at school.",
+                    "Saeed\u2019s discovery amazed everyone  at school.",
+                    "Saeeds discovery amazed everyone at school.",
+                    "Saeed\u2019s discovery; amazed everyone at school."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "OG-Kinesthetic",
+              "component": "Grammar Application",
+              "time_allocation": "3 minutes",
+              "instructions": "Choose the sentence that correctly uses the possessive form",
+              "questions": [
+                {
+                  "prompt": "Which sentence correctly shows that the gaming console belongs to Saeed?",
+                  "options": [
+                    "This is Saeeds gaming console.",
+                    "This is Saeed\u2019s gaming console.",
+                    "This is Saeeds\u2019 gaming console.",
+                    "This is Saeed gaming console."
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "OG-Tactile",
+              "component": "Word Sorting",
+              "time_allocation": "3 minutes",
+              "instructions": "Match the word to its correct category, real or fantasy.",
+              "questions": [
+                {
+                  "prompt": "Butterfly Garden",
+                  "options": [
+                    "Real",
+                    "Fantasy"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                },
+                {
+                  "prompt": "Dragon",
+                  "options": [
+                    "Real",
+                    "Fantasy"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "",
+              "component": "Comprehension Check",
+              "time_allocation": "5 minutes",
+              "instructions": "Choose the correct answer about the story \u2018The Butterfly Garden Mystery\u2019",
+              "questions": [
+                {
+                  "prompt": "What did Saeed discover in the story?",
+                  "options": [
+                    "A new type of game.",
+                    "A unique console.",
+                    "A rare butterfly.",
+                    "A hidden game level."
+                  ],
+                  "correct": [
+                    2
+                  ]
+                }
+              ]
+            }
+          ],
+          "feedback": {
+            "prompt": "How did you feel about today's activity?",
+            "options": [
+              "\ud83d\udc4d Great!",
+              "\ud83d\ude0a Good",
+              "\ud83d\ude10 Okay",
+              "\ud83d\udc4e Hard"
+            ]
+          }
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_2": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Auditory",
+              "component": "Dictation",
+              "time_allocation": "2 minutes",
+              "instructions": "Choose the correct sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says: 'The gentle ripple made a subtle noise.'",
+                  "options": [
+                    "The gentle ripple made a subtle noise.",
+                    "The jentel ripple made a sutble noise.",
+                    "The gentel ripple made a subtel noise.",
+                    "The gentle ripple maid a sutble noise."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Visual",
+              "component": "Reading comprehension",
+              "time_allocation": "4 minutes",
+              "instructions": "Read the text about Saeed's school concert and answer the questions.",
+              "questions": [
+                {
+                  "prompt": "Saeed felt nervous because it was his first time playing the...",
+                  "options": [
+                    "guitar",
+                    "piano",
+                    "drum",
+                    "violin"
+                  ],
+                  "correct": [
+                    3
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "OG-Kinesthetic",
+              "component": "Word sorting",
+              "time_allocation": "3 minutes",
+              "instructions": "Sort the words into their correct category: nouns or verbs.",
+              "questions": [
+                {
+                  "prompt": "Choose the nouns in the sentence, 'Saeed played the violin beautifully at the concert.'",
+                  "options": [
+                    "played, beautifully",
+                    "Saeed, violin, concert",
+                    "the, at",
+                    "beautifully, at"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "OG-Sensory",
+              "component": "Matching",
+              "time_allocation": "3 minutes",
+              "instructions": "Match the words to their synonyms.",
+              "questions": [
+                {
+                  "prompt": "What is a synonym for 'nervous'?",
+                  "options": [
+                    "calm",
+                    "anxious",
+                    "excited",
+                    "happy"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "OG-Kinesthetic",
+              "component": "Grammar identification",
+              "time_allocation": "3 minutes",
+              "instructions": "Identify the parts of speech for each word.",
+              "questions": [
+                {
+                  "prompt": "Which word is an adjective in the following sentence: 'Saeed gave a splendid performance.'?",
+                  "options": [
+                    "Saeed",
+                    "gave",
+                    "splendid",
+                    "performance"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                }
+              ]
+            }
+          ],
+          "feedback": {
+            "prompt": "How did you feel about today's activity?",
+            "options": [
+              "\ud83d\udc4d Great!",
+              "\ud83d\ude0a Good",
+              "\ud83d\ude10 Okay",
+              "\ud83d\udc4e Hard"
+            ]
+          }
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_3": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Auditory",
+              "component": "Dictation",
+              "time_allocation": "2 minutes",
+              "instructions": "Choose the correct sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says: 'The gentle ripple made a subtle noise.'",
+                  "options": [
+                    "The gentle ripple made a subtle noise.",
+                    "The jentel ripple made a sutble noise.",
+                    "The gentel ripple made a subtel noise.",
+                    "The gentle ripple maid a sutble noise."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Visual",
+              "component": "Grammar Recognition",
+              "time_allocation": "3 minutes",
+              "instructions": "Identify the correct parts of speech for the underlined words in the sentence",
+              "questions": [
+                {
+                  "prompt": "Saeed helps Mrs Adams in the 'community garden.'",
+                  "options": [
+                    "Noun, verb",
+                    "Verb, noun",
+                    "Adjective, noun",
+                    "Adverb, noun"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "OG-Kinesthetic",
+              "component": "Word Building",
+              "time_allocation": "3 minutes",
+              "instructions": "Drag and drop the words to form a correct sentence about the game",
+              "questions": [
+                {
+                  "prompt": "Select the words in the correct order to describe what Saeed did in the game",
+                  "options": [
+                    "Saeed the mastered quickly game.",
+                    "Game the Saeed mastered quickly.",
+                    "Saeed mastered the game quickly.",
+                    "Quickly the game mastered Saeed."
+                  ],
+                  "correct": [
+                    2
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "OG-Auditory and Visual",
+              "component": "Comprehension",
+              "time_allocation": "3 minutes",
+              "instructions": "Choose the correct answer based on the text",
+              "questions": [
+                {
+                  "prompt": "What did the headteacher approve?",
+                  "options": [
+                    "A new library",
+                    "A school trip",
+                    "A community garden project",
+                    "A sports day"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                },
+                {
+                  "prompt": "Who is leading the project?",
+                  "options": [
+                    "Saeed",
+                    "The headteacher",
+                    "Mrs Adams",
+                    "Twenty students"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "OG-Oral",
+              "component": "Read Aloud",
+              "time_allocation": "4 minutes",
+              "instructions": "Read the following sentences aloud, focusing on clear pronunciation",
+              "questions": [
+                {
+                  "prompt": "Saeed loves spending his weekends at the community garden, learning new planting techniques.",
+                  "options": [
+                    "Say it!",
+                    "Read it!",
+                    "Speak it!",
+                    "Recite it!"
+                  ],
+                  "correct": [
+                    0,
+                    1,
+                    2,
+                    3
+                  ]
+                }
+              ]
+            }
+          ],
+          "feedback": {
+            "prompt": "How did you feel about today's activity?",
+            "options": [
+              "\ud83d\udc4d Great!",
+              "\ud83d\ude0a Good",
+              "\ud83d\ude10 Okay",
+              "\ud83d\udc4e Hard"
+            ]
+          }
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_4": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Auditory",
+              "component": "Dictation",
+              "time_allocation": "2 minutes",
+              "instructions": "Choose the correct sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says: 'Saeed discovered an ancient game board under the old oak tree.'",
+                  "options": [
+                    "Saeed discovered an ancient game board under the old oak tree.",
+                    "Sayid discovered an ancient gaim board under the old oak tree.",
+                    "Saeed discovred an ancint game bord under the old oak tree.",
+                    "Saeed discovered an ancient game board under the ould oak tree."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Visual",
+              "component": "Symbol Recognition",
+              "time_allocation": "3 minutes",
+              "instructions": "Match the correct symbol with its meaning from Saeed's game.",
+              "questions": [
+                {
+                  "prompt": "Select the symbol that represents 'Victory' in the game.",
+                  "options": [
+                    "A crown",
+                    "A sword",
+                    "A shield",
+                    "A bow"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "OG-Tactile",
+              "component": "Grammar Exercise",
+              "time_allocation": "2 minutes",
+              "instructions": "Choose the sentence with the correct use of the past tense.",
+              "questions": [
+                {
+                  "prompt": "Saeed ______ the dusty bookshelf and found a hidden level.",
+                  "options": [
+                    "searches",
+                    "searching",
+                    "searched",
+                    "will search"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "OG-Kinesthetic",
+              "component": "Physical Response",
+              "time_allocation": "3 minutes",
+              "instructions": "Stand up and act out the following scene from the game as you choose the matching sentence.",
+              "questions": [
+                {
+                  "prompt": "Act out: Saeed carefully stepping over the trapped tiles.",
+                  "options": [
+                    "Saeed runs quickly across the room.",
+                    "Saeed steps carefully across the room.",
+                    "Saeed hops around the room.",
+                    "Saeed sits down in the room."
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "OG-Kinesthetic",
+              "component": "Comprehension Check",
+              "time_allocation": "5 minutes",
+              "instructions": "Answer the question based on the session's theme story.",
+              "questions": [
+                {
+                  "prompt": "Why did Saeed search the basement of the old library?",
+                  "options": [
+                    "To find a hidden game",
+                    "To meet a friend",
+                    "To borrow a book",
+                    "To attend a class"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ],
+          "feedback": {
+            "prompt": "How did you feel about today's activity?",
+            "options": [
+              "\ud83d\udc4d Great!",
+              "\ud83d\ude0a Good",
+              "\ud83d\ude10 Okay",
+              "\ud83d\udc4e Hard"
+            ]
+          }
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_5": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Auditory",
+              "component": "Dictation",
+              "time_allocation": "2 minutes",
+              "instructions": "Choose the correct sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says: 'The gentle ripple made a subtle noise.'",
+                  "options": [
+                    "The gentle ripple made a subtle noise.",
+                    "The jentel ripple made a sutble noise.",
+                    "The gentel ripple made a subtel noise.",
+                    "The gentle ripple maid a sutble noise."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Visual",
+              "component": "Reading Comprehension",
+              "time_allocation": "5 minutes",
+              "instructions": "Read the sentence and choose the best answer",
+              "questions": [
+                {
+                  "prompt": "After Saeed found a strange pattern on the butterfly's wings resembling a famous video game character, he was:",
+                  "options": [
+                    "excited to share the news with his friends",
+                    "uninterested and ignored it",
+                    "confused about what it represented",
+                    "upset and wanted to hide it"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "OG-Kinesthetic",
+              "component": "Interactive Multi-choice",
+              "time_allocation": "3 minutes",
+              "instructions": "Select the right phrases to create a factual sentence about butterflies. Drag and drop the words into the correct order.",
+              "questions": [
+                {
+                  "prompt": "Drag and place the words to form a correct sentence: 'Butterflies / mark their / territory / with colors.'",
+                  "options": [
+                    "Butterflies mark their territory with colors.",
+                    "Mark butterflies their colors with territory.",
+                    "Territory their butterflies mark with colors.",
+                    "Colors with their territory butterflies mark."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "OG-Visual",
+              "component": "Grammar Identification",
+              "time_allocation": "3 minutes",
+              "instructions": "Read the sentence and identify the type of the underlined word.",
+              "questions": [
+                {
+                  "prompt": "In the sentence 'Saeed quickly ran to the garden', identify the type of the word 'quickly'.",
+                  "options": [
+                    "noun",
+                    "verb",
+                    "adjective",
+                    "adverb"
+                  ],
+                  "correct": [
+                    3
+                  ]
+                }
+              ]
+            }
+          ],
+          "feedback": {
+            "prompt": "How did you feel about today's activity?",
+            "options": [
+              "\ud83d\udc4d Great!",
+              "\ud83d\ude0a Good",
+              "\ud83d\ude10 Okay",
+              "\ud83d\udc4e Hard"
+            ]
+          }
+        },
+        "type": "text_area"
+      }
+    ]
+  }
+}

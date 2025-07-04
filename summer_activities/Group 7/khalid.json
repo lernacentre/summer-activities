@@ -1,0 +1,584 @@
+{
+  "day_1": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Auditory",
+              "component": "Dictation",
+              "time_allocation": "2 minutes",
+              "instructions": "Choose the correct sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says: 'The gentle ripple made a subtle noise.'",
+                  "options": [
+                    "The gentle ripple made a subtle noise.",
+                    "The jentel ripple made a sutble noise.",
+                    "The gentel ripple made a subtel noise.",
+                    "The gentle ripple maid a sutble noise."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "Winston Grammar",
+              "component": "Multiple Choice",
+              "time_allocation": "5 minutes",
+              "instructions": "Choose the correct Winston grammar concept applied in each sentence.",
+              "questions": [
+                {
+                  "prompt": "Khalid quickly ran to the park after school.",
+                  "options": [
+                    "Use of adverb",
+                    "Use of pronoun",
+                    "Use of conjunction",
+                    "Use of preposition"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                },
+                {
+                  "prompt": "He waited for his brother because they planned to play a new game.",
+                  "options": [
+                    "Use of adverb",
+                    "Use of conjunction",
+                    "Use of adjective",
+                    "Use of verb"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "Winston Grammar",
+              "component": "Multiple Choice",
+              "time_allocation": "5 minutes",
+              "instructions": "Identify the object of the preposition in these sentences.",
+              "questions": [
+                {
+                  "prompt": "Khalid played games with his brother.",
+                  "options": [
+                    "played",
+                    "games",
+                    "with",
+                    "brother"
+                  ],
+                  "correct": [
+                    3
+                  ]
+                },
+                {
+                  "prompt": "The story spoke about a young scientist.",
+                  "options": [
+                    "spoke",
+                    "about",
+                    "young",
+                    "scientist"
+                  ],
+                  "correct": [
+                    3
+                  ]
+                }
+              ]
+            }
+          ],
+          "feedback": {
+            "prompt": "How did you feel about today's activity?",
+            "options": [
+              "\ud83d\udc4d Great!",
+              "\ud83d\ude0a Good",
+              "\ud83d\ude10 Okay",
+              "\ud83d\udc4e Hard"
+            ]
+          }
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_2": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Auditory",
+              "component": "Dictation",
+              "time_allocation": "2 minutes",
+              "instructions": "Choose the correct sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says: 'The gentle ripple made a subtle noise.'",
+                  "options": [
+                    "The gentle ripple made a subtle noise.",
+                    "The jentel ripple made a sutble noise.",
+                    "The gentel ripple made a subtel noise.",
+                    "The gentle ripple maid a sutble noise."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Visual",
+              "component": "Reading Comprehension",
+              "time_allocation": "5 minutes",
+              "instructions": "Read the text and choose the correct options that describe Khalid's actions.",
+              "questions": [
+                {
+                  "prompt": "Khalid held his violin case tightly as he walked towards the school hall. Tonight was the school concert, and he was nervous but excited.",
+                  "options": [
+                    "Khalid was feeling confident.",
+                    "Khalid was playing a game.",
+                    "Khalid was nervous and excited.",
+                    "Khalid was going home."
+                  ],
+                  "correct": [
+                    2
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "OG-Kinesthetic",
+              "component": "Grammar/Usage",
+              "time_allocation": "3 minutes",
+              "instructions": "Choose the correct word to complete the sentence.",
+              "questions": [
+                {
+                  "prompt": "\"The teacher announced _______ the concert would start in 10 minutes.\"",
+                  "options": [
+                    "then",
+                    "than",
+                    "that",
+                    "this"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "OG-Tactile",
+              "component": "Vocabulary",
+              "time_allocation": "5 minutes",
+              "instructions": "Match the words with their correct meanings.",
+              "questions": [
+                {
+                  "prompt": "Excited",
+                  "options": [
+                    "Feeling of being uneasy",
+                    "Feeling enthusiastic and eager",
+                    "Feeling indifferent",
+                    "Feeling sleepy"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                },
+                {
+                  "prompt": "Nervous",
+                  "options": [
+                    "Feeling scared",
+                    "Feeling happy",
+                    "Feeling relaxed",
+                    "Feeling anxious about what may happen"
+                  ],
+                  "correct": [
+                    3
+                  ]
+                }
+              ]
+            }
+          ],
+          "feedback": {
+            "prompt": "How did you feel about today's activity?",
+            "options": [
+              "\ud83d\udc4d Great!",
+              "\ud83d\ude0a Good",
+              "\ud83d\ude10 Okay",
+              "\ud83d\udc4e Hard"
+            ]
+          }
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_3": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Auditory",
+              "component": "Dictation",
+              "time_allocation": "2 minutes",
+              "instructions": "Choose the correct sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says: 'Khalid gathered his tools to work in the community garden.'",
+                  "options": [
+                    "Khalid gathered his tools to work in the community garden.",
+                    "Khalid gadered his tools to work in the comunity garden.",
+                    "Khalid gathered his tols to work in the community garden.",
+                    "Khalid gatherd his tools to work in the comunity gardn."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Visual",
+              "component": "Reading Comprehension",
+              "time_allocation": "4 minutes",
+              "instructions": "Read the passage and choose the correct answer",
+              "questions": [
+                {
+                  "prompt": "What did the headteacher approve?",
+                  "options": [
+                    "A school trip",
+                    "A community garden project",
+                    "More classroom space",
+                    "Extended sport hours"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                },
+                {
+                  "prompt": "Who is leading the community garden project?",
+                  "options": [
+                    "The headteacher",
+                    "Mrs. Adams",
+                    "Khalid",
+                    "Twenty pupils"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "OG-Kinesthetic",
+              "component": "Sentence Structures",
+              "time_allocation": "4 minutes",
+              "instructions": "Select the sentences that use correct punctuation and grammar",
+              "questions": [
+                {
+                  "prompt": "Though Khalid is young, he takes a leadership role in the garden.",
+                  "options": [
+                    "Though Khalid is young he takes a leadership role in the garden",
+                    "Though Khalid is young; he takes a leadership role in the garden.",
+                    "Though Khalid is young, he takes a leadership role in the garden.",
+                    "Though Khalid, is young he takes a leadership role in the garden."
+                  ],
+                  "correct": [
+                    2
+                  ]
+                },
+                {
+                  "prompt": "The children learned valuable lessons while tending to the plants.",
+                  "options": [
+                    "The children learned, valuable lessons while tending to the plants.",
+                    "The children learned valuable lessons while tending to the plants.",
+                    "The children learned valuable lessons; while tending to the plants.",
+                    "The children learned valuable lessons, while tending to the plants"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "OG-Tactile",
+              "component": "Word Applications",
+              "time_allocation": "3 minutes",
+              "instructions": "Match the words to their correct meanings based on the context of the story",
+              "questions": [
+                {
+                  "prompt": "Pupils",
+                  "options": [
+                    "A part of your eye",
+                    "Students",
+                    "Small bubbles",
+                    "Tiny stones"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                },
+                {
+                  "prompt": "Project",
+                  "options": [
+                    "To throw something forward",
+                    "A long-term task",
+                    "A type of projection in math",
+                    "A school assignment involving practical work"
+                  ],
+                  "correct": [
+                    3
+                  ]
+                }
+              ]
+            }
+          ],
+          "feedback": {
+            "prompt": "How did you feel about today's activity?",
+            "options": [
+              "\ud83d\udc4d Great!",
+              "\ud83d\ude0a Good",
+              "\ud83d\ude10 Okay",
+              "\ud83d\udc4e Hard"
+            ]
+          }
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_4": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Auditory",
+              "component": "Dictation",
+              "time_allocation": "2 minutes",
+              "instructions": "Listen carefully and choose the correct sentence as spoken.",
+              "questions": [
+                {
+                  "prompt": "The teacher says: 'Khalid discovered an ancient map in the old library.'",
+                  "options": [
+                    "Khalid discovered an ancient map in the old library.",
+                    "Khalid discoverd an anciant map in the old libary.",
+                    "Khalid discovred an ancient map in the old libary.",
+                    "Khalid discovered an ancient map in the old library."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Visual",
+              "component": "Reading Comprehension",
+              "time_allocation": "5 minutes",
+              "instructions": "Read the sentence carefully and answer the question.",
+              "questions": [
+                {
+                  "prompt": "After finding the map, Khalid wondered what secrets it might reveal. What is likely the main theme of the story?",
+                  "options": [
+                    "Modern technology",
+                    "Adventure and discovery",
+                    "Everyday school life",
+                    "Sports competition"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "OG-Tactile",
+              "component": "Grammar",
+              "time_allocation": "5 minutes",
+              "instructions": "Identify the correct part of speech for the underlined word in the sentence.",
+              "questions": [
+                {
+                  "prompt": "Khalid 'hurriedly' packed his backpack and set off for the library.",
+                  "options": [
+                    "Noun",
+                    "Verb",
+                    "Adverb",
+                    "Adjective"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                },
+                {
+                  "prompt": "The 'ancient' map was hidden beneath a stack of dusty books.",
+                  "options": [
+                    "Noun",
+                    "Verb",
+                    "Adverb",
+                    "Adjective"
+                  ],
+                  "correct": [
+                    3
+                  ]
+                }
+              ]
+            }
+          ],
+          "feedback": {
+            "prompt": "How did you feel about today's activity?",
+            "options": [
+              "\ud83d\udc4d Great!",
+              "\ud83d\ude0a Good",
+              "\ud83d\ude10 Okay",
+              "\ud83d\udc4e Hard"
+            ]
+          }
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_5": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Auditory",
+              "component": "Dictation",
+              "time_allocation": "2 minutes",
+              "instructions": "Choose the correct sentence.",
+              "questions": [
+                {
+                  "prompt": "The teacher says: 'Khalid discovered an unusual pattern in the butterfly's wings.'",
+                  "options": [
+                    "Khalid discovered an unusual pattern in the butterfly's wings.",
+                    "Khalid discovred an unusual patern in the butterfly\u2019s wings.",
+                    "Khalid discovered an unusal pattern in the butterfly's wings.",
+                    "Khalid discoverd an unusual pattern in the buterfly's wings."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Visual",
+              "component": "Reading Comprehension",
+              "time_allocation": "5 minutes",
+              "instructions": "Read the text and choose the best answer.",
+              "questions": [
+                {
+                  "prompt": "Based on the text, what could Khalid's discovery contribute to?",
+                  "options": [
+                    "Improving computer games",
+                    "Butterfly conservation efforts",
+                    "New ways to cook using butterflies",
+                    "The design of sports equipment"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "OG-Kinesthetic",
+              "component": "Grammar Game",
+              "time_allocation": "5 minutes",
+              "instructions": "Select the sentence with correct punctuation and capitalization.",
+              "questions": [
+                {
+                  "prompt": "Identify the correctly punctuated statement about Khalid's activity.",
+                  "options": [
+                    "Khalid said, \"I love to study butterflies because they are fascinating!\"",
+                    "khalid said, \"I love to study butterflies because they are fascinating!\"",
+                    "Khalid said \"I love to study butterflies, because they are fascinating!\"",
+                    "Khalid said, \"I love to study butterflies because they are fascinating\""
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "OG-Tactile",
+              "component": "Spelling Test",
+              "time_allocation": "3 minutes",
+              "instructions": "Select the word that is spelled correctly.",
+              "questions": [
+                {
+                  "prompt": "Which of the following spellings is correct?",
+                  "options": [
+                    "disovery",
+                    "discovery",
+                    "discoveri",
+                    "dicsovery"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            }
+          ],
+          "feedback": {
+            "prompt": "How did you feel about today's activity?",
+            "options": [
+              "\ud83d\udc4d Great!",
+              "\ud83d\ude0a Good",
+              "\ud83d\ude10 Okay",
+              "\ud83d\udc4e Hard"
+            ]
+          }
+        },
+        "type": "text_area"
+      }
+    ]
+  }
+}
