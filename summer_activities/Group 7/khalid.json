@@ -1,0 +1,607 @@
+{
+  "day_1": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Khalid and his brother enjoyed playing games in the garden.",
+                  "options": [
+                    "Khalid and his brother enjoyed playing games in the garden.",
+                    "Kaled and his brother enjoy playing games in the garden.",
+                    "Khalid and his brother enjoy playing games in the garden.",
+                    "Khaleed and his brother enjoyed playing games in the garden."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/khalid_complex sentence dictation_emphasis_35354ddb.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In Khalid's technical vocabulary for playing games with my brother, 'interactive' means 'engaging in actions together'. Which parts create this meaning?",
+                  "options": [
+                    "Inter- (between) + act (to act) + -ive (causing) = interactive",
+                    "Intra- (inside) + act (to act) + -ive (having) = interactive",
+                    "Inter- (between) + act (to act) + -ing (continuous action) = interactive",
+                    "Intro (introduction) + act (to act) + -ive (tending to) = interactive"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "SkillsApp-VocabularyBuilding",
+              "component": "Semantic Word Bank Creation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Apply specific strategy taught in lesson",
+              "questions": []
+            },
+            {
+              "activity_number": 4,
+              "source": "SkillsApp-AdvancedGrammar",
+              "component": "Grammar Concept Test",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Test complex concepts from lesson",
+              "questions": []
+            },
+            {
+              "activity_number": 5,
+              "source": "SkillsApp-SentenceStructure",
+              "component": "Fill in the Blank Sentence Practice",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Practice patterns from SkillsApp",
+              "questions": []
+            },
+            {
+              "activity_number": 6,
+              "source": "SkillsApp-ParagraphStructure",
+              "component": "Fill in the Blank Paragraph Transition",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Transition and cohesion practice",
+              "questions": []
+            },
+            {
+              "activity_number": 7,
+              "source": "OG-PrefixSuffix",
+              "component": "Prefix/Suffix Application",
+              "time_allocation": "1 minute",
+              "instructions": "Using morphemes from OG lesson",
+              "questions": []
+            },
+            {
+              "activity_number": 8,
+              "source": "Integrated-ReadingPassage",
+              "component": "Integrated Reading Passage",
+              "time_allocation": "4 minutes",
+              "instructions": "Comprehensive passage with varied questions",
+              "questions": [
+                {
+                  "prompt": "In the passage, which discovery of Emma's led to a scientific contribution?",
+                  "options": [
+                    "Her observations on butterfly wing patterns",
+                    "Her sketching of the milkweed plants",
+                    "Her presentation preparation",
+                    "Her teacher's invitation to the university conference"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                },
+                {
+                  "prompt": "When did Emma realize she had documented a rare genetic variation?",
+                  "options": [
+                    "During her lunch break",
+                    "During a biology class",
+                    "During a presentation",
+                    "During a field trip"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                },
+                {
+                  "prompt": "Why did Emma's discovery inspire other pupils?",
+                  "options": [
+                    "It showed the importance of keen observation",
+                    "It was part of a school project",
+                    "It was featured in a scientific journal",
+                    "It was rewarded with a prize"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                },
+                {
+                  "prompt": "What did the local university's biology department invite Emma to do?",
+                  "options": [
+                    "Present her findings at a research conference",
+                    "Join a special science class",
+                    "Participate in a butterfly study",
+                    "Visit the university campus"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                },
+                {
+                  "prompt": "How did Emma feel when preparing her presentation for the university conference?",
+                  "options": [
+                    "Nervous but excited",
+                    "Uninterested and bored",
+                    "Confused and lost",
+                    "Tired and sleepy"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                },
+                {
+                  "prompt": "What did Emma's discovery remind everyone about?",
+                  "options": [
+                    "The possibility of scientific observations anywhere",
+                    "The importance of regular school lunches",
+                    "The beauty of school gardens",
+                    "The need for more monarch butterflies"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_2": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Khalid and his brother enjoyed playing games in the garden.",
+                  "options": [
+                    "Khaled and his brother enjoyed playing games in the garden.",
+                    "Khalid and his bruther enjoyed playing games in the garden.",
+                    "Khalid and his brother enjoyd playing games in the garden.",
+                    "Khalid and his bother enjoyed playng games in the garden."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/khalid_complex sentence dictation_emphasis_35354ddb.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In Khalid's technical vocabulary for playing games with my brother, 'interactive' means 'pertaining to communication or action between individuals'. Which parts create this meaning?",
+                  "options": [
+                    "inter- (between) + active (engaged in action)",
+                    "intra- (within) + active (engaged in action)",
+                    "intro- (introductory) + active (engaged in action)",
+                    "inter- (between) + actor (performer)"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "SkillsApp-Vocabulary Building",
+              "component": "Semantic Feature Analysis",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Apply a specific strategy taught in the lesson",
+              "questions": [
+                {
+                  "prompt": "Identify the synonymous pairs where one word describes being nervous and the other being confident.",
+                  "options": [
+                    "nervous - anxious, confident - assured",
+                    "nervous - afraid, confident - doubtful",
+                    "nervous - calm, confident - worried",
+                    "nervous - worried, confident - fearful"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "SkillsApp-Advanced Grammar",
+              "component": "Complex Grammar Concepts",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Test complex concepts from the lesson",
+              "questions": [
+                {
+                  "prompt": "Identify the type of subordinate clause used in the sentence: 'While playing games with my brother, Khalid improved his strategy.'",
+                  "options": [
+                    "Adverbial clause",
+                    "Adjective clause",
+                    "Noun clause",
+                    "Relative clause"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "SkillsApp-Sentence Structure",
+              "component": "Fill in the Blank",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Practice patterns from the lesson",
+              "questions": [
+                {
+                  "prompt": "Khalid ______ his video game skills by practicing every day.",
+                  "options": [
+                    "enhanced",
+                    "likes",
+                    "finished",
+                    "runs"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 6,
+              "source": "SkillsApp-Paragraph Structure",
+              "component": "Fill in the Blank",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Transition and cohesion practice",
+              "questions": [
+                {
+                  "prompt": "In one paragraph, Khalid described his favorite game _____ elaborated on its unique features.",
+                  "options": [
+                    "and",
+                    "but",
+                    "then",
+                    "while"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_3": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Khalid and his brother were excited about the community garden project.",
+                  "options": [
+                    "Khalid and his brother were excited about the community garden project.",
+                    "Khalid and his brother were exceeted about the community garden project.",
+                    "Khaled and his brother were excited about the community garden project.",
+                    "Khalid and his brother were excited about the community gardein project."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/khalid_complex sentence dictation_emphasis_4b9a8773.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In Khalid's technical vocabulary for playing games with my brother, 'excited' means 'filled with enthusiasm'. Which parts create this meaning?",
+                  "options": [
+                    "ex- (out) + cit (excite) + ed (past tense)",
+                    "ex- (from) + cit (city) + ed (past tense)",
+                    "excit (interesting) + ed (past tense)",
+                    "ex- (without) + cit (cite) + ed (past tense)"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_4": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Khalid explored the ancient map discovery with his brother.",
+                  "options": [
+                    "Khalid explored the ancient map discovery with his brother.",
+                    "Khalid expored the ancient map discovery with his brother.",
+                    "Khaled exploredd the ancient map discovery with his brother.",
+                    "Khalid explor the ancient map discovery with his brother."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/khalid_complex sentence dictation_emphasis_bc30225e.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In Khalid's technical vocabulary for playing games with my brother, 'archaeologist' means 'someone who studies ancient societies'. Which parts create this meaning?",
+                  "options": [
+                    "archaeo- (ancient), -log (study), -ist (one who)",
+                    "archaeo- (old), -log (read), -ist (expert)",
+                    "archi- (first), -ologist (scientist)",
+                    "archae- (foreign), -log (logic), -ist (follower)"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "SkillsApp-Vocabulary",
+              "component": "Vocabulary Building Strategy",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Apply vocabulary building strategy",
+              "questions": [
+                {
+                  "prompt": "Choose the best descriptive word for Khalid's exciting game discovery:",
+                  "options": [
+                    "Ancient",
+                    "New",
+                    "Interesting",
+                    "Boring"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "SkillsApp-AdvancedGrammar",
+              "component": "Advanced Grammar Concepts",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Test complex grammar concepts",
+              "questions": [
+                {
+                  "prompt": "Identify the grammatical role of the phrase 'to dance before her eyes' in the sentence 'The faded symbols seemed to dance before her eyes'.",
+                  "options": [
+                    "Infinitive phrase",
+                    "Adjective phrase",
+                    "Prepositional phrase",
+                    "Adverbial phrase"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "SkillsApp-SentenceStructure",
+              "component": "Fill in the Blank",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Practice sentence patterns",
+              "questions": [
+                {
+                  "prompt": "Young Khalid and his brother _______ the hidden chamber.",
+                  "options": [
+                    "explore",
+                    "explored",
+                    "exploring",
+                    "explores"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 6,
+              "source": "SkillsApp-ParagraphStructure",
+              "component": "Fill in the Blank",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Transition and cohesion practice",
+              "questions": [
+                {
+                  "prompt": "After finding the manuscripts, Khalid _______ the significance of his discovery.",
+                  "options": [
+                    "realize",
+                    "realized",
+                    "realizing",
+                    "realizes"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 7,
+              "source": "OG-PrefixSuffix",
+              "component": "Prefix/Suffix Application",
+              "time_allocation": "1 minute",
+              "instructions": "Using morphemes from OG lesson",
+              "questions": [
+                {
+                  "prompt": "Which prefix can be added to 'cover' to mean 'opposite of cover'?",
+                  "options": [
+                    "dis-",
+                    "re-",
+                    "un-",
+                    "mis-"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_5": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Khalid and his brother enjoyed exploring the scientific discovery in the garden.",
+                  "options": [
+                    "Khalid and his brother enjoyed exploring the scientific discovery in the garden.",
+                    "Khalid and his brother enjoyed exploring the scientific discoverie in the garden.",
+                    "Khaled and his brother enjoyed exploring the scientific discovery in the garden.",
+                    "Khalid and his brother enjoyed exploring the scientific diskovery in the garden."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/khalid_complex sentence dictation_emphasis_04a39b34.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In Khalid's technical vocabulary for playing games with my brother, 'multiplayer' means 'involving or designed for participation by more than one player'. Which parts create this meaning?",
+                  "options": [
+                    "multi- (more than one) + player (someone taking part in a game)",
+                    "multi- (multiple) + player (a person who plays a game)",
+                    "multi- (many) + player (individual engaged in a game)",
+                    "multi- (mega) + player (expert gamer)"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  }
+}

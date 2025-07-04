@@ -1,0 +1,604 @@
+{
+  "day_1": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Ahmed meticulously sketched the intricate patterns on the monarch butterflies' wings.",
+                  "options": [
+                    "Ahmed meticuously sketched the intricate patterns on the monarch butterflies' wings.",
+                    "Ahmed meticulously sketched the internate patterns on the monarch butterflies' wings.",
+                    "Ahmed meticuosly sketched the intricate patterns on the monarch butterflies' wings.",
+                    "Ahmed meticulouusly sketched the intricate patterns on the monarch butterflies' wings."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/ahmed_al_balushi_complex sentence dictation_emphasis_12b1909c.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In Ahmed's technical vocabulary for Art (Sketching), 'intricate' means 'very detailed and complex'. Which parts create this meaning?",
+                  "options": [
+                    "in- + tri- + -cate",
+                    "in- + trict + -ate",
+                    "intr + -i- + cate",
+                    "in- + stark + -ate"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "SkillsApp-Vocabulary",
+              "component": "Vocabulary Building Strategy",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Apply specific strategy taught in lesson",
+              "questions": [
+                {
+                  "prompt": "Select the synonym for 'fascinating' from the word bank provided: intriguing, boring, simple, complicated.",
+                  "options": [
+                    "intriguing"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "SkillsApp-Advanced Grammar",
+              "component": "Advanced Grammar Practice",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Test complex concepts from lesson",
+              "questions": [
+                {
+                  "prompt": "Identify the subordinating conjunction in the following sentence: 'When Ahmed looked carefully, he noticed the intricate details of the butterfly wings.'",
+                  "options": [
+                    "When",
+                    "He",
+                    "Looked",
+                    "Intricate"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "SkillsApp-SentenceStructure",
+              "component": "Fill in the Blank Sentence Structure",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Practice patterns from SkillsApp",
+              "questions": [
+                {
+                  "prompt": "Ahmed _______ diligently on his sketch, capturing every detail of the butterfly's wings.",
+                  "options": [
+                    "worked",
+                    "performing",
+                    "excellently",
+                    "comprehended"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 6,
+              "source": "SkillsApp-ParagraphStructure",
+              "component": "Fill in the Blank Paragraph Structure",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Transition and cohesion practice",
+              "questions": [
+                {
+                  "prompt": "After Ahmed discovered the rare genetic variation, he felt _______ about presenting his findings at the university conference.",
+                  "options": [
+                    "nervous",
+                    "calm",
+                    "confused",
+                    "original"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 7,
+              "source": "OG-PrefixSuffix",
+              "component": "Prefix/Suffix Application",
+              "time_allocation": "1 minute",
+              "instructions": "Using morphemes from OG lesson",
+              "questions": [
+                {
+                  "prompt": "The prefix 're-' in the word 'research' means:",
+                  "options": [
+                    "again",
+                    "opposite of",
+                    "before",
+                    "many"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_2": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Ahmed meticulously sketched the intricate patterns on the monarch butterflies' wings",
+                  "options": [
+                    "Ahmed meticuluosly scketched the intricate patterns on the monarch butterflies' wings",
+                    "Ahmed meticuluously sketched the intricate patterns on the monarch butterflies' wings",
+                    "Ahmed meticulously sketched the intricate patterns on the monarch butterflies' wings",
+                    "Ahmad meticulously sketched the intricate patterns on the monarch butterflies' wings"
+                  ],
+                  "correct": [
+                    2
+                  ],
+                  "audio_file": "audio_files/Group7/ahmed_al_balushi_complex sentence dictation_emphasis_d079a632.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In Ahmed's technical vocabulary for Art (Sketching), 'intricate' means 'very detailed and complex'. Which parts create this meaning?",
+                  "options": [
+                    "in- (not) + trica (trick) + -ate (make)",
+                    "in- (in) + tri- (three) + -cate (act)",
+                    "inter- (between) + catus (pattern) + -e (adjective)",
+                    "in- (inside) + tri- (triangle) + cat (animal) + -e (adjective)"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_3": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Ahmed meticulously sketched the intricate patterns on the monarch butterflies' wings",
+                  "options": [
+                    "Ahmed meticulously sketched the intricate patterns on the monarch butterflies' wings",
+                    "Ahmed meticulosly sketched the intricate patterns on the monarch butterflies' wings",
+                    "Ahmed meticuluosly sketched the intricate patterns on the monarch butterflies' wings",
+                    "Ahmed meticulously sketched the intricate patterns on the monarch buttterflies' wings"
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/ahmed_al_balushi_complex sentence dictation_emphasis_d079a632.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In Ahmed's technical vocabulary for Art (Sketching), 'intricate' means 'complex and detailed'. Which parts create this meaning?",
+                  "options": [
+                    "Intra-: within, -ic: pertaining to",
+                    "Inter-: between, -ate: to make",
+                    "In-: not, -tric: relating to tricks",
+                    "Intra-: between, -ic: not specific"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_4": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Ahmed skillfully sketched intricate patterns in the ancient manuscripts.",
+                  "options": [
+                    "Ahmed skillfully sketched intricate patterns in the ancient manuscripts.",
+                    "Ahmed skilfully sketched intracate patterns in the ancient manuscrits.",
+                    "Ahmed scilfully sketched intrikate patterns in the aintient manusscripts.",
+                    "Amed skilfully sketced intrekate patterrns in the anciant manuskripts."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/ahmed_al_balushi_complex sentence dictation_emphasis_20fbff58.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In Ahmed's technical vocabulary for Art (Sketching), 'manuscripts' means 'written by hand'. Which parts create this meaning?",
+                  "options": [
+                    "manu - means 'hand', script - means 'written'",
+                    "mano - means 'mind', scribe - means 'to write'",
+                    "man - means 'many', script - means 'to read'",
+                    "manus - means 'book', script - means 'inscription'"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "SkillsApp Vocabulary Building",
+              "component": "Semantic Word Banks",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Apply vocabulary building strategy",
+              "questions": [
+                {
+                  "prompt": "Choose the most suitable word to describe Ahmed's sketching in the ancient chamber.",
+                  "options": [
+                    "crumbling",
+                    "modern",
+                    "fragile",
+                    "contemporary"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "SkillsApp Advanced Grammar",
+              "component": "Grammar Analysis",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Test complex grammar concepts",
+              "questions": [
+                {
+                  "prompt": "Identify the grammatical structure used in the sentence: 'Ahmed discovered the hidden chamber.'",
+                  "options": [
+                    "Simple sentence",
+                    "Compound sentence",
+                    "Complex sentence",
+                    "Compound-complex sentence"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "SkillsApp Sentence Structure",
+              "component": "Fill in the Blank",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Practice sentence patterns",
+              "questions": [
+                {
+                  "prompt": "Young Ahmed carefully sketched ________ patterns in the ancient chamber.",
+                  "options": [
+                    "intricate",
+                    "modern",
+                    "simple",
+                    "complicated"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 6,
+              "source": "SkillsApp Paragraph Structure",
+              "component": "Fill in the Blank",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Transition and cohesion practice",
+              "questions": [
+                {
+                  "prompt": "In the paragraph, Ahmed ________ find the hidden manuscripts, he ________ realized the significance of his discovery.",
+                  "options": [
+                    "first, then",
+                    "eventually, suddenly",
+                    "did not, later",
+                    "suddenly, first"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 7,
+              "source": "OG-Prefix/Suffix Application",
+              "component": "Morphemes Application",
+              "time_allocation": "1 minute",
+              "instructions": "Using morphemes from OG lesson",
+              "questions": [
+                {
+                  "prompt": "What does the prefix 're-' mean in the word 'realized'?",
+                  "options": [
+                    "again",
+                    "not",
+                    "before",
+                    "down"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_5": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Ahmed's intricate sketches amazed his classmates during art class.",
+                  "options": [
+                    "Ahmed's intricate sketches amazed his classmates during art class.",
+                    "Ahmed's intricate sketches amazed his classmates during art-class.",
+                    "Ahmeds intricate sketches amazed his classmates during art class.",
+                    "Ahmed's intricut sketches amazed his classmates during art class."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/ahmed_al_balushi_complex sentence dictation_emphasis_c8a9a175.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In Ahmed's technical vocabulary for Art (Sketching), 'intricate' means 'complex, detailed'. Which parts create this meaning?",
+                  "options": [
+                    "in- (not) + tric (trick) + ate (cause)",
+                    "in- (into) + tri (three) + cate (state of)",
+                    "in- (inside) + tri (triangle) + care (attention)",
+                    "inter (between) + tric (part) + it (action)"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "SkillsApp-Vocabulary",
+              "component": "Vocabulary Building Strategy",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Apply the vocabulary building strategy",
+              "questions": [
+                {
+                  "prompt": "Use the Frayer Model to create a detailed definition, characteristics, examples, and non-examples for the word 'intricate'.",
+                  "options": [
+                    "Student's own response"
+                  ],
+                  "correct": []
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "SkillsApp-Grammar",
+              "component": "Advanced Grammar Test",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Test complex concepts",
+              "questions": [
+                {
+                  "prompt": "Identify the sentence pattern: 'Ahmed, with his exceptional sketching abilities, captured the essence of the scene'.",
+                  "options": [
+                    "Compound-Complex Sentence",
+                    "Simple Sentence",
+                    "Complex Sentence",
+                    "Compound Sentence"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "SkillsApp-Writing",
+              "component": "Sentence Structure Practice",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Practice sentence patterns",
+              "questions": [
+                {
+                  "prompt": "Fill in the blank: Ahmed _______ to create stunning artworks that amazed everyone.",
+                  "options": [
+                    "enjoys",
+                    "sketches",
+                    "quickly",
+                    "maths"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 6,
+              "source": "SkillsApp-Writing",
+              "component": "Paragraph Structure Practice",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Enhance transition and cohesion",
+              "questions": [
+                {
+                  "prompt": "Fill in the blank: Ahmed's dedication to sketching allowed him to express _______ ideas with precision.",
+                  "options": [
+                    "his",
+                    "mathematical",
+                    "common",
+                    "this"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 7,
+              "source": "OG-Prefix/Suffix",
+              "component": "Morphemes Application",
+              "time_allocation": "1 minute",
+              "instructions": "Use morphemes from OG lesson",
+              "questions": [
+                {
+                  "prompt": "Provide a word using the suffix '-ment' that fits Ahmed's interest in sketching.",
+                  "options": [
+                    "Equipment",
+                    "Mathsment",
+                    "Sketchment",
+                    "Pavement"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  }
+}

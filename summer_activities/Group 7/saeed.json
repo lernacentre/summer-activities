@@ -1,0 +1,591 @@
+{
+  "day_1": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Saeed enjoyed playing the latest game on his console.",
+                  "options": [
+                    "Saeed enjoyed playing the latest game on his console.",
+                    "Saeed enjoied playing the latest game on his conzole.",
+                    "Said enjoyed playin the latest game on his console.",
+                    "Sayed enjoyd playin the latst game on his consul."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/saeed_complex sentence dictation_emphasis_e77eeefb.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In saeed's technical vocabulary for game, 'tele' means 'far'. Which parts create this meaning?",
+                  "options": [
+                    "tele - far",
+                    "telo - close",
+                    "telee - near",
+                    "telei - distant"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_2": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Saeed excelled at the challenging online game.",
+                  "options": [
+                    "Saeed excelled at the challenging online game.",
+                    "Saeed excelld at the challenging online game.",
+                    "Saeed ekselled at the challenging online game.",
+                    "Saeed exelled at the challenging online game."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/saeed_complex sentence dictation_emphasis_5c7a067f.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In saeed's technical vocabulary for game, 'console' means 'a device for playing video games'. Which parts create this meaning?",
+                  "options": [
+                    "con- (together) + sol- (alone)",
+                    "con- (with) + sol- (sun)",
+                    "con- (against) + sol- (soil)",
+                    "con- (deep) + sol- (thought)"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_3": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Saeed was intrigued by the complex storyline of the game.",
+                  "options": [
+                    "Saeed was intrigued by the complex storyline of the game.",
+                    "Saeed was intriqed by the complex storyline of the game.",
+                    "Saeed was entriged by the complex storyline of the game.",
+                    "Seed was intrigued by the complex storyline of the game."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/saeed_complex sentence dictation_emphasis_e3f483a5.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In saeed's technical vocabulary for game, 'intrigued' means 'to be fascinated by'. Which parts create this meaning?",
+                  "options": [
+                    "In- (meaning 'in' or 'into') + -trig (meaning 'to be fascinated') + -ued (verb ending)",
+                    "Ent- (meaning 'within') + -rig (meaning 'to be fascinated') + -ed (past tense suffix)",
+                    "In- (meaning 'not') + -trig (meaning 'difficult') + -ued (past tense suffix)",
+                    "Int- (meaning 'between') + -rig (meaning 'to be fascinated') + -ed (adjective suffix)"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "SkillsApp-Vocabulary Building",
+              "component": "Using Sensory Word Banks",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Apply specific strategy taught in lesson",
+              "questions": [
+                {
+                  "prompt": "Develop a sensory word bank for the following: sight",
+                  "options": [
+                    "Colorful, vibrant, vivid",
+                    "Smooth, rough, sharp",
+                    "Silent, loud, noisy",
+                    "Soft, hard, solid"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "SkillsApp-Advanced Grammar",
+              "component": "Testing Complex Concepts",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Test complex concepts from lesson",
+              "questions": [
+                {
+                  "prompt": "Identify the prepositional phrase in the sentence: 'Saeed used the game controller with precision.'",
+                  "options": [
+                    "With precision",
+                    "Used the game",
+                    "Saeed used",
+                    "Game controller"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "SkillsApp-Sentence Structure",
+              "component": "Fill in the Blank Practice",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Practice patterns from SkillsApp",
+              "questions": [
+                {
+                  "prompt": "Saeed __________ the final boss in the game with skill and determination.",
+                  "options": [
+                    "defeated",
+                    "defeats",
+                    "defeat",
+                    "defeating"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 6,
+              "source": "SkillsApp-Paragraph Structure",
+              "component": "Fill in the Blank Practice",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Transition and cohesion practice",
+              "questions": [
+                {
+                  "prompt": "The game was challenging, but Saeed __________ managed to succeed in the end.",
+                  "options": [
+                    "persevered and",
+                    "persevered but",
+                    "persevered for",
+                    "persevered so"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 7,
+              "source": "OG-Prefix/Suffix Application",
+              "component": "Using Morphemes",
+              "time_allocation": "1 minute",
+              "instructions": "Apply morphemes from OG lesson",
+              "questions": [
+                {
+                  "prompt": "Which suffix can be added to the word 'game' to form the adjective 'gaming'?",
+                  "options": [
+                    "-ing",
+                    "-ed",
+                    "-ly",
+                    "-er"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_4": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Saeed delved into the mysterious ancient chamber to uncover hidden manuscripts.",
+                  "options": [
+                    "Saeed delved into the mysterious ancient chamber to uncover hidden manuscripts.",
+                    "Saeed delved into the mysterious anshent chamber to uncover hidden manuskripts.",
+                    "Saeed delved into the mysterious ancient chamber to uncover hidden manuskripts.",
+                    "Saeed delved into the mysterious anchient chamber to uncover hidden manuscripts."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/saeed_complex sentence dictation_emphasis_122d3e5a.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In saeed's technical vocabulary for game, 'archaeology' means 'the study of ancient civilizations'. Which parts create this meaning?",
+                  "options": [
+                    "archae/o/logy",
+                    "chae/o/o/logy",
+                    "archae/o/jy",
+                    "archaeology"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "SkillsApp-Vocabulary Building",
+              "component": "Semantic Word Banks",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Apply specific strategy taught in lesson",
+              "questions": [
+                {
+                  "prompt": "Create a semantic word bank for Saeed's game interests.",
+                  "options": [
+                    "victory, defeat, quest",
+                    "ancient, crumbling, weathered",
+                    "incredible, challenging, immersive",
+                    "musty, dim, trembling"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "SkillsApp-Advanced Grammar",
+              "component": "Complex Grammar Concepts",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Test complex concepts from lesson",
+              "questions": [
+                {
+                  "prompt": "Identify the complex grammatical structure in the sentence 'Saeed's relentless pursuit of victory impressed his peers'.",
+                  "options": [
+                    "compound sentence",
+                    "subordinate clause",
+                    "adverbial phrase",
+                    "participle construction"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "SkillsApp-Sentence Structure",
+              "component": "Fill in the Blank",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Practice patterns from SkillsApp",
+              "questions": [
+                {
+                  "prompt": "Saeed _____ the hidden treasure in the virtual world of his game.",
+                  "options": [
+                    "discovered",
+                    "discover",
+                    "discovering",
+                    "discoverable"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 6,
+              "source": "SkillsApp-Paragraph Structure",
+              "component": "Fill in the Blank",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Transition and cohesion practice",
+              "questions": [
+                {
+                  "prompt": "After finding the ancient relic, Saeed ______ its significance in the context of the game story.",
+                  "options": [
+                    "elaborated",
+                    "expounded",
+                    "explained",
+                    "described"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 7,
+              "source": "OG-Prefix/Suffix Application",
+              "component": "Morphemes Application",
+              "time_allocation": "1 minute",
+              "instructions": "Using morphemes from OG lesson",
+              "questions": [
+                {
+                  "prompt": "Which prefix is used in the word 'uncover'?",
+                  "options": [
+                    "re-",
+                    "dis-",
+                    "un-",
+                    "pre-"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_5": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Saeed delved into the mysterious ancient chamber to uncover hidden manuscripts",
+                  "options": [
+                    "Saeed delved into the mysterious ancient chamber to uncover hidden manuscripts",
+                    "Saeed delvd into the mysterious ancient chamber to uncover hidden manuscripts",
+                    "Saeed delve into the mysterious ancient chamber to uncover hidden manuscripts",
+                    "Saeed delv into the mysterious ancient chamber to uncover hidden manuscripts"
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/saeed_complex sentence dictation_emphasis_c76616f1.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In saeed's technical vocabulary for game, 'discovery' means 'finding'. Which parts create this meaning?",
+                  "options": [
+                    "dis- + cover",
+                    "dis- + disc",
+                    "cover + re",
+                    "find + dis"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "SkillsApp-Vocabulary Building",
+              "component": "Semantic Word Bank Creation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Apply a specific vocabulary strategy",
+              "questions": [
+                {
+                  "prompt": "Using the word bank strategy, list 5 words related to 'game' that saeed might enjoy",
+                  "options": [
+                    "entertainment, play, amusement, recreation, enjoyment",
+                    "desk, pencil, book, chair, table",
+                    "fast, slow, big, small, nice",
+                    "run, jump, skip, hop, crawl"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "SkillsApp-Advanced Grammar",
+              "component": "Complex Grammar Concepts",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Test advanced grammar concepts",
+              "questions": [
+                {
+                  "prompt": "What is the grammatical structure of the sentence: 'Saeed volunteered to help organize the gaming tournament'?",
+                  "options": [
+                    "Subject-Verb-Object",
+                    "Subordinate clause",
+                    "Compound sentence",
+                    "Passive voice"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "SkillsApp-Sentence Structure",
+              "component": "Fill in the Blank Sentences",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Practice patterns from SkillsApp",
+              "questions": [
+                {
+                  "prompt": "Saeed _______ his gaming skills by practicing every day.",
+                  "options": [
+                    "enhanced",
+                    "play",
+                    "asked",
+                    "spilled"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 6,
+              "source": "SkillsApp-Paragraph Structure",
+              "component": "Fill in the Blank Paragraphs",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Transition and cohesion practice",
+              "questions": [
+                {
+                  "prompt": "After discovering the hidden room, Saed felt ______ and immediately ______ to explore further.",
+                  "options": [
+                    "excited, volunteer",
+                    "curious, left",
+                    "bored, sat",
+                    "happy, slept"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  }
+}

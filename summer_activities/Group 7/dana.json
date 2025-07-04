@@ -1,0 +1,612 @@
+{
+  "day_1": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Dana was fascinated by the intricate patterns on the butterfly wings.",
+                  "options": [
+                    "Dana was fascinated by the intricate patterns on the butterfly wings.",
+                    "Dana was fassinated by the intricate patterns on the butterfly wings.",
+                    "Dana was fascynated by the intricate patterns on the butterfly wings.",
+                    "Dana was fassynated by the intricate patterns on the butterfly wings."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/dana_complex sentence dictation_emphasis_668c2a3d.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In dana's technical vocabulary for playing on the iPad, 'Innovative' means 'having the ability to introduce new ideas or methods and being creative'. Which parts create this meaning?",
+                  "options": [
+                    "In- (prefix) + nov- (root) + -ative (suffix)",
+                    "In- (prefix) + nov- (root) + -ive (suffix)",
+                    "Inn- (prefix) + ov- (root) + -ative (suffix)",
+                    "I- (prefix) + nov- (root) + -ative (suffix)"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "Vocabulary Building Strategy",
+              "component": "Applying Vocabulary Strategy",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Apply the vocabulary building strategy",
+              "questions": [
+                {
+                  "prompt": "Using the shades of meaning thermometer, choose the word that best fits: Dana found the butterfly's behavior _______.",
+                  "options": [
+                    "Intriguing",
+                    "Fascinating",
+                    "Curious",
+                    "Unusual"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "Advanced Grammar",
+              "component": "Testing Complex Grammar Concepts",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Test advanced grammar concepts",
+              "questions": [
+                {
+                  "prompt": "Identify the subject, verb, and adverb in the sentence: 'Emma carefully observed the wing patterns.'",
+                  "options": [
+                    "Subject: Emma, Verb: observed, Adverb: carefully",
+                    "Subject: Emma, Verb: wing, Adverb: observed",
+                    "Subject: Emma, Verb: wing, Adverb: patterns",
+                    "Subject: wing, Verb: observed, Adverb: carefully"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "Sentence Structure",
+              "component": "Fill in the Blank",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Practice sentence patterns",
+              "questions": [
+                {
+                  "prompt": "Dana noticed _______ variation in the monarch butterflies.",
+                  "options": [
+                    "a",
+                    "an",
+                    "the",
+                    "some"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 6,
+              "source": "Paragraph Structure",
+              "component": "Fill in the Blank",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Transition and cohesion practice",
+              "questions": [
+                {
+                  "prompt": "In her presentation, Emma discussed _______ findings on the rare genetic variation.",
+                  "options": [
+                    "her",
+                    "his",
+                    "their",
+                    "its"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 7,
+              "source": "Prefix/Suffix Application",
+              "component": "Using Morphemes",
+              "time_allocation": "1 minute",
+              "instructions": "Apply prefix/suffix knowledge",
+              "questions": [
+                {
+                  "prompt": "What does the suffix '-ly' indicate in the word 'carefully'?",
+                  "options": [
+                    "In a way that is",
+                    "Full of",
+                    "Someone who",
+                    "Pertaining to"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_2": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Dana's performance at the school concert was nervous but successful.",
+                  "options": [
+                    "Dana's performance at the school concert was nervous but successful.",
+                    "Dana's perfomance at the school concert was nervus but succesful.",
+                    "Dana's perfomance at the school concert was nervous but succussful.",
+                    "Dana's perfomance at the school concert was nerevous but successful."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/dana_complex sentence dictation_emphasis_adbb418d.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In dana's technical vocabulary for playing on the iPad, 'concert' means 'a public musical performance'. Which parts create this meaning?",
+                  "options": [
+                    "con- + cert",
+                    "con- + ert",
+                    "cert + -t",
+                    "cer + con"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_3": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Dana was engrossed in the intricate details of the digital world.",
+                  "options": [
+                    "Dana was engrossed in the intricate details of the digital world.",
+                    "Dana was engrosed in the intricate details of the digital world.",
+                    "Dana was engrosssed in the intricate details of the digital world.",
+                    "Dana was engrosed in the intracate details of the digital world."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/dana_complex sentence dictation_emphasis_ed85dde9.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In dana's technical vocabulary for playing on the iPad, 'digital' means 'related to technology'. Which parts create this meaning?",
+                  "options": [
+                    "di - relating to; gital - technology component",
+                    "dig - technology; tal - relating to",
+                    "dig - relating to technology; al - component",
+                    "di - technology; gital - relating to"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_4": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Dana's archaeological discovery amazed historians and researchers alike.",
+                  "options": [
+                    "Dana's archaeological discovery amazed historians and researchers alike.",
+                    "Dana's archeological discovery amazed historians and researchers alike.",
+                    "Dana's archeological discoverie amazed historians and researchers alike.",
+                    "Dana's archaeological discoverie amazed historians and researcher alike."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/dana_complex sentence dictation_emphasis_5b024392.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In dana's technical vocabulary for playing on the iPad, 'archaeological' means 'related to the study of ancient history'. Which parts create this meaning?",
+                  "options": [
+                    "archae + olog + ical",
+                    "archeo + olog + ical",
+                    "archaeo + log + ical",
+                    "archeo + log + ical"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "SkillsApp-Vocabulary",
+              "component": "Vocabulary Building Strategy",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Apply specific vocabulary strategy",
+              "questions": [
+                {
+                  "prompt": "Choose the correct synonyms for 'ancient' based on the semantic thermometer: aged, new, mature, ancient, elderly.",
+                  "options": [
+                    "aged, mature, elderly",
+                    "aged, mature, new",
+                    "mature, ancient, elderly",
+                    "new, aged, ancient"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "SkillsApp-Grammar",
+              "component": "Advanced Grammar",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Test complex grammar concepts",
+              "questions": [
+                {
+                  "prompt": "Identify the grammatical structure in the sentence: 'The tablet revealed the location of a hidden chamber.'",
+                  "options": [
+                    "Subject-verb-object",
+                    "Subordinate clause",
+                    "Compound sentence",
+                    "Passive voice"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "SkillsApp-SentenceStructure",
+              "component": "Fill in the Blank - Sentence Structure",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Practice sentence patterns",
+              "questions": [
+                {
+                  "prompt": "Sarah carefully ___________ the ancient tablet in the dim torchlight.",
+                  "options": [
+                    "discovered",
+                    "discover",
+                    "discovers",
+                    "discovering"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 6,
+              "source": "SkillsApp-ParagraphStructure",
+              "component": "Fill in the Blank - Paragraph Structure",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Transition and cohesion practice",
+              "questions": [
+                {
+                  "prompt": "The discovery of the manuscripts in the hidden chamber ___________ the village historian's research efforts.",
+                  "options": [
+                    "enhanced",
+                    "enhance",
+                    "enhances",
+                    "enhancing"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 7,
+              "source": "OG-Morphology",
+              "component": "Prefix/Suffix Application",
+              "time_allocation": "1 minute",
+              "instructions": "Using morphemes from OG lesson",
+              "questions": [
+                {
+                  "prompt": "What does the prefix 'dis-' mean in the word 'discover'?",
+                  "options": [
+                    "Not",
+                    "Again",
+                    "Away",
+                    "Together"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_5": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Dana's discovery in the school garden amazed her science teacher.",
+                  "options": [
+                    "Dana's discuvery in the school garden amazed her science teacher.",
+                    "Dana's discouvery in the school garden amazed her science teacher.",
+                    "Dana's discoveri in the school garden amazed her science teacher.",
+                    "Dana's discovery in the school gardenn amazed her science teacher."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/dana_complex sentence dictation_emphasis_bd5d3a2c.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In Dana's technical vocabulary for playing on the iPad, 'technology' means 'the study of machinery and software'. Which parts create this meaning?",
+                  "options": [
+                    "tech(nology)",
+                    "study(tech)",
+                    "machin(ery)",
+                    "soft(ware)"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "SkillsApp-Vocabulary",
+              "component": "Vocabulary Building Strategy",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Apply the vocabulary strategy taught",
+              "questions": [
+                {
+                  "prompt": "Choose the synonym for 'curious' from the provided list:",
+                  "options": [
+                    "intriguing",
+                    "basic",
+                    "common",
+                    "dull"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "SkillsApp-Grammar",
+              "component": "Advanced Grammar",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Test complex grammar concepts",
+              "questions": [
+                {
+                  "prompt": "Identify the type of sentence: 'When Dana plays on the iPad, she enjoys creative tasks.'",
+                  "options": [
+                    "Complex sentence",
+                    "Simple sentence",
+                    "Compound sentence",
+                    "Run-on sentence"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "SkillsApp-SentenceStructure",
+              "component": "Fill in the Blank",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Practice sentence structure patterns",
+              "questions": [
+                {
+                  "prompt": "Dana ________ on the iPad for hours to complete her game.",
+                  "options": [
+                    "plays",
+                    "playing",
+                    "played",
+                    "play"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 6,
+              "source": "SkillsApp-ParagraphStructure",
+              "component": "Fill in the Blank",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Transition and cohesion practice",
+              "questions": [
+                {
+                  "prompt": "After Dana made her discovery, ________ shared the news with her classmates.",
+                  "options": [
+                    "she",
+                    "they",
+                    "it",
+                    "he"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 7,
+              "source": "OG-Prefix/Suffix",
+              "component": "Prefix/Suffix Application",
+              "time_allocation": "1 minute",
+              "instructions": "Using morphemes from OG lesson",
+              "questions": [
+                {
+                  "prompt": "What does the prefix 'dis-' mean in the word 'discover'?",
+                  "options": [
+                    "Not",
+                    "Again",
+                    "Before",
+                    "Around"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  }
+}

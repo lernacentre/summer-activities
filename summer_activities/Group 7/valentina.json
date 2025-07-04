@@ -1,0 +1,574 @@
+{
+  "day_1": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Valentina enjoyed the thrilling experience of horseback riding through picturesque landscapes",
+                  "options": [
+                    "Valentina enjoyed the thrilling experience of horseback riding through picturesque landscapes",
+                    "Valentina enjoyed the thriling experiance of horse back rideing through picturesque landscapes",
+                    "Valentina enjoyd the thrillng experience of horsebak riding through picturec landcsapes",
+                    "Valentin enjoyed the thrilling experience of horseback riding through picturesque landscapes"
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/valentina_complex sentence dictation_emphasis_14d9c3f4.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In Valentina's technical vocabulary for horse riding, 'equine' means 'related to horses'. Which parts create this meaning?",
+                  "options": [
+                    "equi- (equal) + -ne (noun indicator)",
+                    "equi- (horse) + -ne (adjective suffix)",
+                    "equi- (quick) + -ne (verb suffix)",
+                    "eq- (horse) + -uine (neutral)"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "Vocabulary Building Strategy",
+              "component": "Applying Specific Vocabulary Strategy",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Apply the strategy of semantic word bank creation",
+              "questions": [
+                {
+                  "prompt": "Generate synonyms for 'detect' within the context of scientific observations",
+                  "options": [
+                    "identify, spot, perceive",
+                    "analyze, classify, review",
+                    "examine, investigate, interpret",
+                    "observe, witness, watch"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "Advanced Grammar",
+              "component": "Testing Complex Grammar Concepts",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Test understanding of advanced grammar concepts",
+              "questions": [
+                {
+                  "prompt": "Identify the grammatical function of 'which' in the sentence: 'The discovery, which was unexpected, amazed everyone'.",
+                  "options": [
+                    "Relative pronoun",
+                    "Subordinating conjunction",
+                    "Adverbial clause",
+                    "Indefinite pronoun"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "Sentence Structure",
+              "component": "Fill in the Blank",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Practice sentence patterns from the skills app",
+              "questions": [
+                {
+                  "prompt": "When Valentina ___ her performance, the judges were impressed.",
+                  "options": [
+                    "showed",
+                    "displayed",
+                    "presented",
+                    "exhibited"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 6,
+              "source": "Paragraph Structure",
+              "component": "Fill in the Blank",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Transition and cohesion practice",
+              "questions": [
+                {
+                  "prompt": "Valentina felt exhilarated when she ___ her instructor about the horse's behavior.",
+                  "options": [
+                    "consulted",
+                    "queried",
+                    "inquired",
+                    "approached"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 7,
+              "source": "Prefix/Suffix Application",
+              "component": "Using Morphemes from OG Lesson",
+              "time_allocation": "1 minute",
+              "instructions": "Apply knowledge of prefixes and suffixes",
+              "questions": [
+                {
+                  "prompt": "Choose the correct meaning of the prefix 're-' in the word 'reinforce'.",
+                  "options": [
+                    "again",
+                    "under",
+                    "before",
+                    "above"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_4": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Valentina struggled with her art project but excelled in decoding ancient symbols.",
+                  "options": [
+                    "Valentina struggled with her art project but excelled in decoding ancient symbols.",
+                    "Valentina struggled with her art project but excelled in decoding ancient symboles.",
+                    "Valentina struggled with her art projeckt but excelled in decoding ancient symbols.",
+                    "Valentina struggled with her art project but exceld in decoding aintient symbols."
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/valentina_complex sentence dictation_emphasis_88326764.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In Valentina's technical vocabulary for horse riding, 'equestrian' means 'relating to horseback riding'. Which parts create this meaning?",
+                  "options": [
+                    "equi- (related to horses) + -strian (related to a particular activity)",
+                    "eques- (horse) + -trian (transportation method)",
+                    "equi- (quick) + -strian (movement)",
+                    "equis- (equilibrium) + -trian (balance)"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "SkillsApp-Vocabulary",
+              "component": "Vocabulary Building Strategy",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Apply the given vocabulary strategy",
+              "questions": [
+                {
+                  "prompt": "Using the semantic word bank, choose the best word to describe the ancient manuscripts in the text:",
+                  "options": [
+                    "weathered",
+                    "new",
+                    "modern",
+                    "contemporary"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "SkillsApp-Grammar",
+              "component": "Advanced Grammar Test",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Test complex grammar concepts",
+              "questions": [
+                {
+                  "prompt": "Identify the grammatical structure in the sentence: 'Sarah's hands trembled as she traced the weathered carvings.'",
+                  "options": [
+                    "Complex sentence with a dependent clause",
+                    "Compound sentence with a coordinating conjunction",
+                    "Simple sentence with a compound subject",
+                    "Complex sentence with a relative clause"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "SkillsApp-SentenceStructure",
+              "component": "Fill in the Blank - Sentence Structure",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Complete the sentence with the correct structure",
+              "questions": [
+                {
+                  "prompt": "The archaeologist carefully __________ the ancient tablet in the old library basement.",
+                  "options": [
+                    "discovered",
+                    "discover",
+                    "discovering",
+                    "discovers"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 6,
+              "source": "SkillsApp-ParagraphStructure",
+              "component": "Fill in the Blank - Paragraph Structure",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Complete the paragraph with the appropriate transition",
+              "questions": [
+                {
+                  "prompt": "After identifying the hidden chamber, Sarah felt a mix of excitement and nervousness. _______ she took a deep breath and entered.",
+                  "options": [
+                    "Subsequently,",
+                    "However,",
+                    "Meanwhile,",
+                    "Therefore,"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 7,
+              "source": "OG-Prefix/Suffix",
+              "component": "Prefix/Suffix Application",
+              "time_allocation": "1 minute",
+              "instructions": "Use the provided morphemes to complete the words",
+              "questions": [
+                {
+                  "prompt": "The archaeologist made a __________ discovery that would change history.",
+                  "options": [
+                    "remarkable",
+                    "remark",
+                    "remarks",
+                    "remarkably"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  },
+  "day_5": {
+    "complete": false,
+    "fields": [
+      {
+        "id": "activity_pack",
+        "label": "Activity Pack",
+        "content": {
+          "duration": "15 minutes",
+          "activities": [
+            {
+              "activity_number": 1,
+              "source": "OG-Dictation",
+              "component": "Complex Sentence Dictation",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Listen carefully and choose the correctly spelled sentence",
+              "questions": [
+                {
+                  "prompt": "The teacher says:",
+                  "audio_text": "Valentina struggled with the intricate art techniques but excelled in decoding ancient symbols",
+                  "options": [
+                    "Valentina strugled with the intricate art techniques but excelled in decoding ancient symbols",
+                    "Valentina struggled with the intricate art techneeks but excelled in decoding ancient symbols",
+                    "Valentina struggled with the intricate art techniques but exelled in decoding ancient symbols",
+                    "Valentina struggled with the intricate art techniques but excelled in decodeing ancient symbols"
+                  ],
+                  "correct": [
+                    0
+                  ],
+                  "audio_file": "audio_files/Group7/valentina_complex sentence dictation_emphasis_621b1e5d.mp3"
+                }
+              ]
+            },
+            {
+              "activity_number": 2,
+              "source": "OG-Morphology",
+              "component": "Greek/Latin Word Analysis",
+              "time_allocation": "1 minute",
+              "instructions": "Analyze the word structure",
+              "questions": [
+                {
+                  "prompt": "In Valentina's technical vocabulary for horse riding, 'equine' means 'relating to horses'. Which parts create this meaning?",
+                  "options": [
+                    "equi- (equal) + -ine (relating to)",
+                    "eque- (horse) + -ine (relating to)",
+                    "equa- (fast) + -ine (relating to)",
+                    "equi- (equal) + -ing (action)"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 3,
+              "source": "SkillsApp",
+              "component": "Vocabulary Building Strategy",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Apply the vocabulary building strategy",
+              "questions": [
+                {
+                  "prompt": "Use the synonym 'intriguing' to replace 'fascinating' in the sentence: Valentina found the butterfly garden fascinating.",
+                  "options": [
+                    "Valentina found the butterfly garden exciting.",
+                    "Valentina found the butterfly garden confusing.",
+                    "Valentina found the butterfly garden boring.",
+                    "Valentina found the butterfly garden intriguing."
+                  ],
+                  "correct": [
+                    3
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 4,
+              "source": "SkillsApp",
+              "component": "Advanced Grammar",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Test complex grammar concepts",
+              "questions": [
+                {
+                  "prompt": "Choose the sentence with the correct use of a subordinate clause:",
+                  "options": [
+                    "After watching the documentary, Valentina decided to learn more about horse riding.",
+                    "Valentina who enjoyed horseback riding spent hours grooming her horse.",
+                    "Valentina rode horses that won many competitions.",
+                    "Valentina loved horseback riding but painting was her true passion."
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 5,
+              "source": "SkillsApp",
+              "component": "Sentence Structure - Fill in the Blank",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Practice sentence patterns",
+              "questions": [
+                {
+                  "prompt": "Valentina ______ with joy when she won the horse riding competition.",
+                  "options": [
+                    "sparkled",
+                    "flourished",
+                    "blossomed",
+                    "beamed"
+                  ],
+                  "correct": [
+                    3
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 6,
+              "source": "SkillsApp",
+              "component": "Paragraph Structure - Fill in the Blank",
+              "time_allocation": "1.5 minutes",
+              "instructions": "Practice transition and cohesion",
+              "questions": [
+                {
+                  "prompt": "Valentina's dedication to horseback riding ______ her to improve her performance.",
+                  "options": [
+                    "allowed",
+                    "prevented",
+                    "hindered",
+                    "impeded"
+                  ],
+                  "correct": [
+                    0
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 7,
+              "source": "OG",
+              "component": "Prefix/Suffix Application",
+              "time_allocation": "1 minute",
+              "instructions": "Apply morphemes from OG lesson",
+              "questions": [
+                {
+                  "prompt": "Choose the correct prefix for the word 'judge':",
+                  "options": [
+                    "dis-",
+                    "re-",
+                    "un-",
+                    "mis-"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                }
+              ]
+            },
+            {
+              "activity_number": 8,
+              "source": "Integrated Reading Passage",
+              "component": "Reading Comprehension",
+              "time_allocation": "4 minutes",
+              "questions": [
+                {
+                  "prompt": "What unexpected discovery did Emma make in the school garden?",
+                  "options": [
+                    "New butterfly species",
+                    "Rare genetic variation in monarch butterflies",
+                    "Unusual plants in the garden",
+                    "Hidden treasure"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                },
+                {
+                  "prompt": "What inspired other pupils after Emma's discovery?",
+                  "options": [
+                    "To travel the world",
+                    "To care for the environment",
+                    "To study butterflies",
+                    "To start a garden"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                },
+                {
+                  "prompt": "How did Emma's science teacher react to her observations?",
+                  "options": [
+                    "She was bored",
+                    "She was impressed",
+                    "She was angry",
+                    "She was confused"
+                  ],
+                  "correct": [
+                    1
+                  ]
+                },
+                {
+                  "prompt": "Why was Emma invited to the university's biology department?",
+                  "options": [
+                    "To present her lunch",
+                    "To receive an award",
+                    "To share her findings",
+                    "To meet famous scientists"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                },
+                {
+                  "prompt": "What did Emma prepare for the student research conference?",
+                  "options": [
+                    "A dance routine",
+                    "A science experiment",
+                    "A book",
+                    "A presentation"
+                  ],
+                  "correct": [
+                    3
+                  ]
+                },
+                {
+                  "prompt": "What did Emma's discovery demonstrate about scientific observations?",
+                  "options": [
+                    "That they can only happen in labs",
+                    "That they're boring",
+                    "They can happen anywhere",
+                    "They are always easy"
+                  ],
+                  "correct": [
+                    2
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "type": "text_area"
+      }
+    ]
+  }
+}
