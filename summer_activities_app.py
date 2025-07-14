@@ -1,7 +1,9 @@
 import streamlit as st
 import json
-import os
 import base64
+import boto3
+from botocore.exceptions import ClientError
+from io import BytesIO
 
 # Initialize session state
 if "authenticated" not in st.session_state:
@@ -17,62 +19,100 @@ if "answers" not in st.session_state:
 if "opening_audio_played" not in st.session_state:
     st.session_state.opening_audio_played = set()
 
+# S3 Configuration
+AWS_ACCESS_KEY_ID = st.secrets["AWS_ACCESS_KEY_ID"]
+AWS_SECRET_ACCESS_KEY = st.secrets["AWS_SECRET_ACCESS_KEY"]
+BUCKET_NAME = "summer-activities-streamli-app"
+BUCKET_REGION = "eu-north-1"
+
+# Create S3 client
+s3 = boto3.client(
+    's3',
+    region_name=BUCKET_REGION,
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+)
+
+# Helper function to read files from S3
+def read_s3_file(s3_key):
+    """Read a file from S3 and return its content"""
+    try:
+        response = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)
+        return response['Body'].read()
+    except ClientError:
+        return None
+
 # Get all students from all groups
 def get_all_students():
     student_to_group = {}
-    base_path = "Summer_Activities"
-
-    for item in os.listdir(base_path):
-        group_path = os.path.join(base_path, item)
-        if os.path.isdir(group_path) and item.startswith("Group"):
-            for student in os.listdir(group_path):
-                student_path = os.path.join(group_path, student)
-                if os.path.isdir(student_path) and student != "passwords.json":
+    base_prefix = "Summer_Activities/"
+    
+    try:
+        # List all objects under Summer_Activities/
+        paginator = s3.get_paginator('list_objects_v2')
+        pages = paginator.paginate(Bucket=BUCKET_NAME, Prefix=base_prefix)
+        
+        # Process all objects to find groups and students
+        all_keys = []
+        for page in pages:
+            if 'Contents' in page:
+                all_keys.extend([obj['Key'] for obj in page['Contents']])
+        
+        # Parse keys to find groups and students
+        for key in all_keys:
+            parts = key.split('/')
+            if len(parts) >= 4:  # Summer_Activities/Group/Student/...
+                if parts[1].startswith("Group") and parts[2] and parts[2] != "passwords.json":
+                    group = parts[1]
+                    student = parts[2]
+                    
                     # Check if this student has day folders
-                    has_days = False
-                    for subfolder in os.listdir(student_path):
-                        if os.path.isdir(os.path.join(student_path, subfolder)) and subfolder.startswith("day"):
-                            has_days = True
-                            break
+                    student_prefix = f"Summer_Activities/{group}/{student}/"
+                    has_days = any(k.startswith(student_prefix + "day") for k in all_keys)
+                    
                     if has_days:
-                        student_to_group[student] = item
-
-    return student_to_group
+                        student_to_group[student] = group
+        
+        return student_to_group
+    
+    except ClientError as e:
+        st.error(f"Error accessing S3: {e}")
+        return {}
 
 # Helper function to fix audio paths
-def fix_audio_path(audio_file, student_path, current_day):
-    """Handle audio file paths with mixed formats"""
+def fix_audio_path(audio_file, student_s3_prefix, current_day):
+    """Create S3 key for audio files"""
     if not audio_file or audio_file == "[Path to audio]":
         return None
     
-    # Handle different path formats in the JSON
     if audio_file.startswith("day"):
-        # Path like "day1/audio/file.mp3" - use as is
-        return os.path.join(student_path, audio_file)
+        return f"{student_s3_prefix}/{audio_file}"
     else:
-        # Path like "audio/file.mp3" - add current day
-        return os.path.join(student_path, current_day, audio_file)
+        return f"{student_s3_prefix}/{current_day}/{audio_file}"
 
 # Load passwords
 def load_passwords(group_folder):
-    password_file = os.path.join("Summer_Activities", group_folder, "passwords.json")
-    if os.path.exists(password_file):
-        with open(password_file, 'r') as f:
-            return json.load(f)
+    password_key = f"Summer_Activities/{group_folder}/passwords.json"
+    content = read_s3_file(password_key)
+    
+    if content:
+        return json.loads(content.decode('utf-8'))
     return {}
 
 # Play audio without showing controls (hidden bar)
-def play_audio_hidden(audio_file):
+def play_audio_hidden(s3_key):
     try:
-        with open(audio_file, 'rb') as f:
-            audio_bytes = f.read()
-        b64 = base64.b64encode(audio_bytes).decode()
-        audio_tag = f"""
-            <audio autoplay style="display:none;">
-                <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-            </audio>
-        """
-        st.markdown(audio_tag, unsafe_allow_html=True)
+        audio_content = read_s3_file(s3_key)
+        if audio_content:
+            b64 = base64.b64encode(audio_content).decode()
+            audio_tag = f"""
+                <audio autoplay style="display:none;">
+                    <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+                </audio>
+            """
+            st.markdown(audio_tag, unsafe_allow_html=True)
+        else:
+            st.error(f"Error playing audio: File not found")
     except Exception as e:
         st.error(f"Error playing audio: {e}")
 
@@ -114,25 +154,44 @@ def main():
             st.session_state.opening_audio_played = set()
             st.rerun()
 
-        # Student path
-        student_path = os.path.join("Summer_Activities", st.session_state.group, st.session_state.student)
+        # Student S3 prefix
+        student_s3_prefix = f"Summer_Activities/{st.session_state.group}/{st.session_state.student}"
 
         # Load activity_pack.json from each day folder
         all_days = []
         day_to_content = {}
 
-        # Look for day folders
-        day_folders = [f for f in os.listdir(student_path) if os.path.isdir(os.path.join(student_path, f)) and f.startswith("day")]
-        day_folders.sort(key=lambda x: int(x.replace("day", "")))  # Sort by day number
+        try:
+            # List all objects for this student
+            response = s3.list_objects_v2(
+                Bucket=BUCKET_NAME,
+                Prefix=student_s3_prefix + "/",
+                Delimiter='/'
+            )
+            
+            # Get day folders
+            day_folders = []
+            if 'CommonPrefixes' in response:
+                for prefix in response['CommonPrefixes']:
+                    folder_name = prefix['Prefix'].rstrip('/').split('/')[-1]
+                    if folder_name.startswith("day"):
+                        day_folders.append(folder_name)
+            
+            day_folders.sort(key=lambda x: int(x.replace("day", "")))  # Sort by day number
 
-        for day_folder in day_folders:
-            activity_pack_path = os.path.join(student_path, day_folder, "activity_pack.json")
-            if os.path.exists(activity_pack_path):
-                with open(activity_pack_path, 'r') as f:
-                    data = json.load(f)
+            for day_folder in day_folders:
+                activity_pack_key = f"{student_s3_prefix}/{day_folder}/activity_pack.json"
+                content = read_s3_file(activity_pack_key)
+                
+                if content:
+                    data = json.loads(content.decode('utf-8'))
                     day_name = day_folder  # Use folder name as day identifier
                     all_days.append(day_name)
                     day_to_content[day_name] = data
+
+        except ClientError as e:
+            st.error(f"Error loading activities: {e}")
+            return
 
         # Set the first day if not already set
         if st.session_state.current_day is None and all_days:
@@ -159,13 +218,13 @@ def main():
                     # Play opening audio only if not already played for this day
                     if current_day not in st.session_state.opening_audio_played:
                         opening_audio = content.get('opening_audio_file', '')
-                        audio_path = fix_audio_path(opening_audio, student_path, current_day)
+                        audio_s3_key = fix_audio_path(opening_audio, student_s3_prefix, current_day)
                         
-                        if audio_path and os.path.exists(audio_path):
-                            play_audio_hidden(audio_path)
+                        if audio_s3_key and read_s3_file(audio_s3_key):
+                            play_audio_hidden(audio_s3_key)
                             st.session_state.opening_audio_played.add(current_day)
-                        elif audio_path:
-                            st.warning(f"Opening audio file not found: {audio_path}")
+                        elif audio_s3_key:
+                            st.warning(f"Opening audio file not found: {audio_s3_key}")
 
                     # Display activities
                     st.subheader(content.get('theme', current_day))
@@ -192,24 +251,24 @@ def main():
 
                         # Question audio - hidden player
                         q_audio = q.get('prompt_audio_file', '')
-                        audio_path = fix_audio_path(q_audio, student_path, current_day)
+                        audio_s3_key = fix_audio_path(q_audio, student_s3_prefix, current_day)
                         
-                        if audio_path and os.path.exists(audio_path):
+                        if audio_s3_key and read_s3_file(audio_s3_key):
                             if st.button(f"🔊 Play Question Audio", key=f"q_audio_{current_day}_{global_idx}"):
-                                play_audio_hidden(audio_path)
-                        elif audio_path:
-                            st.warning(f"Question audio file not found: {audio_path}")
+                                play_audio_hidden(audio_s3_key)
+                        elif audio_s3_key:
+                            st.warning(f"Question audio file not found: {audio_s3_key}")
                         
                         # Handle dictation audio if present
                         if q.get('question_type') == 'text_input_dictation':
                             dictation_audio = q.get('dictation_audio_file', '')
-                            dictation_path = fix_audio_path(dictation_audio, student_path, current_day)
+                            dictation_s3_key = fix_audio_path(dictation_audio, student_s3_prefix, current_day)
                             
-                            if dictation_path and os.path.exists(dictation_path):
+                            if dictation_s3_key and read_s3_file(dictation_s3_key):
                                 if st.button(f"🔊 Play Dictation", key=f"dictation_{current_day}_{global_idx}"):
-                                    play_audio_hidden(dictation_path)
-                            elif dictation_path:
-                                st.warning(f"Dictation audio file not found: {dictation_path}")
+                                    play_audio_hidden(dictation_s3_key)
+                            elif dictation_s3_key:
+                                st.warning(f"Dictation audio file not found: {dictation_s3_key}")
 
                         # Render answer input with option buttons and audio buttons
                         answer_key = f"answer_{current_day}_{global_idx}"
@@ -239,13 +298,13 @@ def main():
                                 with col2:
                                     # Audio button (if audio exists)
                                     if opt_audio and opt_audio != "[Path to audio]":
-                                        audio_path = fix_audio_path(opt_audio, student_path, current_day)
+                                        audio_s3_key = fix_audio_path(opt_audio, student_s3_prefix, current_day)
                                         
-                                        if audio_path and os.path.exists(audio_path):
+                                        if audio_s3_key and read_s3_file(audio_s3_key):
                                             if st.button("🔊", key=f"opt_audio_{current_day}_{global_idx}_{opt_idx}"):
-                                                play_audio_hidden(audio_path)
-                                        elif audio_path:
-                                            st.warning(f"Option audio file not found: {audio_path}")
+                                                play_audio_hidden(audio_s3_key)
+                                        elif audio_s3_key:
+                                            st.warning(f"Option audio file not found: {audio_s3_key}")
                         
                         elif q.get('answer_type') == 'text_input':
                             st.session_state.answers[answer_key] = st.text_input("Your Answer:", key=answer_key)
