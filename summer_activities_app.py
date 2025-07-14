@@ -183,20 +183,21 @@ def load_passwords(group_folder):
 
 # Play audio without showing controls (hidden bar)
 def play_audio_hidden(s3_key):
+    """Generate audio HTML without triggering rerun"""
     try:
         audio_content = read_s3_file(s3_key)
         if audio_content:
             b64 = base64.b64encode(audio_content).decode()
-            audio_tag = f"""
-                <audio autoplay style="display:none;">
+            audio_html = f"""
+                <audio controls autoplay>
                     <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
                 </audio>
             """
-            st.markdown(audio_tag, unsafe_allow_html=True)
+            return audio_html
         else:
-            st.error(f"Error playing audio: File not found")
+            return None
     except Exception as e:
-        st.error(f"Error playing audio: {e}")
+        return None
 
 # Main app
 def main():
@@ -317,10 +318,14 @@ def main():
                         audio_s3_key = fix_audio_path(opening_audio, student_s3_prefix, current_day)
                         
                         if audio_s3_key and read_s3_file(audio_s3_key):
-                            play_audio_hidden(audio_s3_key)
                             st.session_state.opening_audio_played.add(current_day)
-                        elif audio_s3_key:
-                            st.warning(f"Opening audio file not found: {audio_s3_key}")
+                            audio_html = play_audio_hidden(audio_s3_key)
+                            if audio_html:
+                                # Place audio in a container at the top
+                                audio_container = st.container()
+                                with audio_container:
+                                    st.markdown(audio_html, unsafe_allow_html=True)
+                                    st.caption("Opening audio playing...")
 
                     # Display activities
                     st.subheader(content.get('theme', current_day))
@@ -345,15 +350,15 @@ def main():
                         global_idx = start_idx + i
                         st.markdown(f"**Q{global_idx + 1}: {q.get('prompt', '')}**")
 
-                        # Question audio - hidden player
+                        # Question audio - using container to avoid rerun
                         q_audio = q.get('prompt_audio_file', '')
                         audio_s3_key = fix_audio_path(q_audio, student_s3_prefix, current_day)
                         
                         if audio_s3_key and read_s3_file(audio_s3_key):
-                            if st.button(f"🔊 Play Question Audio", key=f"q_audio_{current_day}_{global_idx}"):
-                                play_audio_hidden(audio_s3_key)
-                        elif audio_s3_key:
-                            st.warning(f"Question audio file not found: {audio_s3_key}")
+                            audio_html = play_audio_hidden(audio_s3_key)
+                            if audio_html:
+                                with st.expander(f"🔊 Play Question Audio"):
+                                    st.markdown(audio_html, unsafe_allow_html=True)
                         
                         # Handle dictation audio if present
                         if q.get('question_type') == 'text_input_dictation':
@@ -361,10 +366,10 @@ def main():
                             dictation_s3_key = fix_audio_path(dictation_audio, student_s3_prefix, current_day)
                             
                             if dictation_s3_key and read_s3_file(dictation_s3_key):
-                                if st.button(f"🔊 Play Dictation", key=f"dictation_{current_day}_{global_idx}"):
-                                    play_audio_hidden(dictation_s3_key)
-                            elif dictation_s3_key:
-                                st.warning(f"Dictation audio file not found: {dictation_s3_key}")
+                                audio_html = play_audio_hidden(dictation_s3_key)
+                                if audio_html:
+                                    with st.expander(f"🔊 Play Dictation"):
+                                        st.markdown(audio_html, unsafe_allow_html=True)
 
                         # Render answer input with option buttons and audio buttons
                         answer_key = f"answer_{current_day}_{global_idx}"
@@ -392,15 +397,14 @@ def main():
                                         st.rerun()
                                 
                                 with col2:
-                                    # Audio button (if audio exists)
+                                    # Audio in expander (no rerun)
                                     if opt_audio and opt_audio != "[Path to audio]":
                                         audio_s3_key = fix_audio_path(opt_audio, student_s3_prefix, current_day)
                                         
                                         if audio_s3_key and read_s3_file(audio_s3_key):
-                                            if st.button("🔊", key=f"opt_audio_{current_day}_{global_idx}_{opt_idx}"):
-                                                play_audio_hidden(audio_s3_key)
-                                        elif audio_s3_key:
-                                            st.warning(f"Option audio file not found: {audio_s3_key}")
+                                            audio_html = play_audio_hidden(audio_s3_key)
+                                            if audio_html:
+                                                st.markdown(audio_html, unsafe_allow_html=True)
                         
                         elif q.get('answer_type') == 'text_input':
                             st.session_state.answers[answer_key] = st.text_input("Your Answer:", key=answer_key)
