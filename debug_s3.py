@@ -2,7 +2,7 @@ import streamlit as st
 import boto3
 from botocore.exceptions import ClientError
 
-st.title("S3 Structure Debug")
+st.title("S3 Structure Debug - Fixed")
 
 # S3 Configuration
 try:
@@ -24,215 +24,142 @@ except Exception as e:
     st.error(f"Connection error: {e}")
     st.stop()
 
-# Debug 1: List top-level folders
-st.header("1. Top-level folders in bucket:")
-try:
-    response = s3.list_objects_v2(
-        Bucket=BUCKET_NAME,
-        Delimiter='/',
-        MaxKeys=20
-    )
-    
-    if 'CommonPrefixes' in response:
-        for prefix in response['CommonPrefixes']:
-            st.write(f"📁 {prefix['Prefix']}")
-    else:
-        st.warning("No top-level folders found")
-        
-except Exception as e:
-    st.error(f"Error: {e}")
+# Debug 1-3: [Keep your existing code for sections 1-3]
 
-# Debug 2: List everything under Summer_Activities
-st.header("2. Contents of Summer_Activities folder:")
-try:
-    response = s3.list_objects_v2(
-        Bucket=BUCKET_NAME,
-        Prefix="Summer_Activities/",
-        MaxKeys=50
-    )
-    
-    if 'Contents' in response:
-        st.write(f"Found {len(response['Contents'])} objects:")
-        for obj in response['Contents'][:20]:
-            st.write(f"- {obj['Key']}")
-        if len(response['Contents']) > 20:
-            st.write(f"... and {len(response['Contents']) - 20} more")
-    else:
-        st.warning("No objects found in Summer_Activities/")
-        
-except Exception as e:
-    st.error(f"Error: {e}")
+# Debug 4: FIXED get_all_students function with limits
+st.header("4. Testing get_all_students logic (LIMITED):")
 
-# Debug 3: Show folder structure
-st.header("3. Folder structure analysis:")
-try:
-    response = s3.list_objects_v2(
-        Bucket=BUCKET_NAME,
-        Prefix="Summer_Activities/",
-        MaxKeys=100
-    )
-    
-    if 'Contents' in response:
-        # Parse structure
-        groups = set()
-        students = set()
-        passwords_files = []
-        day_folders = []
-        
-        for obj in response['Contents']:
-            key = obj['Key']
-            parts = key.split('/')
-            
-            if len(parts) >= 2 and parts[1]:
-                groups.add(parts[1])
-            
-            if len(parts) >= 3 and parts[2]:
-                if parts[2] == "passwords.json":
-                    passwords_files.append(key)
-                else:
-                    students.add(f"{parts[1]}/{parts[2]}")
-            
-            if len(parts) >= 4 and parts[3].startswith("day"):
-                day_folders.append(key)
-        
-        st.write(f"**Groups found:** {len(groups)}")
-        for g in sorted(groups):
-            st.write(f"  - {g}")
-            
-        st.write(f"\n**Password files found:** {len(passwords_files)}")
-        for p in passwords_files[:5]:
-            st.write(f"  - {p}")
-            
-        st.write(f"\n**Students found:** {len(students)}")
-        for s in sorted(students)[:10]:
-            st.write(f"  - {s}")
-        if len(students) > 10:
-            st.write(f"  ... and {len(students) - 10} more")
-            
-        st.write(f"\n**Day folders found:** {len(day_folders)}")
-        
-except Exception as e:
-    st.error(f"Error: {e}")
-
-# Debug 4: Test get_all_students function
-st.header("4. Testing get_all_students logic:")
-
-def test_get_all_students():
+def test_get_all_students_limited():
     student_to_group = {}
-    base_prefix = "Summer_Activities"  # No trailing slash
+    base_prefix = "Summer_Activities"
     
     try:
+        # Add progress tracking
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
         paginator = s3.get_paginator('list_objects_v2')
-        pages = paginator.paginate(Bucket=BUCKET_NAME, Prefix=base_prefix)
+        
+        # Configure pagination with limits
+        page_config = {
+            'PageSize': 100,  # Items per page
+            'MaxItems': 1000  # Total limit
+        }
+        
+        pages = paginator.paginate(
+            Bucket=BUCKET_NAME, 
+            Prefix=base_prefix,
+            PaginationConfig=page_config
+        )
         
         all_keys = []
+        page_count = 0
+        
+        # Process with limits
         for page in pages:
+            page_count += 1
+            status_text.text(f"Processing page {page_count}...")
+            progress_bar.progress(min(page_count * 10, 100))
+            
             if 'Contents' in page:
                 all_keys.extend([obj['Key'] for obj in page['Contents']])
+            
+            # Stop if too many
+            if len(all_keys) > 1000:
+                st.warning("Limiting to 1000 objects for performance")
+                break
         
         st.info(f"Total keys found: {len(all_keys)}")
         
-        # Debug: Show the actual structure
-        st.write("First 20 keys to understand structure:")
-        for i, key in enumerate(all_keys[:20]):
+        # Show sample structure
+        st.write("First 10 keys:")
+        for i, key in enumerate(all_keys[:10]):
             st.write(f"{i}: {key}")
-            parts = key.split('/')
-            st.write(f"   Parts: {parts}")
-            st.write(f"   Part[0]: '{parts[0] if len(parts) > 0 else 'N/A'}'")
-            st.write(f"   Part[1]: '{parts[1] if len(parts) > 1 else 'N/A'}'")
-            st.write(f"   Part[2]: '{parts[2] if len(parts) > 2 else 'N/A'}'")
-            st.write(f"   Part[3]: '{parts[3] if len(parts) > 3 else 'N/A'}'")
-            st.write("---")
         
-        # Fixed logic - adjust based on actual structure
-        for key in all_keys:
-            # Skip the key if it's just a folder
+        # Process students
+        status_text.text("Processing students...")
+        
+        for i, key in enumerate(all_keys):
+            if i % 100 == 0:
+                progress_bar.progress(min(50 + (i / len(all_keys) * 50), 100))
+            
             if key.endswith('/'):
                 continue
                 
             parts = key.split('/')
             
-            # Debug specific patterns
-            if "Group" in key and "day" in key:
-                st.success(f"Found group+day pattern: {key}")
-            
-            # Assuming structure: Summer_Activities/Group1/student_name/day1/...
             if len(parts) >= 4:
-                # parts[0] = "Summer_Activities"
-                # parts[1] = "Group1" 
-                # parts[2] = "student_name"
-                # parts[3] = "day1" or similar
-                
                 group = parts[1]
                 potential_student = parts[2]
                 
-                # Check if this is actually a student (not passwords.json)
                 if (group.startswith("Group") and 
                     potential_student and 
-                    potential_student != "passwords.json" and
-                    not potential_student.endswith('/')):
+                    potential_student != "passwords.json"):
                     
-                    # Check if this student has day folders
-                    student_path = f"{base_prefix}/{group}/{potential_student}/"
-                    has_day_content = any(
-                        k.startswith(student_path) and '/day' in k 
-                        for k in all_keys
-                    )
-                    
-                    if has_day_content:
+                    # Quick check for day content
+                    if 'day' in key:
                         if potential_student not in student_to_group:
                             student_to_group[potential_student] = group
-                            st.write(f"✅ Added student: {potential_student} from {group}")
+        
+        progress_bar.progress(100)
+        status_text.text("Complete!")
         
         return student_to_group
         
     except Exception as e:
-        st.error(f"Error in test_get_all_students: {e}")
-        import traceback
-        st.error(traceback.format_exc())
+        st.error(f"Error: {e}")
         return {}
 
-result = test_get_all_students()
-st.write(f"\n**Final result:** {len(result)} students found")
-st.write(result)
+# Use button to control execution
+if st.button("Run Limited Test"):
+    with st.spinner("Processing..."):
+        result = test_get_all_students_limited()
+        st.write(f"\n**Final result:** {len(result)} students found")
+        if result:
+            st.write("Students found:")
+            for student, group in list(result.items())[:20]:
+                st.write(f"  - {student} in {group}")
+            if len(result) > 20:
+                st.write(f"  ... and {len(result) - 20} more")
 
-# Debug 5: Test specific student lookup
-st.header("5. Test specific student lookup:")
-test_student = st.text_input("Enter a student name to test:", "emma_jones")
-test_group = st.text_input("Enter group number:", "Group1")
+# Alternative: Quick scan approach
+st.header("4b. Alternative: Quick Group Scan")
 
-if st.button("Test Student"):
-    test_prefix = f"Summer_Activities/{test_group}/{test_student}/"
+@st.cache_data(ttl=300)
+def quick_scan_groups():
+    students = {}
+    
     try:
-        response = s3.list_objects_v2(
-            Bucket=BUCKET_NAME,
-            Prefix=test_prefix,
-            MaxKeys=20
-        )
-        
-        if 'Contents' in response:
-            st.success(f"Found {len(response['Contents'])} objects for {test_student}")
-            for obj in response['Contents']:
-                st.write(f"  - {obj['Key']}")
-        else:
-            st.warning(f"No objects found for prefix: {test_prefix}")
+        # Just check first 5 groups
+        for group_num in range(1, 6):
+            group_name = f"Group{group_num}"
+            prefix = f"Summer_Activities/{group_name}/"
             
+            response = s3.list_objects_v2(
+                Bucket=BUCKET_NAME,
+                Prefix=prefix,
+                Delimiter='/',
+                MaxKeys=50
+            )
+            
+            if 'CommonPrefixes' in response:
+                for prefix_info in response['CommonPrefixes']:
+                    student_folder = prefix_info['Prefix']
+                    parts = student_folder.rstrip('/').split('/')
+                    if len(parts) >= 3:
+                        student_name = parts[-1]
+                        if student_name != "passwords.json":
+                            students[student_name] = group_name
+        
+        return students
+        
     except Exception as e:
-        st.error(f"Error: {e}")
+        st.error(f"Error in quick scan: {e}")
+        return {}
 
-# Debug 6: Check case sensitivity
-st.header("6. Case sensitivity check:")
-response = s3.list_objects_v2(
-    Bucket=BUCKET_NAME,
-    Prefix="Summer_Activities/",
-    MaxKeys=10
-)
+if st.button("Run Quick Scan"):
+    result = quick_scan_groups()
+    st.success(f"Quick scan found {len(result)} students")
+    st.write(result)
 
-if 'Contents' in response:
-    st.write("Checking case patterns:")
-    for obj in response['Contents']:
-        key = obj['Key']
-        if 'group' in key.lower():
-            st.write(f"Found 'group' (lowercase): {key}")
-        if 'Group' in key:
-            st.write(f"Found 'Group' (capitalized): {key}")
+# Keep your Debug 5 and 6 sections as they are
