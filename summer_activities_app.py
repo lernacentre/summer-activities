@@ -67,8 +67,13 @@ def get_all_students():
     student_to_group = {}
 
     try:
+        if not os.path.exists(base_path):
+            st.error(f"❌ Summer_Activities folder not found at path: {base_path}")
+            return {}
+
         for group_folder in os.listdir(base_path):
             group_path = os.path.join(base_path, group_folder)
+            st.write(f"📁 Checking folder: {group_folder}")
             if os.path.isdir(group_path) and group_folder.lower().startswith("group"):
                 txt_file = os.path.join(group_path, f"{group_folder}_passwords.txt")
                 if os.path.exists(txt_file):
@@ -97,6 +102,9 @@ def load_passwords(group_folder):
     password_file = os.path.join("Summer_Activities", group_folder, "passwords.json")
     st.write(f"🔐 Loading hashed passwords from {password_file}...")
     try:
+        if not os.path.exists(password_file):
+            st.error(f"❌ Password file missing for {group_folder}")
+            return {}
         with open(password_file, "r") as f:
             passwords = json.load(f)
         st.write(f"✅ Loaded {len(passwords)} passwords.")
@@ -149,11 +157,15 @@ def main():
     st.title("Student Activities")
     add_custom_css()
 
+    st.write("🚀 Starting app...")
+
     student_to_group = get_all_students()
 
     if not student_to_group:
         st.error("No students found in Summer_Activities folder.")
         return
+
+    st.write("📄 Student list loaded. Ready for login.")
 
     if not st.session_state.authenticated:
         selected_student = st.selectbox("Select Your Name", sorted(student_to_group.keys()))
@@ -182,6 +194,7 @@ def main():
             st.experimental_rerun()
 
         try:
+            st.write("🔗 Connecting to S3...")
             global s3, BUCKET_NAME
             s3, BUCKET_NAME = get_s3_client()
         except Exception as e:
