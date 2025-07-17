@@ -1,9 +1,10 @@
 import streamlit as st
 import json
 import base64
-import boto3
 from botocore.exceptions import ClientError
 from io import BytesIO
+import time
+import random
 
 # Initialize session state
 if "authenticated" not in st.session_state:
@@ -51,6 +52,39 @@ except ClientError as e:
 except Exception as e:
     st.error(f"❌ Unexpected error: {e}")
     st.stop()
+
+# Add custom CSS for animations
+def add_custom_css():
+    st.markdown("""
+    <style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes confetti {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(300px) rotate(720deg); opacity: 0; }
+    }
+    
+    .welcome-animation {
+        animation: fadeIn 1s ease-out;
+    }
+    
+    .completion-animation {
+        animation: fadeIn 0.8s ease-out;
+    }
+    
+    .confetti {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        background-color: #f0f;
+        animation: confetti 3s ease-out;
+        animation-fill-mode: forwards;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 # Helper function to read files from S3
 @st.cache_data(show_spinner=False)
@@ -103,32 +137,108 @@ def fix_audio_path(audio_file, student_s3_prefix, current_day):
     else:
         return f"{student_s3_prefix}/{current_day}/{audio_file}"
 
-# Load passwords
+# Load passwords - Fixed to handle both JSON and TXT files
 @st.cache_data(show_spinner=False)
 def load_passwords(group_folder):
-    password_key = f"Summer_Activities/{group_folder}/passwords.json"
-    content = read_s3_file(password_key)
+    passwords = {}
+    
+    # Try to load passwords.json first
+    password_json_key = f"Summer_Activities/{group_folder}/passwords.json"
+    content = read_s3_file(password_json_key)
     if content:
-        return json.loads(content.decode('utf-8'))
-    return {}
+        passwords = json.loads(content.decode('utf-8'))
+    
+    # Also check for individual password txt files
+    try:
+        response = s3.list_objects_v2(
+            Bucket=BUCKET_NAME,
+            Prefix=f"Summer_Activities/{group_folder}/",
+            MaxKeys=1000
+        )
+        
+        if 'Contents' in response:
+            for obj in response['Contents']:
+                key = obj['Key']
+                if key.endswith('_passwords.txt'):
+                    # Extract student name from filename
+                    filename = key.split('/')[-1]
+                    student_name = filename.replace('_passwords.txt', '')
+                    
+                    # Read the password from the txt file
+                    txt_content = read_s3_file(key)
+                    if txt_content:
+                        # The txt file should contain the simple password
+                        simple_password = txt_content.decode('utf-8').strip()
+                        # Override the JSON password with the simple one from txt
+                        passwords[student_name] = simple_password
+    
+    except ClientError as e:
+        st.warning(f"Could not check for individual password files: {e}")
+    
+    return passwords
 
-# Play audio without showing controls
+# Play audio without showing controls - Fixed for consecutive plays
 def play_audio_hidden(s3_key):
     audio_content = read_s3_file(s3_key)
     if audio_content:
         b64 = base64.b64encode(audio_content).decode()
+        # Add a unique timestamp to force re-rendering
+        unique_id = str(time.time()).replace('.', '')
         audio_tag = f"""
-            <audio autoplay style="display:none;">
+            <audio id="audio_{unique_id}" autoplay style="display:none;">
                 <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
             </audio>
+            <script>
+                // Force play in case autoplay is blocked
+                document.getElementById('audio_{unique_id}').play();
+            </script>
         """
         st.markdown(audio_tag, unsafe_allow_html=True)
     else:
         st.error(f"Error playing audio: File not found")
 
+# Function to show success animation
+def show_success_animation(message):
+    # Create confetti effect
+    confetti_html = ""
+    colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"]
+    
+    for i in range(20):
+        left = random.randint(10, 90)
+        delay = random.random() * 0.5
+        color = random.choice(colors)
+        confetti_html += f"""
+        <div class="confetti" style="left: {left}%; 
+             animation-delay: {delay}s; 
+             background-color: {color};"></div>
+        """
+    
+    st.markdown(f"""
+    <div class="completion-animation">
+        <h2 style="text-align: center; color: #4CAF50;">🎉 {message} 🎉</h2>
+    </div>
+    {confetti_html}
+    """, unsafe_allow_html=True)
+
+# Function to show welcome animation
+def show_welcome_animation(student_name):
+    st.markdown(f"""
+    <div class="welcome-animation">
+        <h1 style="text-align: center; color: #2196F3;">
+            Welcome, {student_name}! 👋
+        </h1>
+        <p style="text-align: center; font-size: 1.2em;">
+            Ready for today's activities?
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
 # Main app
 def main():
     st.title("Student Activities")
+    
+    # Add custom CSS
+    add_custom_css()
 
     # Get all students
     student_to_group = get_all_students()
@@ -148,6 +258,9 @@ def main():
                 st.session_state.authenticated = True
                 st.session_state.student = selected_student
                 st.session_state.group = group
+                st.balloons()  # Streamlit's built-in celebration
+                show_welcome_animation(selected_student)
+                time.sleep(2)  # Give time to see the animation
                 st.experimental_rerun()
             else:
                 st.error("Wrong password")
@@ -255,6 +368,10 @@ def main():
 
                         elif q.get('answer_type') == 'text_input':
                             st.session_state.answers[answer_key] = st.text_input("Your Answer:", key=answer_key)
+                        
+                        # Add divider after each question except the last one
+                        if i < len(current_questions) - 1:
+                            st.divider()
 
                     all_answered = all(
                         st.session_state.answers.get(f"answer_{current_day}_{start_idx + i}")
@@ -271,13 +388,16 @@ def main():
                             if current_index + 1 < len(all_days):
                                 next_day = all_days[current_index + 1]
                                 if st.button("✅ Continue to Next Day", key="next_day"):
+                                    st.success(f"Great job completing {current_day}! 🌟")
                                     st.session_state.completed_days.add(current_day)
                                     st.session_state.current_day = next_day
                                     st.session_state.question_page = 0
                                     st.session_state.answers = {}
+                                    time.sleep(1)
                                     st.experimental_rerun()
                             else:
-                                st.success("🎉 You have completed all available days!")
+                                show_success_animation("Congratulations! You've completed all activities!")
+                                st.balloons()
                     else:
                         st.warning("Please answer all questions to continue.")
         else:
