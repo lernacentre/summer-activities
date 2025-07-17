@@ -422,7 +422,7 @@ def main():
                                     button_label = f"{'✓ ' if current_answer == label else ''}{label}"
                                     if st.button(button_label, key=f"answer_{current_day}_{global_idx}_{opt_idx}"):
                                         st.session_state.answers[answer_key] = label
-                                        st.experimental_rerun()
+                                        st.rerun()
                                 with col2:
                                     opt_audio = option.get('audio_file', '')
                                     audio_s3_key = fix_audio_path(opt_audio, student_s3_prefix, current_day)
@@ -446,7 +446,7 @@ def main():
                         if page + 1 < total_pages:
                             if st.button("Next Questions", key="next_questions"):
                                 st.session_state.question_page += 1
-                                st.experimental_rerun()
+                                st.rerun()
                         else:
                             current_index = all_days.index(current_day)
                             if current_index + 1 < len(all_days):
@@ -458,7 +458,7 @@ def main():
                                     st.session_state.question_page = 0
                                     st.session_state.answers = {}
                                     time.sleep(1)
-                                    st.experimental_rerun()
+                                    st.rerun()
                             else:
                                 show_success_animation("Congratulations! You've completed all activities!")
                                 st.balloons()
