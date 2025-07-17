@@ -1,3 +1,10 @@
+import os
+os.environ['STREAMLIT_SERVER_FILE_WATCHER_TYPE'] = 'none'
+
+# Then your normal imports
+import streamlit as st
+import boto3
+
 import streamlit as st
 import time
 
