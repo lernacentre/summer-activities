@@ -323,7 +323,7 @@ def main():
                     st.balloons()
                     show_welcome_animation(selected_student)
                     time.sleep(2)
-                    st.experimental_rerun()
+                    st.rerun()
                 else:
                     st.error("Wrong password")
             else:
@@ -333,7 +333,7 @@ def main():
     else:
         if st.button("Logout", key="logout_button"):
             st.session_state.clear()
-            st.experimental_rerun()
+            st.rerun()
 
         student_s3_prefix = f"Summer_Activities/{st.session_state.group}/{st.session_state.student}"
 
