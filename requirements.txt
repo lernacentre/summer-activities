@@ -1,2 +1,2 @@
-import streamlit
-import boto3
+streamlit
+boto3
