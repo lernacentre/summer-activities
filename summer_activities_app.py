@@ -7,6 +7,13 @@ from io import BytesIO
 import time
 import random
 
+# Initialize Streamlit session state
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+if "welcome_shown" not in st.session_state:
+    st.session_state.welcome_shown = False
+
+
 # Initialize session state
 if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
@@ -315,15 +322,12 @@ def main():
                     password_found = True
                     break
             
-            if password_found:
                 if correct_password == password:
-                    st.session_state.authenticated = True
-                    st.session_state.student = selected_student
-                    st.session_state.group = group
-                    st.balloons()
-                    show_welcome_animation(selected_student)
-                    time.sleep(2)
-                    st.rerun()
+                   st.session_state.authenticated = True
+                   st.session_state.student = selected_student
+                   st.session_state.group = group
+                   st.session_state.welcome_shown = False  # Reset flag
+                   st.rerun()
                 else:
                     st.error("Wrong password")
             else:
@@ -331,6 +335,13 @@ def main():
 
     # After login
     else:
+        if not st.session_state.welcome_shown:
+        st.balloons()
+        show_welcome_animation(st.session_state.student)
+        st.session_state.welcome_shown = True
+        time.sleep(2)  # Optional pause
+        st.rerun()
+        
         if st.button("Logout", key="logout_button"):
             st.session_state.clear()
             st.rerun()
