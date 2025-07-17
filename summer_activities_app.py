@@ -102,29 +102,45 @@ def read_s3_file(s3_key):
 def get_all_students():
     student_to_group = {}
     base_prefix = "Summer_Activities/"
+    
     try:
-        response = s3.list_objects_v2(
+        # Use paginator for large buckets
+        paginator = s3.get_paginator('list_objects_v2')
+        pages = paginator.paginate(
             Bucket=BUCKET_NAME,
-            Prefix=base_prefix,
-            MaxKeys=1000
+            Prefix=base_prefix
         )
-        if 'Contents' not in response:
-            return {}
-        all_keys = [obj['Key'] for obj in response['Contents']]
+        
+        all_keys = []
+        for page in pages:
+            if 'Contents' in page:
+                all_keys.extend([obj['Key'] for obj in page['Contents']])
+        
+        # Process all keys to find students
         for key in all_keys:
             parts = key.split('/')
-            if len(parts) >= 4:
-                if parts[1].startswith("Group") and parts[2] and parts[2] != "passwords.json":
-                    group = parts[1]
-                    student = parts[2]
-                    if student.endswith("_passwords.txt"):
-                        continue
-                    if student not in student_to_group:
-                        student_prefix = f"Summer_Activities/{group}/{student}/"
-                        has_days = any(k.startswith(student_prefix + "day") for k in all_keys)
-                        if has_days:
-                            student_to_group[student] = group
+            
+            # Expected structure: Summer_Activities/Group1/StudentName/...
+            if len(parts) >= 3:
+                group = parts[1]
+                potential_student = parts[2]
+                
+                # Check if this is a valid group
+                if not group.startswith("Group"):
+                    continue
+                
+                # Skip system files
+                if potential_student in ["passwords.json", ""] or potential_student.endswith("_passwords.txt"):
+                    continue
+                
+                # Check if this student has day folders
+                if len(parts) >= 4 and parts[3].startswith("day"):
+                    # This is a valid student with activities
+                    if potential_student not in student_to_group:
+                        student_to_group[potential_student] = group
+        
         return student_to_group
+        
     except ClientError as e:
         st.error(f"Error accessing S3: {e}")
         return {}
@@ -138,44 +154,67 @@ def fix_audio_path(audio_file, student_s3_prefix, current_day):
     else:
         return f"{student_s3_prefix}/{current_day}/{audio_file}"
 
-# Load passwords - Fixed to handle both JSON and TXT files
+# Load passwords - Fixed to handle group password files
 @st.cache_data(show_spinner=False)
 def load_passwords(group_folder):
     passwords = {}
-   
-    # Try to load passwords.json first
+    
+    # First, try to load passwords.json (for hashed passwords)
     password_json_key = f"Summer_Activities/{group_folder}/passwords.json"
     content = read_s3_file(password_json_key)
     if content:
-        passwords = json.loads(content.decode('utf-8'))
-   
-    # Also check for individual password txt files
+        try:
+            passwords = json.loads(content.decode('utf-8'))
+        except json.JSONDecodeError:
+            st.warning(f"Could not parse passwords.json for {group_folder}")
+    
+    # Look for group password file (e.g., Group7_passwords.txt)
+    group_password_key = f"Summer_Activities/{group_folder}/{group_folder}_passwords.txt"
+    txt_content = read_s3_file(group_password_key)
+    
+    if txt_content:
+        # Parse the group password file
+        lines = txt_content.decode('utf-8').strip().split('\n')
+        
+        for line in lines:
+            # Skip header lines and empty lines
+            if ':' in line and not line.startswith('=') and not line.startswith('GROUP'):
+                # Parse lines like "Ahmed: W8CGBL"
+                parts = line.split(':')
+                if len(parts) == 2:
+                    student_name = parts[0].strip()
+                    password = parts[1].strip()
+                    
+                    # Store with exact case from file
+                    passwords[student_name] = password
+                    
+                    # Also store lowercase version for case-insensitive matching
+                    passwords[student_name.lower()] = password
+    
+    # Also check for individual password files (legacy support)
     try:
         response = s3.list_objects_v2(
             Bucket=BUCKET_NAME,
             Prefix=f"Summer_Activities/{group_folder}/",
-            MaxKeys=1000
+            MaxKeys=100
         )
-       
+        
         if 'Contents' in response:
             for obj in response['Contents']:
                 key = obj['Key']
-                if key.endswith('_passwords.txt'):
-                    # Extract student name from filename
+                if key.endswith('_passwords.txt') and not key.endswith(f'{group_folder}_passwords.txt'):
+                    # Individual student password file
                     filename = key.split('/')[-1]
                     student_name = filename.replace('_passwords.txt', '')
-                   
-                    # Read the password from the txt file
+                    
                     txt_content = read_s3_file(key)
                     if txt_content:
-                        # The txt file should contain the simple password
                         simple_password = txt_content.decode('utf-8').strip()
-                        # Override the JSON password with the simple one from txt
                         passwords[student_name] = simple_password
-   
+    
     except ClientError as e:
         st.warning(f"Could not check for individual password files: {e}")
-   
+    
     return passwords
 
 # Play audio without showing controls - Fixed for consecutive plays
@@ -248,23 +287,47 @@ def main():
         st.error("No students found")
         return
 
-    # Login
+    # Login with case-insensitive password checking
     if not st.session_state.authenticated:
+        st.header("Student Login")
+        
         selected_student = st.selectbox("Select Student", sorted(student_to_group.keys()))
         password = st.text_input("Password", type="password")
+        
         if st.button("Login", key="login_button"):
             group = student_to_group[selected_student]
             passwords = load_passwords(group)
-            if passwords.get(selected_student) == password:
-                st.session_state.authenticated = True
-                st.session_state.student = selected_student
-                st.session_state.group = group
-                st.balloons()  # Streamlit's built-in celebration
-                show_welcome_animation(selected_student)
-                time.sleep(2)  # Give time to see the animation
-                st.experimental_rerun()
+            
+            # Try multiple case variations for the student name
+            possible_names = [
+                selected_student,  # As stored
+                selected_student.lower(),  # lowercase
+                selected_student.capitalize(),  # Capitalized
+                selected_student.upper(),  # UPPERCASE
+            ]
+            
+            password_found = False
+            correct_password = None
+            
+            for name_variant in possible_names:
+                if name_variant in passwords:
+                    correct_password = passwords[name_variant]
+                    password_found = True
+                    break
+            
+            if password_found:
+                if correct_password == password:
+                    st.session_state.authenticated = True
+                    st.session_state.student = selected_student
+                    st.session_state.group = group
+                    st.balloons()
+                    show_welcome_animation(selected_student)
+                    time.sleep(2)
+                    st.experimental_rerun()
+                else:
+                    st.error("Wrong password")
             else:
-                st.error("Wrong password")
+                st.error(f"No password found for {selected_student}")
 
     # After login
     else:
