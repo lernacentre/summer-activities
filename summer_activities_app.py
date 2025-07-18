@@ -324,12 +324,20 @@ def get_all_students():
 
 # Helper function to fix audio paths
 def fix_audio_path(audio_file, student_s3_prefix, current_day):
+    """Fix audio paths to match S3 structure"""
     if not audio_file or audio_file == "[Path to audio]":
         return None
-    if audio_file.startswith("day"):
+    
+    # Handle different path formats
+    if audio_file.startswith("audio/"):
+        # Path already includes audio/ prefix
+        return f"{student_s3_prefix}/{current_day}/{audio_file}"
+    elif audio_file.startswith("day"):
+        # Path starts with day folder
         return f"{student_s3_prefix}/{audio_file}"
     else:
-        return f"{student_s3_prefix}/{current_day}/{audio_file}"
+        # Assume it's just the filename
+        return f"{student_s3_prefix}/{current_day}/audio/{audio_file}"
 
 # Load passwords - prioritize txt files over json
 @st.cache_data(show_spinner=False)
@@ -842,17 +850,25 @@ def main():
                             practice_key = f"practice_completed_{current_day}_{activity.get('activity_number')}"
                             teach_key = f"teach_clicked_{current_day}_{activity.get('activity_number')}"
                             
+                            # Get audio paths
                             teaching_audio = activity.get('teaching_audio', '')
-                            teaching_audio_key = fix_audio_path(teaching_audio, student_s3_prefix, current_day)
+                            teaching_audio_key = None
+                            if teaching_audio:
+                                teaching_audio_key = fix_audio_path(teaching_audio, student_s3_prefix, current_day)
+                            
                             multisensory_audio = activity.get('multisensory_audio', '')
-                            multisensory_audio_key = fix_audio_path(multisensory_audio, student_s3_prefix, current_day)
+                            multisensory_audio_key = None
+                            if multisensory_audio:
+                                multisensory_audio_key = fix_audio_path(multisensory_audio, student_s3_prefix, current_day)
                             
                             with col1:
                                 if teaching_audio_key:
                                     if st.button("📖 Teach Me", key=f"teach_{current_day}_{activity.get('activity_number')}", use_container_width=True, type="primary"):
-                                        play_audio_hidden(teaching_audio_key)
-                                        st.session_state[teach_key] = True
-                                        st.session_state[f"teach_time_{current_day}_{activity.get('activity_number')}"] = time.time()
+                                        success = play_audio_hidden(teaching_audio_key)
+                                        if success:
+                                            st.session_state[teach_key] = True
+                                            st.session_state[f"teach_time_{current_day}_{activity.get('activity_number')}"] = time.time()
+                                            time.sleep(0.5)  # Give audio time to start
                                         st.rerun()
                             
                             with col2:
@@ -864,13 +880,16 @@ def main():
                                     if st.button(button_label, key=f"multi_{current_day}_{activity.get('activity_number')}", use_container_width=True, type=button_type):
                                         if not st.session_state.get(practice_key, False):
                                             # If not completed, play the audio
-                                            play_audio_hidden(multisensory_audio_key)
-                                            st.session_state[f"multi_played_{current_day}_{activity.get('activity_number')}"] = True
-                                            st.session_state[f"show_practice_confirm_{current_day}_{activity.get('activity_number')}"] = True
+                                            success = play_audio_hidden(multisensory_audio_key)
+                                            if success:
+                                                st.session_state[f"multi_played_{current_day}_{activity.get('activity_number')}"] = True
+                                                st.session_state[f"show_practice_confirm_{current_day}_{activity.get('activity_number')}"] = True
+                                                time.sleep(0.5)  # Give audio time to start
                                             st.rerun()
                                         else:
                                             # If already completed, just replay the audio
                                             play_audio_hidden(multisensory_audio_key)
+                                            time.sleep(0.5)
                             
                             # Auto-play multisensory audio after teach me (with 3 second delay)
                             if (st.session_state.get(teach_key, False) and 
@@ -964,19 +983,21 @@ def main():
                                     else:
                                         st.info("⏳ Preparing practice activity...")
                         
-                        # Only show questions if allowed
-                        if local_idx == 0 and not show_questions:
-                            continue  # Skip this question
-                        elif local_idx > 0:
-                            # For subsequent questions in the same activity, check if practice was completed
+                        # Check if this question should be shown
+                        if local_idx > 0:
+                            # For subsequent questions in the same activity, inherit the show_questions status
                             practice_key = f"practice_completed_{current_day}_{activity.get('activity_number')}"
                             teaching_audio = activity.get('teaching_audio', '')
                             teaching_audio_key = fix_audio_path(teaching_audio, student_s3_prefix, current_day)
                             multisensory_audio = activity.get('multisensory_audio', '')
                             multisensory_audio_key = fix_audio_path(multisensory_audio, student_s3_prefix, current_day)
                             
-                            if teaching_audio_key and multisensory_audio_key and not st.session_state.get(practice_key, False):
-                                continue  # Skip this question too
+                            if teaching_audio_key and multisensory_audio_key:
+                                show_questions = st.session_state.get(practice_key, False)
+                        
+                        # Skip this question if not allowed to show
+                        if not show_questions:
+                            continue
                         
                         # Special handling for reading comprehension stories
                         if activity.get('component') == 'Reading Comprehension':
