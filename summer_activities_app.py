@@ -20,6 +20,8 @@ if "answers" not in st.session_state:
     st.session_state.answers = {}
 if "opening_audio_played" not in st.session_state:
     st.session_state.opening_audio_played = set()
+if "day_started" not in st.session_state:
+    st.session_state.day_started = False
 
 # S3 Configuration
 @st.cache_resource(show_spinner=False)
@@ -54,7 +56,64 @@ except Exception as e:
     st.error(f"❌ Unexpected error: {e}")
     st.stop()
 
-# Add custom CSS for animations
+# Function to add button click sound
+def add_button_click_sound():
+    """Add click sound to all buttons using JavaScript"""
+    click_sound_html = """
+    <script>
+    // Function to create a click sound
+    function playClickSound() {
+        var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        var oscillator = audioContext.createOscillator();
+        var gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+    }
+    
+    // Add click sound to all buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        // Use MutationObserver to handle dynamically added buttons
+        var observer = new MutationObserver(function(mutations) {
+            document.querySelectorAll('button').forEach(function(button) {
+                if (!button.hasAttribute('data-sound-added')) {
+                    button.setAttribute('data-sound-added', 'true');
+                    button.addEventListener('click', function() {
+                        playClickSound();
+                    });
+                }
+            });
+        });
+        
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        // Initial setup for existing buttons
+        document.querySelectorAll('button').forEach(function(button) {
+            if (!button.hasAttribute('data-sound-added')) {
+                button.setAttribute('data-sound-added', 'true');
+                button.addEventListener('click', function() {
+                    playClickSound();
+                });
+            }
+        });
+    });
+    </script>
+    """
+    st.markdown(click_sound_html, unsafe_allow_html=True)
+
+# Add custom CSS for animations and styling
 def add_custom_css():
     st.markdown("""
     <style>
@@ -66,6 +125,12 @@ def add_custom_css():
     @keyframes confetti {
         0% { transform: translateY(0) rotate(0deg); opacity: 1; }
         100% { transform: translateY(300px) rotate(720deg); opacity: 0; }
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
     }
    
     .welcome-animation {
@@ -83,6 +148,72 @@ def add_custom_css():
         background-color: #f0f;
         animation: confetti 3s ease-out;
         animation-fill-mode: forwards;
+    }
+    
+    .start-day-button {
+        animation: pulse 2s infinite;
+        background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+        color: white;
+        font-size: 24px;
+        padding: 20px 40px;
+        border-radius: 50px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .start-day-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    
+    .opening-message {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        margin: 20px 0;
+        animation: fadeIn 1s ease-out;
+    }
+    
+    .opening-message h3 {
+        margin-bottom: 15px;
+        font-size: 28px;
+    }
+    
+    .activity-header {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        padding: 20px;
+        border-radius: 15px;
+        margin: 20px 0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .teach-button {
+        background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .multisensory-button {
+        background: linear-gradient(45deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .teach-button:hover, .multisensory-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
     </style>
     """, unsafe_allow_html=True)
@@ -104,45 +235,88 @@ def get_all_students():
     base_prefix = "Summer_Activities/"
     
     try:
-        # Use paginator for large buckets
+        # Use paginator to handle large buckets
         paginator = s3.get_paginator('list_objects_v2')
-        pages = paginator.paginate(
+        
+        # First, find all objects to analyze the structure
+        all_objects = []
+        page_iterator = paginator.paginate(
             Bucket=BUCKET_NAME,
             Prefix=base_prefix
         )
         
-        all_keys = []
-        for page in pages:
+        for page in page_iterator:
             if 'Contents' in page:
-                all_keys.extend([obj['Key'] for obj in page['Contents']])
+                all_objects.extend(page['Contents'])
         
-        # Process all keys to find students
-        for key in all_keys:
+        # Group all paths by their structure
+        path_structure = {}
+        for obj in all_objects:
+            key = obj['Key']
             parts = key.split('/')
             
-            # Expected structure: Summer_Activities/Group1/StudentName/...
-            if len(parts) >= 3:
+            # We need at least: Summer_Activities/GroupX/StudentName/...
+            if len(parts) >= 4:
                 group = parts[1]
-                potential_student = parts[2]
+                student = parts[2]
                 
-                # Check if this is a valid group
-                if not group.startswith("Group"):
-                    continue
-                
-                # Skip system files
-                if potential_student in ["passwords.json", ""] or potential_student.endswith("_passwords.txt"):
-                    continue
-                
-                # Check if this student has day folders
-                if len(parts) >= 4 and parts[3].startswith("day"):
-                    # This is a valid student with activities
-                    if potential_student not in student_to_group:
-                        student_to_group[potential_student] = group
+                # Check if this looks like a group folder (case-insensitive)
+                if group.lower().startswith("group"):
+                    # Skip system files
+                    if (student and 
+                        not student.endswith('_passwords.txt') and 
+                        not student.endswith('.json') and
+                        student not in ["passwords.json", ""]):
+                        
+                        # Store the student with original case
+                        if student not in student_to_group:
+                            student_to_group[student] = group
+        
+        # Alternative method if the above doesn't work
+        if len(student_to_group) == 0:
+            st.warning("Using alternative detection method...")
+            
+            # List all groups first
+            response = s3.list_objects_v2(
+                Bucket=BUCKET_NAME,
+                Prefix=base_prefix,
+                Delimiter='/'
+            )
+            
+            if 'CommonPrefixes' in response:
+                for prefix in response['CommonPrefixes']:
+                    group_folder = prefix['Prefix']
+                    group_name = group_folder.rstrip('/').split('/')[-1]
+                    
+                    # Check both "Group" and "group" cases
+                    if group_name.lower().startswith("group"):
+                        # Now list students in this group
+                        paginator2 = s3.get_paginator('list_objects_v2')
+                        pages2 = paginator2.paginate(
+                            Bucket=BUCKET_NAME,
+                            Prefix=group_folder
+                        )
+                        
+                        for page2 in pages2:
+                            if 'Contents' in page2:
+                                for obj in page2['Contents']:
+                                    key_parts = obj['Key'].split('/')
+                                    if len(key_parts) >= 4:
+                                        potential_student = key_parts[2]
+                                        if (potential_student and 
+                                            potential_student not in student_to_group and
+                                            not potential_student.endswith('_passwords.txt') and
+                                            potential_student != "passwords.json"):
+                                            student_to_group[potential_student] = group_name
         
         return student_to_group
         
     except ClientError as e:
         st.error(f"Error accessing S3: {e}")
+        st.error(f"Bucket: {BUCKET_NAME}, Prefix: {base_prefix}")
+        return {}
+    except Exception as e:
+        st.error(f"Unexpected error: {type(e).__name__}: {e}")
         return {}
 
 # Helper function to fix audio paths
@@ -217,6 +391,50 @@ def load_passwords(group_folder):
     
     return passwords
 
+# Enhanced play audio function with autoplay attempt
+def play_audio_with_autoplay(s3_key, element_id="opening-audio"):
+    """Play audio with autoplay attempt and fallback button"""
+    audio_content = read_s3_file(s3_key)
+    if audio_content:
+        b64 = base64.b64encode(audio_content).decode()
+        audio_html = f"""
+        <audio id="{element_id}" autoplay>
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+        </audio>
+        <script>
+            // Attempt to play audio with user interaction fallback
+            window.addEventListener('load', function() {{
+                var audio = document.getElementById('{element_id}');
+                if (audio) {{
+                    audio.volume = 0.8;
+                    
+                    // Try to play
+                    var playPromise = audio.play();
+                    
+                    if (playPromise !== undefined) {{
+                        playPromise.then(_ => {{
+                            console.log("Audio playing automatically");
+                        }}).catch(error => {{
+                            console.log("Autoplay prevented:", error);
+                            // Create a play button if autoplay fails
+                            var playBtn = document.createElement('button');
+                            playBtn.innerHTML = '🔊 Click to hear Ms. Sarah';
+                            playBtn.style.cssText = 'position: fixed; top: 100px; right: 20px; z-index: 1000; padding: 15px 25px; background: linear-gradient(45deg, #FF6B6B, #4ECDC4); color: white; border: none; border-radius: 50px; cursor: pointer; font-size: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); animation: pulse 2s infinite;';
+                            playBtn.onclick = function() {{
+                                document.getElementById('{element_id}').play();
+                                this.remove();
+                            }};
+                            document.body.appendChild(playBtn);
+                        }});
+                    }}
+                }}
+            }});
+        </script>
+        """
+        st.markdown(audio_html, unsafe_allow_html=True)
+    else:
+        st.error(f"Error playing audio: File not found")
+
 # Play audio without showing controls - Fixed for consecutive plays
 def play_audio_hidden(s3_key):
     audio_content = read_s3_file(s3_key)
@@ -237,8 +455,54 @@ def play_audio_hidden(s3_key):
     else:
         st.error(f"Error playing audio: File not found")
 
+# Function to play completion sound effect
+def play_completion_sound():
+    """Play a completion fanfare sound effect"""
+    completion_sound_html = """
+    <script>
+    var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playCompletionSound() {
+        // Create a fanfare-like sound
+        var notes = [
+            {freq: 523.25, time: 0},      // C
+            {freq: 523.25, time: 0.1},    // C
+            {freq: 523.25, time: 0.2},    // C
+            {freq: 659.25, time: 0.3},    // E
+            {freq: 783.99, time: 0.5},    // G
+            {freq: 1046.50, time: 0.7}    // High C
+        ];
+        
+        notes.forEach(function(note) {
+            var oscillator = audioContext.createOscillator();
+            var gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = note.freq;
+            oscillator.type = 'square';
+            
+            // Create envelope
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime + note.time);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + note.time + 0.02);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + note.time + 0.2);
+            
+            oscillator.start(audioContext.currentTime + note.time);
+            oscillator.stop(audioContext.currentTime + note.time + 0.2);
+        });
+    }
+    
+    playCompletionSound();
+    </script>
+    """
+    st.markdown(completion_sound_html, unsafe_allow_html=True)
+
 # Function to show success animation
 def show_success_animation(message):
+    # Play completion sound
+    play_completion_sound()
+    
     # Create confetti effect
     confetti_html = ""
     colors = ["#ff0000", "#00ff00", "#0000ff", "#ffff00", "#ff00ff", "#00ffff"]
@@ -260,6 +524,63 @@ def show_success_animation(message):
     {confetti_html}
     """, unsafe_allow_html=True)
 
+# Function to play success sound effect
+def play_success_sound():
+    """Play a success sound effect using JavaScript audio"""
+    success_sound_html = """
+    <script>
+    // Create success sound using Web Audio API
+    var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSuccessSound() {
+        // Create oscillators for a cheerful success sound
+        var duration = 0.3;
+        var frequencies = [523.25, 659.25, 783.99]; // C, E, G (major chord)
+        
+        frequencies.forEach(function(freq, index) {
+            var oscillator = audioContext.createOscillator();
+            var gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = freq;
+            oscillator.type = 'sine';
+            
+            // Create envelope
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime + index * 0.1);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + index * 0.1 + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + index * 0.1 + duration);
+            
+            oscillator.start(audioContext.currentTime + index * 0.1);
+            oscillator.stop(audioContext.currentTime + index * 0.1 + duration);
+        });
+        
+        // Add a final "ding" sound
+        setTimeout(function() {
+            var ding = audioContext.createOscillator();
+            var dingGain = audioContext.createGain();
+            
+            ding.connect(dingGain);
+            dingGain.connect(audioContext.destination);
+            
+            ding.frequency.value = 1046.50; // High C
+            ding.type = 'triangle';
+            
+            dingGain.gain.setValueAtTime(0.4, audioContext.currentTime);
+            dingGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            ding.start(audioContext.currentTime);
+            ding.stop(audioContext.currentTime + 0.5);
+        }, 300);
+    }
+    
+    // Play the sound
+    playSuccessSound();
+    </script>
+    """
+    st.markdown(success_sound_html, unsafe_allow_html=True)
+
 # Function to show welcome animation
 def show_welcome_animation(student_name):
     st.markdown(f"""
@@ -279,13 +600,47 @@ def main():
    
     # Add custom CSS
     add_custom_css()
+    
+    # Add button click sounds
+    add_button_click_sound()
+    
+    # Add a cache clear button in the sidebar for debugging
+    with st.sidebar:
+        if st.button("🔄 Refresh Student List"):
+            st.cache_data.clear()
+            st.rerun()
 
     # Get all students
     student_to_group = get_all_students()
 
     if not student_to_group:
         st.error("No students found")
+        # Show more debugging info
+        st.info("Checking S3 bucket structure...")
+        try:
+            # List top-level folders
+            response = s3.list_objects_v2(
+                Bucket=BUCKET_NAME,
+                Prefix="Summer_Activities/",
+                Delimiter='/',
+                MaxKeys=10
+            )
+            if 'CommonPrefixes' in response:
+                folders = [p['Prefix'] for p in response['CommonPrefixes']]
+                st.write("Top-level folders found:", folders)
+        except Exception as e:
+            st.error(f"Debug error: {e}")
         return
+
+    # Show group statistics in sidebar
+    with st.sidebar:
+        group_counts = {}
+        for student, group in student_to_group.items():
+            group_counts[group] = group_counts.get(group, 0) + 1
+        
+        st.write("**Student Distribution:**")
+        for group, count in sorted(group_counts.items()):
+            st.write(f"- {group}: {count} students")
 
     # Login with case-insensitive password checking
     if not st.session_state.authenticated:
@@ -320,6 +675,7 @@ def main():
                     st.session_state.authenticated = True
                     st.session_state.student = selected_student
                     st.session_state.group = group
+                    play_success_sound()  # Play sound effect
                     st.balloons()
                     show_welcome_animation(selected_student)
                     time.sleep(2)
@@ -376,23 +732,61 @@ def main():
 
         if current_day and current_day in day_to_content:
             day_data = day_to_content[current_day]
-            st.header(f"Day: {current_day.replace('day', 'Day ')}")
-
+            
+            # Extract the activity content
             for field in day_data['fields']:
                 if field.get('type') == 'enhanced_structured_literacy_session':
                     content = field.get('content', {})
+                    
+                    # Show start day screen if not started
+                    if not st.session_state.day_started:
+                        st.markdown(f"""
+                        <div style="text-align: center; padding: 50px;">
+                            <h1 style="color: #4ECDC4; margin-bottom: 30px;">
+                                {content.get('theme', current_day.replace('day', 'Day '))}
+                            </h1>
+                            <p style="font-size: 20px; margin-bottom: 40px;">
+                                Click the button below to start today's activities!
+                            </p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        col1, col2, col3 = st.columns([1, 2, 1])
+                        with col2:
+                            if st.button("🚀 Start Today's Activities!", key="start_day", use_container_width=True):
+                                st.session_state.day_started = True
+                                st.rerun()
+                        return
+                    
+                    # Play opening audio when day starts
                     if current_day not in st.session_state.opening_audio_played:
                         opening_audio = content.get('opening_audio_file', '')
                         audio_s3_key = fix_audio_path(opening_audio, student_s3_prefix, current_day)
                         if audio_s3_key:
-                            play_audio_hidden(audio_s3_key)
+                            play_audio_with_autoplay(audio_s3_key)
                             st.session_state.opening_audio_played.add(current_day)
+                        
+                        # Display the opening message with animation
+                        st.markdown(f"""
+                        <div class="opening-message">
+                            <h3>🎧 Ms. Sarah says:</h3>
+                            <p>{content.get('opening_audio_script', 'Welcome to today\'s activities!')}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Add a slight delay before showing activities
+                        time.sleep(1)
                    
+                    st.header(f"Day: {current_day.replace('day', 'Day ')}")
                     st.subheader(content.get('theme', current_day))
+                    
                     all_questions = []
+                    activity_lookup = {}  # Store activity data for each question
                     for activity in content.get('activities', []):
                         for idx, q in enumerate(activity.get('questions', [])):
+                            question_index = len(all_questions)
                             all_questions.append((activity, idx, q))
+                            activity_lookup[question_index] = activity
                    
                     questions_per_page = 2
                     total_pages = (len(all_questions) + questions_per_page - 1) // questions_per_page
@@ -404,6 +798,97 @@ def main():
 
                     for i, (activity, local_idx, q) in enumerate(current_questions):
                         global_idx = start_idx + i
+                        
+                        # Display activity header if this is the first question of a new activity
+                        if local_idx == 0:
+                            st.markdown("---")
+                            st.markdown(f"""
+                            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                                <h4 style="color: #2c3e50; margin-bottom: 10px;">
+                                    📚 Activity {activity.get('activity_number', '')}: {activity.get('component', '')}
+                                </h4>
+                                <p style="color: #7f8c8d; margin-bottom: 5px;">
+                                    <strong>Skill:</strong> {activity.get('skill_target', '')}
+                                </p>
+                                <p style="color: #7f8c8d;">
+                                    <strong>Time:</strong> {activity.get('time_allocation', '')}
+                                </p>
+                            </div>
+                            """, unsafe_allow_html=True)
+                            
+                            # Add tutor introduction audio if available
+                            tutor_audio = activity.get('tutor_intro_audio_file', '')
+                            tutor_audio_key = fix_audio_path(tutor_audio, student_s3_prefix, current_day)
+                            if tutor_audio_key:
+                                col1, col2, col3 = st.columns([1, 2, 1])
+                                with col2:
+                                    if st.button("🎯 Activity Introduction", key=f"tutor_{current_day}_{activity.get('activity_number')}", use_container_width=True):
+                                        play_audio_hidden(tutor_audio_key)
+                                        # Show tutor script if available
+                                        tutor_script = activity.get('tutor_audio_script', '')
+                                        if tutor_script:
+                                            st.session_state[f"tutor_played_{current_day}_{activity.get('activity_number')}"] = True
+                                            st.rerun()
+                            
+                            # Show tutor script if audio was played
+                            if st.session_state.get(f"tutor_played_{current_day}_{activity.get('activity_number')}", False):
+                                tutor_script = activity.get('tutor_audio_script', '')
+                                if tutor_script:
+                                    st.markdown(f"""
+                                    <div style="background-color: #fff3e0; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #ff9800;">
+                                        <h5 style="color: #ff9800; margin-bottom: 8px;">🎯 Activity Goal:</h5>
+                                        <p style="color: #2c3e50; margin: 0;">{tutor_script}</p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                            
+                            # Add teaching and multisensory buttons
+                            col1, col2 = st.columns(2)
+                            
+                            with col1:
+                                teaching_audio = activity.get('teaching_audio', '')
+                                teaching_audio_key = fix_audio_path(teaching_audio, student_s3_prefix, current_day)
+                                if teaching_audio_key:
+                                    if st.button("📖 Teach Me", key=f"teach_{current_day}_{activity.get('activity_number')}", use_container_width=True, type="primary"):
+                                        play_audio_hidden(teaching_audio_key)
+                                        # Store that we played this teaching audio
+                                        st.session_state[f"teach_played_{current_day}_{activity.get('activity_number')}"] = True
+                                        st.rerun()
+                            
+                            with col2:
+                                multisensory_audio = activity.get('multisensory_audio', '')
+                                multisensory_audio_key = fix_audio_path(multisensory_audio, student_s3_prefix, current_day)
+                                if multisensory_audio_key:
+                                    if st.button("🤹 Multisensory Practice", key=f"multi_{current_day}_{activity.get('activity_number')}", use_container_width=True, type="secondary"):
+                                        play_audio_hidden(multisensory_audio_key)
+                                        # Store that we played this multisensory audio
+                                        st.session_state[f"multi_played_{current_day}_{activity.get('activity_number')}"] = True
+                                        st.rerun()
+                            
+                            # Show teaching script if audio was played
+                            if st.session_state.get(f"teach_played_{current_day}_{activity.get('activity_number')}", False):
+                                teaching_script = activity.get('teaching_audio_script', '')
+                                if teaching_script:
+                                    st.markdown(f"""
+                                    <div style="background-color: #e8f4f8; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #667eea;">
+                                        <h5 style="color: #667eea; margin-bottom: 8px;">📖 Teaching Tip:</h5>
+                                        <p style="color: #2c3e50; margin: 0;">{teaching_script}</p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                            
+                            # Show multisensory script if audio was played
+                            if st.session_state.get(f"multi_played_{current_day}_{activity.get('activity_number')}", False):
+                                multisensory_script = activity.get('multisensory_audio_script', '')
+                                if multisensory_script:
+                                    st.markdown(f"""
+                                    <div style="background-color: #fce4ec; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #f5576c;">
+                                        <h5 style="color: #f5576c; margin-bottom: 8px;">🤹 Practice Activity:</h5>
+                                        <p style="color: #2c3e50; margin: 0;">{multisensory_script}</p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                            
+                            st.markdown("")  # Add spacing
+                        
+                        # Display the question
                         st.markdown(f"**Q{global_idx + 1}: {q.get('prompt', '')}**")
                         q_audio = q.get('prompt_audio_file', '')
                         audio_s3_key = fix_audio_path(q_audio, student_s3_prefix, current_day)
@@ -452,11 +937,25 @@ def main():
                             if current_index + 1 < len(all_days):
                                 next_day = all_days[current_index + 1]
                                 if st.button("✅ Continue to Next Day", key="next_day"):
+                                    play_completion_sound()  # Play completion sound
                                     st.success(f"Great job completing {current_day}! 🌟")
                                     st.session_state.completed_days.add(current_day)
+                                    
+                                    # Clear activity-specific states
+                                    keys_to_remove = []
+                                    for key in st.session_state:
+                                        if key.startswith(f"teach_played_{current_day}_") or \
+                                           key.startswith(f"multi_played_{current_day}_") or \
+                                           key.startswith(f"tutor_played_{current_day}_"):
+                                            keys_to_remove.append(key)
+                                    
+                                    for key in keys_to_remove:
+                                        del st.session_state[key]
+                                    
                                     st.session_state.current_day = next_day
                                     st.session_state.question_page = 0
                                     st.session_state.answers = {}
+                                    st.session_state.day_started = False  # Reset for next day
                                     time.sleep(1)
                                     st.rerun()
                             else:
