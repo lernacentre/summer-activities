@@ -22,8 +22,10 @@ if "opening_audio_played" not in st.session_state:
     st.session_state.opening_audio_played = set()
 if "day_started" not in st.session_state:
     st.session_state.day_started = False
-if "auto_play_activity" not in st.session_state:
-    st.session_state.auto_play_activity = False
+if "play_first_activity" not in st.session_state:
+    st.session_state.play_first_activity = False
+if "first_activity_time" not in st.session_state:
+    st.session_state.first_activity_time = 0
 
 # S3 Configuration
 @st.cache_resource(show_spinner=False)
@@ -213,26 +215,9 @@ def add_custom_css():
         transition: all 0.3s ease;
     }
     
-    .practice-dialog {
-        background: linear-gradient(135deg, #fff3e0 0%, #ffecb3 100%);
-        padding: 25px;
-        border-radius: 20px;
-        margin: 20px 0;
-        border: 3px solid #ff9800;
-        box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
-        text-align: center;
-        animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
-    }
-    
-    .blocked-content {
-        opacity: 0.3;
-        pointer-events: none;
+    .teach-button:hover, .multisensory-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
     </style>
     """, unsafe_allow_html=True)
@@ -324,20 +309,12 @@ def get_all_students():
 
 # Helper function to fix audio paths
 def fix_audio_path(audio_file, student_s3_prefix, current_day):
-    """Fix audio paths to match S3 structure"""
     if not audio_file or audio_file == "[Path to audio]":
         return None
-    
-    # Handle different path formats
-    if audio_file.startswith("audio/"):
-        # Path already includes audio/ prefix
-        return f"{student_s3_prefix}/{current_day}/{audio_file}"
-    elif audio_file.startswith("day"):
-        # Path starts with day folder
+    if audio_file.startswith("day"):
         return f"{student_s3_prefix}/{audio_file}"
     else:
-        # Assume it's just the filename
-        return f"{student_s3_prefix}/{current_day}/audio/{audio_file}"
+        return f"{student_s3_prefix}/{current_day}/{audio_file}"
 
 # Load passwords - prioritize txt files over json
 @st.cache_data(show_spinner=False)
@@ -759,7 +736,6 @@ def main():
                         with col2:
                             if st.button("🚀 Start Today's Activities!", key="start_day", use_container_width=True):
                                 st.session_state.day_started = True
-                                st.session_state.auto_play_activity = True
                                 st.rerun()
                         return
                     
@@ -770,37 +746,29 @@ def main():
                         if audio_s3_key:
                             play_audio_with_autoplay(audio_s3_key)
                             st.session_state.opening_audio_played.add(current_day)
+                            
+                            # Set a flag to play first activity intro after delay
+                            st.session_state.play_first_activity = True
+                            st.session_state.first_activity_time = time.time()
                     
-                    # Automatically start first activity intro after opening audio
-                    if (st.session_state.get('auto_play_activity', False) and 
-                        current_day in st.session_state.opening_audio_played):
+                    # Check if we should play first activity intro (after 3 second delay)
+                    if (st.session_state.get('play_first_activity', False) and 
+                        time.time() - st.session_state.get('first_activity_time', 0) > 3):
                         
-                        # Play first activity introduction immediately
+                        # Play first activity introduction
                         if content.get('activities'):
                             first_activity = content['activities'][0]
                             first_tutor_audio = first_activity.get('tutor_intro_audio_file', '')
                             first_tutor_key = fix_audio_path(first_tutor_audio, student_s3_prefix, current_day)
                             if first_tutor_key:
-                                # Use JavaScript to play after a delay
-                                tutor_b64 = base64.b64encode(read_s3_file(first_tutor_key)).decode()
-                                st.markdown(f"""
-                                <script>
-                                setTimeout(function() {{
-                                    var audio = new Audio('data:audio/mp3;base64,{tutor_b64}');
-                                    audio.play();
-                                }}, 3000);  // Play after 3 seconds
-                                </script>
-                                """, unsafe_allow_html=True)
+                                play_audio_hidden(first_tutor_key)
                         
                         # Clear the flag
-                        st.session_state.auto_play_activity = False
+                        st.session_state.play_first_activity = False
+                        st.rerun()  # Rerun to update the UI
                    
                     st.header(f"Day: {current_day.replace('day', 'Day ')}")
                     st.subheader(content.get('theme', current_day))
-                    
-                    # DEBUG: Add a bypass button for testing
-                    if st.checkbox("Debug: Show all questions", key=f"debug_{current_day}"):
-                        st.warning("Debug mode: Showing all questions without practice requirement")
                     
                     all_questions = []
                     activity_lookup = {}  # Store activity data for each question
@@ -850,183 +818,24 @@ def main():
                             # Add teaching and multisensory buttons
                             col1, col2 = st.columns(2)
                             
-                            # Check if practice is required for this activity
-                            practice_key = f"practice_completed_{current_day}_{activity.get('activity_number')}"
-                            teach_key = f"teach_clicked_{current_day}_{activity.get('activity_number')}"
-                            
-                            # Get audio paths
-                            teaching_audio = activity.get('teaching_audio', '')
-                            teaching_audio_key = None
-                            if teaching_audio:
-                                teaching_audio_key = fix_audio_path(teaching_audio, student_s3_prefix, current_day)
-                            
-                            multisensory_audio = activity.get('multisensory_audio', '')
-                            multisensory_audio_key = None
-                            if multisensory_audio:
-                                multisensory_audio_key = fix_audio_path(multisensory_audio, student_s3_prefix, current_day)
-                            
                             with col1:
+                                teaching_audio = activity.get('teaching_audio', '')
+                                teaching_audio_key = fix_audio_path(teaching_audio, student_s3_prefix, current_day)
                                 if teaching_audio_key:
                                     if st.button("📖 Teach Me", key=f"teach_{current_day}_{activity.get('activity_number')}", use_container_width=True, type="primary"):
-                                        success = play_audio_hidden(teaching_audio_key)
-                                        if success:
-                                            st.session_state[teach_key] = True
-                                            st.session_state[f"teach_time_{current_day}_{activity.get('activity_number')}"] = time.time()
-                                            time.sleep(0.5)  # Give audio time to start
-                                        st.rerun()
+                                        play_audio_hidden(teaching_audio_key)
                             
                             with col2:
+                                multisensory_audio = activity.get('multisensory_audio', '')
+                                multisensory_audio_key = fix_audio_path(multisensory_audio, student_s3_prefix, current_day)
                                 if multisensory_audio_key:
-                                    # Always show the multisensory button
-                                    button_type = "primary" if st.session_state.get(practice_key, False) else "secondary"
-                                    button_label = "✅ Practice Completed!" if st.session_state.get(practice_key, False) else "🤹 Multisensory Practice"
-                                    
-                                    if st.button(button_label, key=f"multi_{current_day}_{activity.get('activity_number')}", use_container_width=True, type=button_type):
-                                        if not st.session_state.get(practice_key, False):
-                                            # If not completed, play the audio
-                                            success = play_audio_hidden(multisensory_audio_key)
-                                            if success:
-                                                st.session_state[f"multi_played_{current_day}_{activity.get('activity_number')}"] = True
-                                                st.session_state[f"show_practice_confirm_{current_day}_{activity.get('activity_number')}"] = True
-                                                time.sleep(0.5)  # Give audio time to start
-                                            st.rerun()
-                                        else:
-                                            # If already completed, just replay the audio
-                                            play_audio_hidden(multisensory_audio_key)
-                                            time.sleep(0.5)
+                                    if st.button("🤹 Multisensory Practice", key=f"multi_{current_day}_{activity.get('activity_number')}", use_container_width=True, type="secondary"):
+                                        play_audio_hidden(multisensory_audio_key)
                             
-                            # Auto-play multisensory audio after teach me (with 3 second delay)
-                            if (st.session_state.get(teach_key, False) and 
-                                not st.session_state.get(f"multi_played_{current_day}_{activity.get('activity_number')}", False) and
-                                time.time() - st.session_state.get(f"teach_time_{current_day}_{activity.get('activity_number')}", 0) > 3):
-                                
-                                if multisensory_audio_key:
-                                    play_audio_hidden(multisensory_audio_key)
-                                    st.session_state[f"multi_played_{current_day}_{activity.get('activity_number')}"] = True
-                                    st.session_state[f"show_practice_confirm_{current_day}_{activity.get('activity_number')}"] = True
-                                    st.rerun()
-                            
-                            # Show practice confirmation dialog
-                            if st.session_state.get(f"show_practice_confirm_{current_day}_{activity.get('activity_number')}", False):
-                                # Extract key actions from multisensory script
-                                multisensory_script = activity.get('multisensory_audio_script', '')
-                                
-                                # Create activity-specific confirmation text based on the practice
-                                practice_confirmations = {
-                                    "Phonics Pattern Recognition": "✅ Yes, I tapped the syllables and skywrited!",
-                                    "Morphology": "✅ Yes, I drew lines between word parts!",
-                                    "Sight Words in Context": "✅ Yes, I skywrited and visualized!",
-                                    "Dictation": "✅ Yes, I made sound boxes and finger spelled!",
-                                    "Vocabulary Development": "✅ Yes, I sorted the word cards!",
-                                    "Grammar Analysis": "✅ Yes, I jumped for verbs and used color cards!",
-                                    "Sentence Building": "✅ Yes, I stretched and stepped forward!",
-                                    "Reading Comprehension": "✅ Yes, I framed the title and knocked for clunks!",
-                                    "Syllable Types": "✅ Yes, I clapped and tapped each syllable!",
-                                    "Suffixes": "✅ Yes, I chopped between base and suffix!",
-                                    "Baselements": "✅ Yes, I built with tiles and colored parts!",
-                                    "Prefixes": "✅ Yes, I showed the prefix motions!",
-                                    "Paragraph Writing": "✅ Yes, I used hand gestures for each part!"
-                                }
-                                
-                                component = activity.get('component', '')
-                                confirm_text = practice_confirmations.get(component, "✅ Yes, I completed the practice!")
-                                
-                                st.markdown(f"""
-                                <div class="practice-dialog">
-                                    <h3 style="color: #ff9800; margin-bottom: 15px;">🤹 Practice Check!</h3>
-                                    <p style="color: #666; margin-bottom: 20px; font-size: 18px;"><strong>{multisensory_script}</strong></p>
-                                    <p style="color: #ff6b00; margin-bottom: 20px;">Did you do these movements?</p>
-                                </div>
-                                """, unsafe_allow_html=True)
-                                
-                                col_yes, col_no = st.columns(2)
-                                with col_yes:
-                                    if st.button(confirm_text, key=f"practice_yes_{current_day}_{activity.get('activity_number')}", type="primary", use_container_width=True):
-                                        st.session_state[practice_key] = True
-                                        st.session_state[f"show_practice_confirm_{current_day}_{activity.get('activity_number')}"] = False
-                                        
-                                        # Play a short success sound
-                                        success_sound = """
-                                        <script>
-                                        var audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                                        var oscillator = audioContext.createOscillator();
-                                        var gainNode = audioContext.createGain();
-                                        oscillator.connect(gainNode);
-                                        gainNode.connect(audioContext.destination);
-                                        oscillator.frequency.value = 880;
-                                        oscillator.type = 'sine';
-                                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
-                                        oscillator.start(audioContext.currentTime);
-                                        oscillator.stop(audioContext.currentTime + 0.2);
-                                        </script>
-                                        """
-                                        st.markdown(success_sound, unsafe_allow_html=True)
-                                        
-                                        st.balloons()
-                                        time.sleep(1)
-                                        st.rerun()
-                                
-                                with col_no:
-                                    if st.button("🔄 Play practice audio again", key=f"practice_no_{current_day}_{activity.get('activity_number')}", use_container_width=True):
-                                        if multisensory_audio_key:
-                                            play_audio_hidden(multisensory_audio_key)
-                                            time.sleep(0.5)
-                                            st.rerun()
-                            
-                            # Check if we should show questions
-                            show_questions = True
-                            if teaching_audio_key and multisensory_audio_key:
-                                if not st.session_state.get(practice_key, False):
-                                    show_questions = False
-                                    if not st.session_state.get(teach_key, False):
-                                        st.warning("👆 Please click 'Teach Me' first to learn about this activity.")
-                                    elif st.session_state.get(f"show_practice_confirm_{current_day}_{activity.get('activity_number')}", False):
-                                        # Practice dialog is showing, don't show additional message
-                                        pass
-                                    else:
-                                        st.info("⏳ Preparing practice activity...")
+                            st.markdown("")  # Add spacing
                         
-                        # Check if this question should be shown
-                        if local_idx > 0:
-                            # For subsequent questions in the same activity, inherit the show_questions status
-                            practice_key = f"practice_completed_{current_day}_{activity.get('activity_number')}"
-                            teaching_audio = activity.get('teaching_audio', '')
-                            teaching_audio_key = fix_audio_path(teaching_audio, student_s3_prefix, current_day)
-                            multisensory_audio = activity.get('multisensory_audio', '')
-                            multisensory_audio_key = fix_audio_path(multisensory_audio, student_s3_prefix, current_day)
-                            
-                            if teaching_audio_key and multisensory_audio_key:
-                                show_questions = st.session_state.get(practice_key, False)
-                        
-                        # Skip this question if not allowed to show
-                        if not show_questions:
-                            continue
-                        
-                        # Special handling for reading comprehension stories
-                        if activity.get('component') == 'Reading Comprehension':
-                            if activity.get('story_display', False) and q.get('story_remains_visible', False):
-                                # Display the story text for questions that need it visible
-                                story_text = activity.get('story_text', '')
-                                if story_text:
-                                    st.markdown("📖 **Story:**")
-                                    st.markdown(f"""
-                                    <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #4CAF50;">
-                                        <p style="font-size: 16px; line-height: 1.8; color: #333;">
-                                            {story_text}
-                                        </p>
-                                    </div>
-                                    """, unsafe_allow_html=True)
-                                    
-                                    # Add story audio button
-                                    story_audio = activity.get('story_audio_file', '')
-                                    if story_audio:
-                                        story_key = fix_audio_path(story_audio, student_s3_prefix, current_day)
-                                        if story_key:
-                                            if st.button("🎧 Listen to Story", key=f"story_{current_day}_{activity.get('activity_number')}_{global_idx}", use_container_width=True):
-                                                play_audio_hidden(story_key)
-                        
-                        # Question audio button
+                        # Display the question
+                        st.markdown(f"**Q{global_idx + 1}: {q.get('prompt', '')}**")
                         q_audio = q.get('prompt_audio_file', '')
                         audio_s3_key = fix_audio_path(q_audio, student_s3_prefix, current_day)
                         if audio_s3_key:
@@ -1114,19 +923,20 @@ def main():
                                             play_audio_hidden(audio_s3_key)
 
                         elif q.get('answer_type') == 'text_input':
-                            # Show text input first
-                            user_answer = st.text_input("Your Answer:", key=answer_key)
-                            st.session_state.answers[answer_key] = user_answer
-                            
-                            # Special handling for dictation questions - audio AFTER the input
+                            # Special handling for dictation questions
                             if q.get('question_type') == 'text_input_dictation':
                                 dictation_audio = q.get('dictation_audio_file', '')
                                 if dictation_audio:
                                     dictation_key = fix_audio_path(dictation_audio, student_s3_prefix, current_day)
                                     if dictation_key:
-                                        st.info("📝 " + q.get('dictation_instruction', 'Click play to hear the sentence'))
-                                        if st.button("▶️ Play Dictation Audio", key=f"dict_{current_day}_{global_idx}", type="primary", use_container_width=True):
-                                            play_audio_hidden(dictation_key)
+                                        col1, col2 = st.columns([2, 1])
+                                        with col1:
+                                            st.info("📝 " + q.get('dictation_instruction', 'Click play to hear the sentence'))
+                                        with col2:
+                                            if st.button("▶️ Play Dictation", key=f"dict_{current_day}_{global_idx}", type="primary"):
+                                                play_audio_hidden(dictation_key)
+                            
+                            st.session_state.answers[answer_key] = st.text_input("Your Answer:", key=answer_key)
                         
                         # Special handling for reading comprehension stories
                         if activity.get('component') == 'Reading Comprehension' and local_idx == 0:
@@ -1205,14 +1015,9 @@ def main():
                                     # Clear activity-specific states
                                     keys_to_remove = []
                                     for key in st.session_state:
-                                        if (key.startswith(f"teach_played_{current_day}_") or 
-                                            key.startswith(f"multi_played_{current_day}_") or 
-                                            key.startswith(f"tutor_played_{current_day}_") or
-                                            key.startswith(f"practice_completed_{current_day}_") or
-                                            key.startswith(f"teach_clicked_{current_day}_") or
-                                            key.startswith(f"teach_time_{current_day}_") or
-                                            key.startswith(f"show_practice_confirm_{current_day}_") or
-                                            key.startswith(f"feedback_{current_day}_")):
+                                        if key.startswith(f"teach_played_{current_day}_") or \
+                                           key.startswith(f"multi_played_{current_day}_") or \
+                                           key.startswith(f"tutor_played_{current_day}_"):
                                             keys_to_remove.append(key)
                                     
                                     for key in keys_to_remove:
@@ -1222,7 +1027,6 @@ def main():
                                     st.session_state.question_page = 0
                                     st.session_state.answers = {}
                                     st.session_state.day_started = False  # Reset for next day
-                                    st.session_state.play_first_activity = False
                                     time.sleep(1)
                                     st.rerun()
                             else:
