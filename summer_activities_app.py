@@ -958,6 +958,31 @@ def main():
                         
                         # Display the question
                         st.markdown(f"**Q{global_idx + 1}: {q.get('prompt', '')}**")
+                        
+                        # Special handling for reading comprehension stories
+                        if activity.get('component') == 'Reading Comprehension':
+                            if activity.get('story_display', False) and q.get('story_remains_visible', False):
+                                # Display the story text for questions that need it visible
+                                story_text = activity.get('story_text', '')
+                                if story_text:
+                                    st.markdown("📖 **Story:**")
+                                    st.markdown(f"""
+                                    <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #4CAF50;">
+                                        <p style="font-size: 16px; line-height: 1.8; color: #333;">
+                                            {story_text}
+                                        </p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                                    
+                                    # Add story audio button
+                                    story_audio = activity.get('story_audio_file', '')
+                                    if story_audio:
+                                        story_key = fix_audio_path(story_audio, student_s3_prefix, current_day)
+                                        if story_key:
+                                            if st.button("🎧 Listen to Story", key=f"story_{current_day}_{activity.get('activity_number')}_{global_idx}", use_container_width=True):
+                                                play_audio_hidden(story_key)
+                        
+                        # Question audio button
                         q_audio = q.get('prompt_audio_file', '')
                         audio_s3_key = fix_audio_path(q_audio, student_s3_prefix, current_day)
                         if audio_s3_key:
@@ -1045,20 +1070,19 @@ def main():
                                             play_audio_hidden(audio_s3_key)
 
                         elif q.get('answer_type') == 'text_input':
-                            # Special handling for dictation questions
+                            # Show text input first
+                            user_answer = st.text_input("Your Answer:", key=answer_key)
+                            st.session_state.answers[answer_key] = user_answer
+                            
+                            # Special handling for dictation questions - audio AFTER the input
                             if q.get('question_type') == 'text_input_dictation':
                                 dictation_audio = q.get('dictation_audio_file', '')
                                 if dictation_audio:
                                     dictation_key = fix_audio_path(dictation_audio, student_s3_prefix, current_day)
                                     if dictation_key:
-                                        col1, col2 = st.columns([2, 1])
-                                        with col1:
-                                            st.info("📝 " + q.get('dictation_instruction', 'Click play to hear the sentence'))
-                                        with col2:
-                                            if st.button("▶️ Play Dictation", key=f"dict_{current_day}_{global_idx}", type="primary"):
-                                                play_audio_hidden(dictation_key)
-                            
-                            st.session_state.answers[answer_key] = st.text_input("Your Answer:", key=answer_key)
+                                        st.info("📝 " + q.get('dictation_instruction', 'Click play to hear the sentence'))
+                                        if st.button("▶️ Play Dictation Audio", key=f"dict_{current_day}_{global_idx}", type="primary", use_container_width=True):
+                                            play_audio_hidden(dictation_key)
                         
                         # Special handling for reading comprehension stories
                         if activity.get('component') == 'Reading Comprehension' and local_idx == 0:
