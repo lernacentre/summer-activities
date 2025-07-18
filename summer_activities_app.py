@@ -43,7 +43,7 @@ def get_s3_client():
 
 try:
     s3, BUCKET_NAME = get_s3_client()
-    st.success("✅ Connected to S3")
+    # Remove the hardcoded success message
 except KeyError as e:
     st.error(f"❌ Missing secret: {e}")
     st.info("Please add AWS credentials to Streamlit secrets")
@@ -238,7 +238,7 @@ def get_all_students():
         # Use paginator to handle large buckets
         paginator = s3.get_paginator('list_objects_v2')
         
-        # First, find all objects to analyze the structure
+        # Get all objects under Summer_Activities/
         all_objects = []
         page_iterator = paginator.paginate(
             Bucket=BUCKET_NAME,
@@ -249,74 +249,96 @@ def get_all_students():
             if 'Contents' in page:
                 all_objects.extend(page['Contents'])
         
-        # Group all paths by their structure
-        path_structure = {}
+        # Process all objects to extract group and student information
+        groups_found = set()
+        
         for obj in all_objects:
             key = obj['Key']
-            parts = key.split('/')
+            # Remove the base prefix to make parsing easier
+            relative_key = key[len(base_prefix):] if key.startswith(base_prefix) else key
+            parts = relative_key.split('/')
             
-            # We need at least: Summer_Activities/GroupX/StudentName/...
-            if len(parts) >= 4:
-                group = parts[1]
-                student = parts[2]
+            # Expected structure: GroupName/StudentName/...
+            if len(parts) >= 2:
+                group = parts[0]
+                student = parts[1]
                 
-                # Check if this looks like a group folder (case-insensitive)
-                if group.lower().startswith("group"):
-                    # Skip system files
-                    if (student and 
-                        not student.endswith('_passwords.txt') and 
-                        not student.endswith('.json') and
-                        student not in ["passwords.json", ""]):
-                        
-                        # Store the student with original case
-                        if student not in student_to_group:
-                            student_to_group[student] = group
+                # Skip if group or student is empty
+                if not group or not student:
+                    continue
+                
+                # Track all groups found
+                groups_found.add(group)
+                
+                # Skip files at the group level (like passwords.json)
+                if len(parts) == 2 and '.' in student:
+                    continue
+                
+                # Skip password files and system files
+                if (student.endswith('_passwords.txt') or 
+                    student.endswith('.json') or
+                    student == "passwords.json" or
+                    '.txt' in student or
+                    '.json' in student):
+                    continue
+                
+                # If we have at least 3 parts, this is likely a student with content
+                if len(parts) >= 3:
+                    # Add the student if not already added
+                    if student not in student_to_group:
+                        student_to_group[student] = group
         
-        # Alternative method if the above doesn't work
-        if len(student_to_group) == 0:
-            st.warning("Using alternative detection method...")
-            
-            # List all groups first
-            response = s3.list_objects_v2(
-                Bucket=BUCKET_NAME,
-                Prefix=base_prefix,
-                Delimiter='/'
-            )
-            
-            if 'CommonPrefixes' in response:
-                for prefix in response['CommonPrefixes']:
-                    group_folder = prefix['Prefix']
-                    group_name = group_folder.rstrip('/').split('/')[-1]
+        # Debug information in sidebar
+        if st.sidebar:
+            with st.sidebar:
+                st.write("**Debug Information:**")
+                st.write(f"Groups found: {', '.join(sorted(groups_found))}")
+                st.write(f"Total students: {len(student_to_group)}")
+                
+                # Show sample of students per group
+                if student_to_group:
+                    st.write("\n**Students per group:**")
+                    group_counts = {}
+                    for student, group in student_to_group.items():
+                        if group not in group_counts:
+                            group_counts[group] = []
+                        group_counts[group].append(student)
                     
-                    # Check both "Group" and "group" cases
-                    if group_name.lower().startswith("group"):
-                        # Now list students in this group
-                        paginator2 = s3.get_paginator('list_objects_v2')
-                        pages2 = paginator2.paginate(
-                            Bucket=BUCKET_NAME,
-                            Prefix=group_folder
-                        )
-                        
-                        for page2 in pages2:
-                            if 'Contents' in page2:
-                                for obj in page2['Contents']:
-                                    key_parts = obj['Key'].split('/')
-                                    if len(key_parts) >= 4:
-                                        potential_student = key_parts[2]
-                                        if (potential_student and 
-                                            potential_student not in student_to_group and
-                                            not potential_student.endswith('_passwords.txt') and
-                                            potential_student != "passwords.json"):
-                                            student_to_group[potential_student] = group_name
+                    for group in sorted(group_counts.keys()):
+                        st.write(f"- {group}: {len(group_counts[group])} students")
+                        # Show first 3 students as example
+                        sample_students = sorted(group_counts[group])[:3]
+                        for student in sample_students:
+                            st.write(f"  • {student}")
+                        if len(group_counts[group]) > 3:
+                            st.write(f"  • ... and {len(group_counts[group]) - 3} more")
+        
+        # If no students found, provide helpful debugging
+        if len(student_to_group) == 0:
+            st.warning("No students found. Checking S3 structure...")
+            st.info("Looking for pattern: Summer_Activities/[GroupName]/[StudentName]/...")
+            
+            # Show sample paths for debugging
+            if all_objects:
+                st.write("Sample paths found in S3:")
+                for obj in all_objects[:5]:
+                    st.code(obj['Key'])
         
         return student_to_group
         
     except ClientError as e:
-        st.error(f"Error accessing S3: {e}")
-        st.error(f"Bucket: {BUCKET_NAME}, Prefix: {base_prefix}")
+        error_code = e.response['Error']['Code']
+        if error_code == 'NoSuchBucket':
+            st.error(f"❌ Bucket '{BUCKET_NAME}' does not exist")
+        elif error_code == 'AccessDenied':
+            st.error(f"❌ Access denied to bucket '{BUCKET_NAME}'")
+        else:
+            st.error(f"❌ AWS Error ({error_code}): {e}")
         return {}
     except Exception as e:
-        st.error(f"Unexpected error: {type(e).__name__}: {e}")
+        st.error(f"❌ Unexpected error: {type(e).__name__}: {e}")
+        import traceback
+        st.code(traceback.format_exc())
         return {}
 
 # Helper function to fix audio paths
