@@ -288,42 +288,6 @@ def get_all_students():
                     if student not in student_to_group:
                         student_to_group[student] = group
         
-        # Debug information in sidebar
-        if st.sidebar:
-            with st.sidebar:
-                st.write("**Debug Information:**")
-                st.write(f"Groups found: {', '.join(sorted(groups_found))}")
-                st.write(f"Total students: {len(student_to_group)}")
-                
-                # Show sample of students per group
-                if student_to_group:
-                    st.write("\n**Students per group:**")
-                    group_counts = {}
-                    for student, group in student_to_group.items():
-                        if group not in group_counts:
-                            group_counts[group] = []
-                        group_counts[group].append(student)
-                    
-                    for group in sorted(group_counts.keys()):
-                        st.write(f"- {group}: {len(group_counts[group])} students")
-                        # Show first 3 students as example
-                        sample_students = sorted(group_counts[group])[:3]
-                        for student in sample_students:
-                            st.write(f"  • {student}")
-                        if len(group_counts[group]) > 3:
-                            st.write(f"  • ... and {len(group_counts[group]) - 3} more")
-        
-        # If no students found, provide helpful debugging
-        if len(student_to_group) == 0:
-            st.warning("No students found. Checking S3 structure...")
-            st.info("Looking for pattern: Summer_Activities/[GroupName]/[StudentName]/...")
-            
-            # Show sample paths for debugging
-            if all_objects:
-                st.write("Sample paths found in S3:")
-                for obj in all_objects[:5]:
-                    st.code(obj['Key'])
-        
         return student_to_group
         
     except ClientError as e:
@@ -337,8 +301,6 @@ def get_all_students():
         return {}
     except Exception as e:
         st.error(f"❌ Unexpected error: {type(e).__name__}: {e}")
-        import traceback
-        st.code(traceback.format_exc())
         return {}
 
 # Helper function to fix audio paths
@@ -459,6 +421,7 @@ def play_audio_with_autoplay(s3_key, element_id="opening-audio"):
 
 # Play audio without showing controls - Fixed for consecutive plays
 def play_audio_hidden(s3_key):
+    """Play audio with proper handling for multiple plays"""
     audio_content = read_s3_file(s3_key)
     if audio_content:
         b64 = base64.b64encode(audio_content).decode()
@@ -469,11 +432,36 @@ def play_audio_hidden(s3_key):
                 <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
             </audio>
             <script>
-                // Force play in case autoplay is blocked
-                document.getElementById('audio_{unique_id}').play();
+                (function() {{
+                    var audio = document.getElementById('audio_{unique_id}');
+                    if (audio) {{
+                        // Reset the audio context if needed
+                        if (window.audioContext && window.audioContext.state === 'suspended') {{
+                            window.audioContext.resume();
+                        }}
+                        
+                        // Play with promise handling
+                        var playPromise = audio.play();
+                        if (playPromise !== undefined) {{
+                            playPromise.then(function() {{
+                                console.log('Audio playing');
+                            }}).catch(function(error) {{
+                                console.error('Play error:', error);
+                                // Try to play again after user interaction
+                                setTimeout(function() {{
+                                    audio.play().catch(function(e) {{
+                                        console.error('Retry failed:', e);
+                                    }});
+                                }}, 100);
+                            }});
+                        }}
+                    }}
+                }})();
             </script>
         """
         st.markdown(audio_tag, unsafe_allow_html=True)
+        # Add a small delay to ensure audio element is created
+        time.sleep(0.1)
     else:
         st.error(f"Error playing audio: File not found")
 
@@ -622,47 +610,13 @@ def main():
    
     # Add custom CSS
     add_custom_css()
-    
-    # Add button click sounds
-    add_button_click_sound()
-    
-    # Add a cache clear button in the sidebar for debugging
-    with st.sidebar:
-        if st.button("🔄 Refresh Student List"):
-            st.cache_data.clear()
-            st.rerun()
 
     # Get all students
     student_to_group = get_all_students()
 
     if not student_to_group:
-        st.error("No students found")
-        # Show more debugging info
-        st.info("Checking S3 bucket structure...")
-        try:
-            # List top-level folders
-            response = s3.list_objects_v2(
-                Bucket=BUCKET_NAME,
-                Prefix="Summer_Activities/",
-                Delimiter='/',
-                MaxKeys=10
-            )
-            if 'CommonPrefixes' in response:
-                folders = [p['Prefix'] for p in response['CommonPrefixes']]
-                st.write("Top-level folders found:", folders)
-        except Exception as e:
-            st.error(f"Debug error: {e}")
+        st.error("No students found in the system")
         return
-
-    # Show group statistics in sidebar
-    with st.sidebar:
-        group_counts = {}
-        for student, group in student_to_group.items():
-            group_counts[group] = group_counts.get(group, 0) + 1
-        
-        st.write("**Student Distribution:**")
-        for group, count in sorted(group_counts.items()):
-            st.write(f"- {group}: {count} students")
 
     # Login with case-insensitive password checking
     if not st.session_state.authenticated:
@@ -697,7 +651,6 @@ def main():
                     st.session_state.authenticated = True
                     st.session_state.student = selected_student
                     st.session_state.group = group
-                    play_success_sound()  # Play sound effect
                     st.balloons()
                     show_welcome_animation(selected_student)
                     time.sleep(2)
@@ -788,16 +741,16 @@ def main():
                             play_audio_with_autoplay(audio_s3_key)
                             st.session_state.opening_audio_played.add(current_day)
                         
-                        # Display the opening message with animation
-                        st.markdown(f"""
-                        <div class="opening-message">
-                            <h3>🎧 Ms. Sarah says:</h3>
-                            <p>{content.get('opening_audio_script', 'Welcome to today\'s activities!')}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        # Add a pause after opening audio
+                        time.sleep(3)
                         
-                        # Add a slight delay before showing activities
-                        time.sleep(1)
+                        # Automatically play the first activity introduction
+                        if content.get('activities'):
+                            first_activity = content['activities'][0]
+                            first_tutor_audio = first_activity.get('tutor_intro_audio_file', '')
+                            first_tutor_key = fix_audio_path(first_tutor_audio, student_s3_prefix, current_day)
+                            if first_tutor_key:
+                                play_audio_hidden(first_tutor_key)
                    
                     st.header(f"Day: {current_day.replace('day', 'Day ')}")
                     st.subheader(content.get('theme', current_day))
@@ -841,27 +794,11 @@ def main():
                             # Add tutor introduction audio if available
                             tutor_audio = activity.get('tutor_intro_audio_file', '')
                             tutor_audio_key = fix_audio_path(tutor_audio, student_s3_prefix, current_day)
-                            if tutor_audio_key:
+                            if tutor_audio_key and local_idx == 0:  # Only show for first question of activity
                                 col1, col2, col3 = st.columns([1, 2, 1])
                                 with col2:
                                     if st.button("🎯 Activity Introduction", key=f"tutor_{current_day}_{activity.get('activity_number')}", use_container_width=True):
                                         play_audio_hidden(tutor_audio_key)
-                                        # Show tutor script if available
-                                        tutor_script = activity.get('tutor_audio_script', '')
-                                        if tutor_script:
-                                            st.session_state[f"tutor_played_{current_day}_{activity.get('activity_number')}"] = True
-                                            st.rerun()
-                            
-                            # Show tutor script if audio was played
-                            if st.session_state.get(f"tutor_played_{current_day}_{activity.get('activity_number')}", False):
-                                tutor_script = activity.get('tutor_audio_script', '')
-                                if tutor_script:
-                                    st.markdown(f"""
-                                    <div style="background-color: #fff3e0; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #ff9800;">
-                                        <h5 style="color: #ff9800; margin-bottom: 8px;">🎯 Activity Goal:</h5>
-                                        <p style="color: #2c3e50; margin: 0;">{tutor_script}</p>
-                                    </div>
-                                    """, unsafe_allow_html=True)
                             
                             # Add teaching and multisensory buttons
                             col1, col2 = st.columns(2)
@@ -872,9 +809,6 @@ def main():
                                 if teaching_audio_key:
                                     if st.button("📖 Teach Me", key=f"teach_{current_day}_{activity.get('activity_number')}", use_container_width=True, type="primary"):
                                         play_audio_hidden(teaching_audio_key)
-                                        # Store that we played this teaching audio
-                                        st.session_state[f"teach_played_{current_day}_{activity.get('activity_number')}"] = True
-                                        st.rerun()
                             
                             with col2:
                                 multisensory_audio = activity.get('multisensory_audio', '')
@@ -882,31 +816,6 @@ def main():
                                 if multisensory_audio_key:
                                     if st.button("🤹 Multisensory Practice", key=f"multi_{current_day}_{activity.get('activity_number')}", use_container_width=True, type="secondary"):
                                         play_audio_hidden(multisensory_audio_key)
-                                        # Store that we played this multisensory audio
-                                        st.session_state[f"multi_played_{current_day}_{activity.get('activity_number')}"] = True
-                                        st.rerun()
-                            
-                            # Show teaching script if audio was played
-                            if st.session_state.get(f"teach_played_{current_day}_{activity.get('activity_number')}", False):
-                                teaching_script = activity.get('teaching_audio_script', '')
-                                if teaching_script:
-                                    st.markdown(f"""
-                                    <div style="background-color: #e8f4f8; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #667eea;">
-                                        <h5 style="color: #667eea; margin-bottom: 8px;">📖 Teaching Tip:</h5>
-                                        <p style="color: #2c3e50; margin: 0;">{teaching_script}</p>
-                                    </div>
-                                    """, unsafe_allow_html=True)
-                            
-                            # Show multisensory script if audio was played
-                            if st.session_state.get(f"multi_played_{current_day}_{activity.get('activity_number')}", False):
-                                multisensory_script = activity.get('multisensory_audio_script', '')
-                                if multisensory_script:
-                                    st.markdown(f"""
-                                    <div style="background-color: #fce4ec; padding: 15px; border-radius: 10px; margin: 10px 0; border-left: 4px solid #f5576c;">
-                                        <h5 style="color: #f5576c; margin-bottom: 8px;">🤹 Practice Activity:</h5>
-                                        <p style="color: #2c3e50; margin: 0;">{multisensory_script}</p>
-                                    </div>
-                                    """, unsafe_allow_html=True)
                             
                             st.markdown("")  # Add spacing
                         
@@ -919,9 +828,12 @@ def main():
                                 play_audio_hidden(audio_s3_key)
 
                         answer_key = f"answer_{current_day}_{global_idx}"
+                        
+                        # Handle different question types
                         if q.get('answer_type') == 'single_select':
                             options = q.get('options', [])
                             current_answer = st.session_state.answers.get(answer_key)
+                            
                             for opt_idx, option in enumerate(options):
                                 label = option.get('text', f"Option {opt_idx+1}")
                                 col1, col2 = st.columns([5, 1])
@@ -929,6 +841,27 @@ def main():
                                     button_label = f"{'✓ ' if current_answer == label else ''}{label}"
                                     if st.button(button_label, key=f"answer_{current_day}_{global_idx}_{opt_idx}"):
                                         st.session_state.answers[answer_key] = label
+                                        
+                                        # Play feedback audio based on correct/incorrect answer
+                                        correct_answer = q.get('correct_answer', '')
+                                        if label == correct_answer:
+                                            # Play correct answer feedback
+                                            feedback_audio = q.get('feedback_audio_file', '')
+                                            if feedback_audio:
+                                                feedback_key = fix_audio_path(feedback_audio, student_s3_prefix, current_day)
+                                                if feedback_key:
+                                                    play_audio_hidden(feedback_key)
+                                        
+                                        # Check if this completes the activity
+                                        if local_idx == len(activity.get('questions', [])) - 1:
+                                            # Play activity completion audio
+                                            completion_audio = activity.get('activity_completion_audio_file', '')
+                                            if completion_audio:
+                                                completion_key = fix_audio_path(completion_audio, student_s3_prefix, current_day)
+                                                if completion_key:
+                                                    time.sleep(2)  # Small delay before completion audio
+                                                    play_audio_hidden(completion_key)
+                                        
                                         st.rerun()
                                 with col2:
                                     opt_audio = option.get('audio_file', '')
@@ -938,7 +871,43 @@ def main():
                                             play_audio_hidden(audio_s3_key)
 
                         elif q.get('answer_type') == 'text_input':
+                            # Special handling for dictation questions
+                            if q.get('question_type') == 'text_input_dictation':
+                                dictation_audio = q.get('dictation_audio_file', '')
+                                if dictation_audio:
+                                    dictation_key = fix_audio_path(dictation_audio, student_s3_prefix, current_day)
+                                    if dictation_key:
+                                        col1, col2 = st.columns([2, 1])
+                                        with col1:
+                                            st.info("📝 " + q.get('dictation_instruction', 'Click play to hear the sentence'))
+                                        with col2:
+                                            if st.button("▶️ Play Dictation", key=f"dict_{current_day}_{global_idx}", type="primary"):
+                                                play_audio_hidden(dictation_key)
+                            
                             st.session_state.answers[answer_key] = st.text_input("Your Answer:", key=answer_key)
+                        
+                        # Special handling for reading comprehension stories
+                        if activity.get('component') == 'Reading Comprehension' and local_idx == 0:
+                            if activity.get('story_display', False):
+                                # Display the story text
+                                story_text = activity.get('story_text', '')
+                                if story_text:
+                                    st.markdown("📖 **Read the story below:**")
+                                    st.markdown(f"""
+                                    <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #4CAF50;">
+                                        <p style="font-size: 16px; line-height: 1.8; color: #333;">
+                                            {story_text}
+                                        </p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                                    
+                                    # Add story audio button
+                                    story_audio = activity.get('story_audio_file', '')
+                                    if story_audio:
+                                        story_key = fix_audio_path(story_audio, student_s3_prefix, current_day)
+                                        if story_key:
+                                            if st.button("🎧 Listen to Story", key=f"story_{current_day}_{activity.get('activity_number')}", use_container_width=True):
+                                                play_audio_hidden(story_key)
                        
                         # Add divider after each question except the last one
                         if i < len(current_questions) - 1:
@@ -959,7 +928,6 @@ def main():
                             if current_index + 1 < len(all_days):
                                 next_day = all_days[current_index + 1]
                                 if st.button("✅ Continue to Next Day", key="next_day"):
-                                    play_completion_sound()  # Play completion sound
                                     st.success(f"Great job completing {current_day}! 🌟")
                                     st.session_state.completed_days.add(current_day)
                                     
