@@ -798,6 +798,10 @@ def main():
                     st.header(f"Day: {current_day.replace('day', 'Day ')}")
                     st.subheader(content.get('theme', current_day))
                     
+                    # DEBUG: Add a bypass button for testing
+                    if st.checkbox("Debug: Show all questions", key=f"debug_{current_day}"):
+                        st.warning("Debug mode: Showing all questions without practice requirement")
+                    
                     all_questions = []
                     activity_lookup = {}  # Store activity data for each question
                     for activity in content.get('activities', []):
