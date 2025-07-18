@@ -215,9 +215,26 @@ def add_custom_css():
         transition: all 0.3s ease;
     }
     
-    .teach-button:hover, .multisensory-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    .practice-dialog {
+        background: linear-gradient(135deg, #fff3e0 0%, #ffecb3 100%);
+        padding: 25px;
+        border-radius: 20px;
+        margin: 20px 0;
+        border: 3px solid #ff9800;
+        box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+        text-align: center;
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+    
+    .blocked-content {
+        opacity: 0.3;
+        pointer-events: none;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -818,19 +835,124 @@ def main():
                             # Add teaching and multisensory buttons
                             col1, col2 = st.columns(2)
                             
+                            # Check if practice is required for this activity
+                            practice_key = f"practice_completed_{current_day}_{activity.get('activity_number')}"
+                            teach_key = f"teach_clicked_{current_day}_{activity.get('activity_number')}"
+                            
                             with col1:
                                 teaching_audio = activity.get('teaching_audio', '')
                                 teaching_audio_key = fix_audio_path(teaching_audio, student_s3_prefix, current_day)
                                 if teaching_audio_key:
                                     if st.button("📖 Teach Me", key=f"teach_{current_day}_{activity.get('activity_number')}", use_container_width=True, type="primary"):
                                         play_audio_hidden(teaching_audio_key)
+                                        st.session_state[teach_key] = True
+                                        st.session_state[f"teach_time_{current_day}_{activity.get('activity_number')}"] = time.time()
+                                        st.rerun()
                             
                             with col2:
                                 multisensory_audio = activity.get('multisensory_audio', '')
                                 multisensory_audio_key = fix_audio_path(multisensory_audio, student_s3_prefix, current_day)
                                 if multisensory_audio_key:
-                                    if st.button("🤹 Multisensory Practice", key=f"multi_{current_day}_{activity.get('activity_number')}", use_container_width=True, type="secondary"):
-                                        play_audio_hidden(multisensory_audio_key)
+                                    # Show practice status
+                                    if st.session_state.get(practice_key, False):
+                                        st.success("✅ Practice Completed!")
+                                    else:
+                                        st.info("🤹 Practice Required")
+                            
+                            # Auto-play multisensory audio after teach me (with 3 second delay)
+                            if (st.session_state.get(teach_key, False) and 
+                                not st.session_state.get(f"multi_played_{current_day}_{activity.get('activity_number')}", False) and
+                                time.time() - st.session_state.get(f"teach_time_{current_day}_{activity.get('activity_number')}", 0) > 3):
+                                
+                                multisensory_audio = activity.get('multisensory_audio', '')
+                                multisensory_audio_key = fix_audio_path(multisensory_audio, student_s3_prefix, current_day)
+                                if multisensory_audio_key:
+                                    play_audio_hidden(multisensory_audio_key)
+                                    st.session_state[f"multi_played_{current_day}_{activity.get('activity_number')}"] = True
+                                    st.session_state[f"show_practice_confirm_{current_day}_{activity.get('activity_number')}"] = True
+                                    st.rerun()
+                            
+                            # Show practice confirmation dialog
+                            if st.session_state.get(f"show_practice_confirm_{current_day}_{activity.get('activity_number')}", False):
+                                # Extract key actions from multisensory script
+                                multisensory_script = activity.get('multisensory_audio_script', '')
+                                
+                                # Create activity-specific confirmation text based on the practice
+                                practice_confirmations = {
+                                    "Phonics Pattern Recognition": "✅ Yes, I tapped the syllables and skywrited!",
+                                    "Morphology": "✅ Yes, I drew lines between word parts!",
+                                    "Sight Words in Context": "✅ Yes, I skywrited and visualized!",
+                                    "Dictation": "✅ Yes, I made sound boxes and finger spelled!",
+                                    "Vocabulary Development": "✅ Yes, I sorted the word cards!",
+                                    "Grammar Analysis": "✅ Yes, I jumped for verbs and used color cards!",
+                                    "Sentence Building": "✅ Yes, I stretched and stepped forward!",
+                                    "Reading Comprehension": "✅ Yes, I framed the title and knocked for clunks!",
+                                    "Syllable Types": "✅ Yes, I clapped and tapped each syllable!",
+                                    "Suffixes": "✅ Yes, I chopped between base and suffix!",
+                                    "Baselements": "✅ Yes, I built with tiles and colored parts!",
+                                    "Prefixes": "✅ Yes, I showed the prefix motions!",
+                                    "Paragraph Writing": "✅ Yes, I used hand gestures for each part!"
+                                }
+                                
+                                component = activity.get('component', '')
+                                confirm_text = practice_confirmations.get(component, "✅ Yes, I completed the practice!")
+                                
+                                st.markdown(f"""
+                                <div class="practice-dialog">
+                                    <h3 style="color: #ff9800; margin-bottom: 15px;">🤹 Practice Check!</h3>
+                                    <p style="color: #666; margin-bottom: 20px; font-size: 18px;"><strong>{multisensory_script}</strong></p>
+                                    <p style="color: #ff6b00; margin-bottom: 20px;">Did you do these movements?</p>
+                                </div>
+                                """, unsafe_allow_html=True)
+                                
+                                col_yes, col_no = st.columns(2)
+                                with col_yes:
+                                    if st.button(confirm_text, key=f"practice_yes_{current_day}_{activity.get('activity_number')}", type="primary", use_container_width=True):
+                                        st.session_state[practice_key] = True
+                                        st.session_state[f"show_practice_confirm_{current_day}_{activity.get('activity_number')}"] = False
+                                        
+                                        # Play a short success sound
+                                        success_sound = """
+                                        <script>
+                                        var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                                        var oscillator = audioContext.createOscillator();
+                                        var gainNode = audioContext.createGain();
+                                        oscillator.connect(gainNode);
+                                        gainNode.connect(audioContext.destination);
+                                        oscillator.frequency.value = 880;
+                                        oscillator.type = 'sine';
+                                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+                                        oscillator.start(audioContext.currentTime);
+                                        oscillator.stop(audioContext.currentTime + 0.2);
+                                        </script>
+                                        """
+                                        st.markdown(success_sound, unsafe_allow_html=True)
+                                        
+                                        st.balloons()
+                                        time.sleep(1)
+                                        st.rerun()
+                                
+                                with col_no:
+                                    if st.button("🔄 Play practice audio again", key=f"practice_no_{current_day}_{activity.get('activity_number')}", use_container_width=True):
+                                        multisensory_audio = activity.get('multisensory_audio', '')
+                                        multisensory_audio_key = fix_audio_path(multisensory_audio, student_s3_prefix, current_day)
+                                        if multisensory_audio_key:
+                                            play_audio_hidden(multisensory_audio_key)
+                                            time.sleep(0.5)
+                                            st.rerun()
+                            
+                            # Block questions until practice is confirmed
+                            if not st.session_state.get(practice_key, False) and teaching_audio_key and multisensory_audio_key:
+                                if not st.session_state.get(teach_key, False):
+                                    st.warning("👆 Please click 'Teach Me' first to learn about this activity.")
+                                    continue  # Skip showing questions
+                                elif not st.session_state.get(f"show_practice_confirm_{current_day}_{activity.get('activity_number')}", False):
+                                    st.info("⏳ Preparing practice activity...")
+                                    continue  # Skip showing questions
+                                else:
+                                    # Practice dialog is showing, skip questions
+                                    continue
                             
                             st.markdown("")  # Add spacing
                         
@@ -855,54 +977,66 @@ def main():
                                 with col1:
                                     button_label = f"{'✓ ' if current_answer == label else ''}{label}"
                                     if st.button(button_label, key=f"answer_{current_day}_{global_idx}_{opt_idx}"):
+                                        # Store the answer
                                         st.session_state.answers[answer_key] = label
                                         
-                                        # Get correct answer and feedback details
-                                        correct_answer = q.get('correct_answer', '')
-                                        feedback_text = q.get('feedback', '')
+                                        # Store feedback state to show after rerun
+                                        feedback_key = f"feedback_{current_day}_{global_idx}"
+                                        st.session_state[feedback_key] = {
+                                            'selected': label,
+                                            'correct': q.get('correct_answer', ''),
+                                            'feedback_text': q.get('feedback', ''),
+                                            'feedback_audio': q.get('feedback_audio_file', ''),
+                                            'show_time': time.time()
+                                        }
                                         
-                                        # Determine if answer is correct
-                                        is_correct = (label == correct_answer)
+                                        # Check if this completes the activity
+                                        activity_questions = [qt for act, idx, qt in all_questions if act == activity]
+                                        current_q_index = activity_questions.index(q)
+                                        if label == q.get('correct_answer', '') and current_q_index == len(activity_questions) - 1:
+                                            st.session_state[feedback_key]['completion_audio'] = activity.get('activity_completion_audio_file', '')
+                                        
+                                        st.rerun()
+                                
+                                # Show feedback after rerun (outside button click)
+                                feedback_key = f"feedback_{current_day}_{global_idx}"
+                                if feedback_key in st.session_state:
+                                    feedback_data = st.session_state[feedback_key]
+                                    
+                                    # Only show feedback for 5 seconds
+                                    if time.time() - feedback_data['show_time'] < 5:
+                                        is_correct = feedback_data['selected'] == feedback_data['correct']
                                         
                                         # Show visual feedback
                                         if is_correct:
-                                            st.success("✅ " + (feedback_text if feedback_text else "Correct! Well done!"))
-                                        else:
-                                            st.warning("❌ Try again! Listen to the question carefully.")
-                                        
-                                        # Play feedback audio
-                                        # The feedback_audio_file in the JSON is played for correct answers
-                                        if is_correct and q.get('feedback_audio_file'):
-                                            feedback_audio = q.get('feedback_audio_file', '')
-                                            feedback_key = fix_audio_path(feedback_audio, student_s3_prefix, current_day)
-                                            if feedback_key:
-                                                play_audio_hidden(feedback_key)
-                                        
-                                        # Check if this is the last question of the activity
-                                        # Count questions in this activity
-                                        activity_questions = [qt for act, idx, qt in all_questions if act == activity]
-                                        current_q_index = activity_questions.index(q)
-                                        
-                                        if is_correct and current_q_index == len(activity_questions) - 1:
-                                            # This is the last question of the activity and it's correct
-                                            completion_audio = activity.get('activity_completion_audio_file', '')
-                                            if completion_audio:
-                                                completion_key = fix_audio_path(completion_audio, student_s3_prefix, current_day)
+                                            st.success("✅ " + (feedback_data['feedback_text'] if feedback_data['feedback_text'] else "Correct! Well done!"))
+                                            
+                                            # Play feedback audio
+                                            if feedback_data['feedback_audio']:
+                                                feedback_audio_key = fix_audio_path(feedback_data['feedback_audio'], student_s3_prefix, current_day)
+                                                if feedback_audio_key and time.time() - feedback_data['show_time'] < 0.5:
+                                                    # Only play once, right after selection
+                                                    play_audio_hidden(feedback_audio_key)
+                                            
+                                            # Play completion audio if needed
+                                            if 'completion_audio' in feedback_data and feedback_data['completion_audio']:
+                                                completion_key = fix_audio_path(feedback_data['completion_audio'], student_s3_prefix, current_day)
                                                 if completion_key:
-                                                    # Use JavaScript to play completion audio after feedback audio
+                                                    # Schedule completion audio
                                                     completion_b64 = base64.b64encode(read_s3_file(completion_key)).decode()
                                                     st.markdown(f"""
                                                     <script>
                                                     setTimeout(function() {{
                                                         var audio = new Audio('data:audio/mp3;base64,{completion_b64}');
                                                         audio.play();
-                                                    }}, 2000);  // Play after 2 seconds
+                                                    }}, 3000);  // Play after 3 seconds
                                                     </script>
                                                     """, unsafe_allow_html=True)
-                                        
-                                        # Delay before rerun to allow audio to play
-                                        time.sleep(1.5)
-                                        st.rerun()
+                                        else:
+                                            st.warning("❌ Try again! Listen to the question carefully.")
+                                    else:
+                                        # Clear old feedback
+                                        del st.session_state[feedback_key]
                                 with col2:
                                     opt_audio = option.get('audio_file', '')
                                     audio_s3_key = fix_audio_path(opt_audio, student_s3_prefix, current_day)
@@ -985,6 +1119,11 @@ def main():
                     if all_answered:
                         if page + 1 < total_pages:
                             if st.button("Next Questions", key="next_questions"):
+                                # Clear any feedback states
+                                keys_to_remove = [key for key in st.session_state.keys() if key.startswith(f"feedback_{current_day}_")]
+                                for key in keys_to_remove:
+                                    del st.session_state[key]
+                                
                                 st.session_state.question_page += 1
                                 st.rerun()
                         else:
@@ -998,9 +1137,14 @@ def main():
                                     # Clear activity-specific states
                                     keys_to_remove = []
                                     for key in st.session_state:
-                                        if key.startswith(f"teach_played_{current_day}_") or \
-                                           key.startswith(f"multi_played_{current_day}_") or \
-                                           key.startswith(f"tutor_played_{current_day}_"):
+                                        if (key.startswith(f"teach_played_{current_day}_") or 
+                                            key.startswith(f"multi_played_{current_day}_") or 
+                                            key.startswith(f"tutor_played_{current_day}_") or
+                                            key.startswith(f"practice_completed_{current_day}_") or
+                                            key.startswith(f"teach_clicked_{current_day}_") or
+                                            key.startswith(f"teach_time_{current_day}_") or
+                                            key.startswith(f"show_practice_confirm_{current_day}_") or
+                                            key.startswith(f"feedback_{current_day}_")):
                                             keys_to_remove.append(key)
                                     
                                     for key in keys_to_remove:
@@ -1010,6 +1154,7 @@ def main():
                                     st.session_state.question_page = 0
                                     st.session_state.answers = {}
                                     st.session_state.day_started = False  # Reset for next day
+                                    st.session_state.play_first_activity = False
                                     time.sleep(1)
                                     st.rerun()
                             else:
