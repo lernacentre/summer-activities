@@ -22,6 +22,10 @@ if "opening_audio_played" not in st.session_state:
     st.session_state.opening_audio_played = set()
 if "day_started" not in st.session_state:
     st.session_state.day_started = False
+if "play_first_activity" not in st.session_state:
+    st.session_state.play_first_activity = False
+if "first_activity_time" not in st.session_state:
+    st.session_state.first_activity_time = 0
 
 # S3 Configuration
 @st.cache_resource(show_spinner=False)
@@ -312,21 +316,12 @@ def fix_audio_path(audio_file, student_s3_prefix, current_day):
     else:
         return f"{student_s3_prefix}/{current_day}/{audio_file}"
 
-# Load passwords - Fixed to handle group password files
+# Load passwords - prioritize txt files over json
 @st.cache_data(show_spinner=False)
 def load_passwords(group_folder):
     passwords = {}
     
-    # First, try to load passwords.json (for hashed passwords)
-    password_json_key = f"Summer_Activities/{group_folder}/passwords.json"
-    content = read_s3_file(password_json_key)
-    if content:
-        try:
-            passwords = json.loads(content.decode('utf-8'))
-        except json.JSONDecodeError:
-            st.warning(f"Could not parse passwords.json for {group_folder}")
-    
-    # Look for group password file (e.g., Group7_passwords.txt)
+    # First priority: Look for group password file (e.g., Group7_passwords.txt)
     group_password_key = f"Summer_Activities/{group_folder}/{group_folder}_passwords.txt"
     txt_content = read_s3_file(group_password_key)
     
@@ -349,7 +344,7 @@ def load_passwords(group_folder):
                     # Also store lowercase version for case-insensitive matching
                     passwords[student_name.lower()] = password
     
-    # Also check for individual password files (legacy support)
+    # Second priority: Check for individual password files
     try:
         response = s3.list_objects_v2(
             Bucket=BUCKET_NAME,
@@ -369,9 +364,20 @@ def load_passwords(group_folder):
                     if txt_content:
                         simple_password = txt_content.decode('utf-8').strip()
                         passwords[student_name] = simple_password
+                        passwords[student_name.lower()] = simple_password
     
     except ClientError as e:
         st.warning(f"Could not check for individual password files: {e}")
+    
+    # Last priority: Only if no txt files found, try passwords.json
+    if not passwords:
+        password_json_key = f"Summer_Activities/{group_folder}/passwords.json"
+        content = read_s3_file(password_json_key)
+        if content:
+            try:
+                passwords = json.loads(content.decode('utf-8'))
+            except json.JSONDecodeError:
+                st.warning(f"Could not parse passwords.json for {group_folder}")
     
     return passwords
 
@@ -740,17 +746,26 @@ def main():
                         if audio_s3_key:
                             play_audio_with_autoplay(audio_s3_key)
                             st.session_state.opening_audio_played.add(current_day)
+                            
+                            # Set a flag to play first activity intro after delay
+                            st.session_state.play_first_activity = True
+                            st.session_state.first_activity_time = time.time()
+                    
+                    # Check if we should play first activity intro (after 3 second delay)
+                    if (st.session_state.get('play_first_activity', False) and 
+                        time.time() - st.session_state.get('first_activity_time', 0) > 3):
                         
-                        # Add a pause after opening audio
-                        time.sleep(3)
-                        
-                        # Automatically play the first activity introduction
+                        # Play first activity introduction
                         if content.get('activities'):
                             first_activity = content['activities'][0]
                             first_tutor_audio = first_activity.get('tutor_intro_audio_file', '')
                             first_tutor_key = fix_audio_path(first_tutor_audio, student_s3_prefix, current_day)
                             if first_tutor_key:
                                 play_audio_hidden(first_tutor_key)
+                        
+                        # Clear the flag
+                        st.session_state.play_first_activity = False
+                        st.rerun()  # Rerun to update the UI
                    
                     st.header(f"Day: {current_day.replace('day', 'Day ')}")
                     st.subheader(content.get('theme', current_day))
@@ -842,26 +857,51 @@ def main():
                                     if st.button(button_label, key=f"answer_{current_day}_{global_idx}_{opt_idx}"):
                                         st.session_state.answers[answer_key] = label
                                         
-                                        # Play feedback audio based on correct/incorrect answer
+                                        # Get correct answer and feedback details
                                         correct_answer = q.get('correct_answer', '')
-                                        if label == correct_answer:
-                                            # Play correct answer feedback
-                                            feedback_audio = q.get('feedback_audio_file', '')
-                                            if feedback_audio:
-                                                feedback_key = fix_audio_path(feedback_audio, student_s3_prefix, current_day)
-                                                if feedback_key:
-                                                    play_audio_hidden(feedback_key)
+                                        feedback_text = q.get('feedback', '')
                                         
-                                        # Check if this completes the activity
-                                        if local_idx == len(activity.get('questions', [])) - 1:
-                                            # Play activity completion audio
+                                        # Determine if answer is correct
+                                        is_correct = (label == correct_answer)
+                                        
+                                        # Show visual feedback
+                                        if is_correct:
+                                            st.success("✅ " + (feedback_text if feedback_text else "Correct! Well done!"))
+                                        else:
+                                            st.warning("❌ Try again! Listen to the question carefully.")
+                                        
+                                        # Play feedback audio
+                                        # The feedback_audio_file in the JSON is played for correct answers
+                                        if is_correct and q.get('feedback_audio_file'):
+                                            feedback_audio = q.get('feedback_audio_file', '')
+                                            feedback_key = fix_audio_path(feedback_audio, student_s3_prefix, current_day)
+                                            if feedback_key:
+                                                play_audio_hidden(feedback_key)
+                                        
+                                        # Check if this is the last question of the activity
+                                        # Count questions in this activity
+                                        activity_questions = [qt for act, idx, qt in all_questions if act == activity]
+                                        current_q_index = activity_questions.index(q)
+                                        
+                                        if is_correct and current_q_index == len(activity_questions) - 1:
+                                            # This is the last question of the activity and it's correct
                                             completion_audio = activity.get('activity_completion_audio_file', '')
                                             if completion_audio:
                                                 completion_key = fix_audio_path(completion_audio, student_s3_prefix, current_day)
                                                 if completion_key:
-                                                    time.sleep(2)  # Small delay before completion audio
-                                                    play_audio_hidden(completion_key)
+                                                    # Use JavaScript to play completion audio after feedback audio
+                                                    completion_b64 = base64.b64encode(read_s3_file(completion_key)).decode()
+                                                    st.markdown(f"""
+                                                    <script>
+                                                    setTimeout(function() {{
+                                                        var audio = new Audio('data:audio/mp3;base64,{completion_b64}');
+                                                        audio.play();
+                                                    }}, 2000);  // Play after 2 seconds
+                                                    </script>
+                                                    """, unsafe_allow_html=True)
                                         
+                                        # Delay before rerun to allow audio to play
+                                        time.sleep(1.5)
                                         st.rerun()
                                 with col2:
                                     opt_audio = option.get('audio_file', '')
@@ -908,6 +948,30 @@ def main():
                                         if story_key:
                                             if st.button("🎧 Listen to Story", key=f"story_{current_day}_{activity.get('activity_number')}", use_container_width=True):
                                                 play_audio_hidden(story_key)
+                        
+                        # Special handling for paragraph writing final display
+                        if activity.get('component') == 'Paragraph Writing':
+                            # Check if all questions for this activity are answered
+                            activity_questions = [q for q in activity.get('questions', [])]
+                            all_activity_answered = all(
+                                st.session_state.answers.get(f"answer_{current_day}_{all_questions.index((activity, j, q))}")
+                                for j, q in enumerate(activity_questions)
+                            )
+                            
+                            if all_activity_answered and local_idx == len(activity_questions) - 1:
+                                # Display the assembled paragraph
+                                final_display = activity.get('final_display', {})
+                                if final_display.get('complete_paragraph'):
+                                    st.markdown("### 📝 Your Complete Paragraph:")
+                                    st.success(final_display['complete_paragraph'])
+                                    
+                                    # Play the assembled paragraph audio
+                                    paragraph_audio = final_display.get('audio_file', '')
+                                    if paragraph_audio:
+                                        para_key = fix_audio_path(paragraph_audio, student_s3_prefix, current_day)
+                                        if para_key:
+                                            if st.button("🎧 Listen to Complete Paragraph", key=f"para_{current_day}_{activity.get('activity_number')}", use_container_width=True):
+                                                play_audio_hidden(para_key)
                        
                         # Add divider after each question except the last one
                         if i < len(current_questions) - 1:
@@ -951,6 +1015,13 @@ def main():
                             else:
                                 show_success_animation("Congratulations! You've completed all activities!")
                                 st.balloons()
+                                
+                                # Play closing audio
+                                closing_audio = content.get('closing_audio_file', '')
+                                if closing_audio:
+                                    closing_key = fix_audio_path(closing_audio, student_s3_prefix, current_day)
+                                    if closing_key:
+                                        play_audio_hidden(closing_key)
                     else:
                         st.warning("Please answer all questions to continue.")
         else:
