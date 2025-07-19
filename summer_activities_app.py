@@ -818,7 +818,7 @@ def main():
                             # Add tutor introduction audio if available
                             tutor_audio = activity.get('tutor_intro_audio_file', '')
                             tutor_audio_key = fix_audio_path(tutor_audio, student_s3_prefix, current_day)
-                            if tutor_audio_key and local_idx == 0:  # Only show for first question of activity
+                            if tutor_audio_key:
                                 col1, col2, col3 = st.columns([1, 2, 1])
                                 with col2:
                                     if st.button("🎯 Activity Introduction", key=f"tutor_{current_day}_{activity.get('activity_number')}", use_container_width=True):
@@ -826,6 +826,7 @@ def main():
                             
                             # Session state keys for practice tracking
                             practice_key = f"practice_done_{current_day}_{activity.get('activity_number')}"
+                            multi_clicked_key = f"multi_clicked_{current_day}_{activity.get('activity_number')}"
                             
                             # Add teaching and multisensory buttons
                             col1, col2 = st.columns(2)
@@ -841,20 +842,19 @@ def main():
                                 multisensory_audio = activity.get('multisensory_audio', '')
                                 multisensory_audio_key = fix_audio_path(multisensory_audio, student_s3_prefix, current_day)
                                 if multisensory_audio_key:
-                                    button_type = "primary" if st.session_state.get(practice_key, False) else "secondary"
-                                    button_label = "✅ Practice Completed!" if st.session_state.get(practice_key, False) else "🤹 Multisensory Practice"
-                                    
-                                    if st.button(button_label, key=f"multi_{current_day}_{activity.get('activity_number')}", use_container_width=True, type=button_type):
+                                    # Always show the same button
+                                    if st.button("🤹 Multisensory Practice", key=f"multi_{current_day}_{activity.get('activity_number')}", use_container_width=True, type="secondary"):
                                         play_audio_hidden(multisensory_audio_key)
-                                        # Set flag to show practice confirmation after audio plays
+                                        # Mark that multisensory was clicked but don't rerun yet
                                         if not st.session_state.get(practice_key, False):
-                                            st.session_state[f"show_practice_confirm_{current_day}_{activity.get('activity_number')}"] = True
-                                            time.sleep(0.5)  # Give audio time to start
-                                            st.rerun()
+                                            st.session_state[multi_clicked_key] = True
                             
-                            # Show practice confirmation bar (only after multisensory button clicked)
-                            if st.session_state.get(f"show_practice_confirm_{current_day}_{activity.get('activity_number')}", False):
+                            # Show practice confirmation bar if multisensory was clicked and not yet confirmed
+                            if st.session_state.get(multi_clicked_key, False) and not st.session_state.get(practice_key, False):
                                 multisensory_script = activity.get('multisensory_audio_script', '')
+                                
+                                # Add some spacing
+                                st.markdown("")
                                 
                                 # Simple, clean confirmation bar
                                 st.info(f"🤹 **Practice Time:** {multisensory_script}")
@@ -863,10 +863,14 @@ def main():
                                 with col2:
                                     if st.button("✅ I Practiced!", key=f"confirm_practice_{current_day}_{activity.get('activity_number')}", type="primary", use_container_width=True):
                                         st.session_state[practice_key] = True
-                                        st.session_state[f"show_practice_confirm_{current_day}_{activity.get('activity_number')}"] = False
+                                        st.session_state[multi_clicked_key] = False
                                         st.balloons()
                                         time.sleep(1)
                                         st.rerun()
+                            
+                            # Show practice status if completed
+                            if st.session_state.get(practice_key, False):
+                                st.success("✅ Practice completed for this activity!")
                             
                             st.markdown("")  # Add spacing
                         
@@ -1051,10 +1055,8 @@ def main():
                                     # Clear activity-specific states
                                     keys_to_remove = []
                                     for key in st.session_state:
-                                        if (key.startswith(f"teach_played_{current_day}_") or 
-                                            key.startswith(f"multi_autoplayed_{current_day}_") or 
-                                            key.startswith(f"practice_done_{current_day}_") or
-                                            key.startswith(f"teach_time_{current_day}_")):
+                                        if (key.startswith(f"practice_done_{current_day}_") or
+                                            key.startswith(f"show_practice_confirm_{current_day}_")):
                                             keys_to_remove.append(key)
                                     
                                     for key in keys_to_remove:
