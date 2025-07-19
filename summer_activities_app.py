@@ -817,12 +817,13 @@ def main():
                             
                             # Add tutor introduction audio if available
                             tutor_audio = activity.get('tutor_intro_audio_file', '')
-                            tutor_audio_key = fix_audio_path(tutor_audio, student_s3_prefix, current_day)
-                            if tutor_audio_key:
-                                col1, col2, col3 = st.columns([1, 2, 1])
-                                with col2:
-                                    if st.button("🎯 Activity Introduction", key=f"tutor_{current_day}_{activity.get('activity_number')}", use_container_width=True):
-                                        play_audio_hidden(tutor_audio_key)
+                            if tutor_audio:
+                                tutor_audio_key = fix_audio_path(tutor_audio, student_s3_prefix, current_day)
+                                if tutor_audio_key:
+                                    col1, col2, col3 = st.columns([1, 2, 1])
+                                    with col2:
+                                        if st.button("🎯 Activity Introduction", key=f"tutor_{current_day}_{activity.get('activity_number')}", use_container_width=True):
+                                            play_audio_hidden(tutor_audio_key)
                             
                             # Session state keys for practice tracking
                             practice_key = f"practice_done_{current_day}_{activity.get('activity_number')}"
@@ -851,14 +852,10 @@ def main():
                             
                             # Show practice confirmation bar if multisensory was clicked and not yet confirmed
                             if st.session_state.get(multi_clicked_key, False) and not st.session_state.get(practice_key, False):
-                                multisensory_script = activity.get('multisensory_audio_script', '')
-                                
                                 # Add some spacing
                                 st.markdown("")
                                 
-                                # Simple, clean confirmation bar
-                                st.info(f"🤹 **Practice Time:** {multisensory_script}")
-                                
+                                # Simple confirmation prompt
                                 col1, col2, col3 = st.columns([2, 1, 2])
                                 with col2:
                                     if st.button("✅ I Practiced!", key=f"confirm_practice_{current_day}_{activity.get('activity_number')}", type="primary", use_container_width=True):
@@ -870,7 +867,7 @@ def main():
                             
                             # Show practice status if completed
                             if st.session_state.get(practice_key, False):
-                                st.success("✅ Practice completed for this activity!")
+                                st.success("✅ Multisensory practice completed!")
                             
                             st.markdown("")  # Add spacing
                         
@@ -1056,7 +1053,7 @@ def main():
                                     keys_to_remove = []
                                     for key in st.session_state:
                                         if (key.startswith(f"practice_done_{current_day}_") or
-                                            key.startswith(f"show_practice_confirm_{current_day}_")):
+                                            key.startswith(f"multi_clicked_{current_day}_")):
                                             keys_to_remove.append(key)
                                     
                                     for key in keys_to_remove:
