@@ -219,6 +219,15 @@ def add_custom_css():
         transform: translateY(-2px);
         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
+    
+    .practice-box {
+        background: linear-gradient(135deg, #fff3e0 0%, #ffecb3 100%);
+        padding: 20px;
+        border-radius: 15px;
+        margin: 15px 0;
+        border: 2px solid #ff9800;
+        box-shadow: 0 3px 10px rgba(255, 152, 0, 0.2);
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -815,6 +824,9 @@ def main():
                                     if st.button("🎯 Activity Introduction", key=f"tutor_{current_day}_{activity.get('activity_number')}", use_container_width=True):
                                         play_audio_hidden(tutor_audio_key)
                             
+                            # Session state keys for practice tracking
+                            practice_key = f"practice_done_{current_day}_{activity.get('activity_number')}"
+                            
                             # Add teaching and multisensory buttons
                             col1, col2 = st.columns(2)
                             
@@ -829,12 +841,36 @@ def main():
                                 multisensory_audio = activity.get('multisensory_audio', '')
                                 multisensory_audio_key = fix_audio_path(multisensory_audio, student_s3_prefix, current_day)
                                 if multisensory_audio_key:
-                                    if st.button("🤹 Multisensory Practice", key=f"multi_{current_day}_{activity.get('activity_number')}", use_container_width=True, type="secondary"):
+                                    button_type = "primary" if st.session_state.get(practice_key, False) else "secondary"
+                                    button_label = "✅ Practice Completed!" if st.session_state.get(practice_key, False) else "🤹 Multisensory Practice"
+                                    
+                                    if st.button(button_label, key=f"multi_{current_day}_{activity.get('activity_number')}", use_container_width=True, type=button_type):
                                         play_audio_hidden(multisensory_audio_key)
+                                        # Set flag to show practice confirmation after audio plays
+                                        if not st.session_state.get(practice_key, False):
+                                            st.session_state[f"show_practice_confirm_{current_day}_{activity.get('activity_number')}"] = True
+                                            time.sleep(0.5)  # Give audio time to start
+                                            st.rerun()
+                            
+                            # Show practice confirmation bar (only after multisensory button clicked)
+                            if st.session_state.get(f"show_practice_confirm_{current_day}_{activity.get('activity_number')}", False):
+                                multisensory_script = activity.get('multisensory_audio_script', '')
+                                
+                                # Simple, clean confirmation bar
+                                st.info(f"🤹 **Practice Time:** {multisensory_script}")
+                                
+                                col1, col2, col3 = st.columns([2, 1, 2])
+                                with col2:
+                                    if st.button("✅ I Practiced!", key=f"confirm_practice_{current_day}_{activity.get('activity_number')}", type="primary", use_container_width=True):
+                                        st.session_state[practice_key] = True
+                                        st.session_state[f"show_practice_confirm_{current_day}_{activity.get('activity_number')}"] = False
+                                        st.balloons()
+                                        time.sleep(1)
+                                        st.rerun()
                             
                             st.markdown("")  # Add spacing
                         
-                        # Display the question
+                        # Display the question (no blocking)
                         st.markdown(f"**Q{global_idx + 1}: {q.get('prompt', '')}**")
                         q_audio = q.get('prompt_audio_file', '')
                         audio_s3_key = fix_audio_path(q_audio, student_s3_prefix, current_day)
@@ -1015,9 +1051,10 @@ def main():
                                     # Clear activity-specific states
                                     keys_to_remove = []
                                     for key in st.session_state:
-                                        if key.startswith(f"teach_played_{current_day}_") or \
-                                           key.startswith(f"multi_played_{current_day}_") or \
-                                           key.startswith(f"tutor_played_{current_day}_"):
+                                        if (key.startswith(f"teach_played_{current_day}_") or 
+                                            key.startswith(f"multi_autoplayed_{current_day}_") or 
+                                            key.startswith(f"practice_done_{current_day}_") or
+                                            key.startswith(f"teach_time_{current_day}_")):
                                             keys_to_remove.append(key)
                                     
                                     for key in keys_to_remove:
