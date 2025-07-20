@@ -1,4 +1,57 @@
-import streamlit as st
+# Save student progress to S3
+def save_student_progress(student_s3_prefix, progress_data):
+    """Save student progress to S3 as JSON"""
+    try:
+        progress_key = f"{student_s3_prefix}/progress.json"
+        progress_json = json.dumps(progress_data, indent=2)
+        
+        s3.put_object(
+            Bucket=BUCKET_NAME,
+            Key=progress_key,
+            Body=progress_json.encode('utf-8'),
+            ContentType='application/json'
+        )
+        return True
+    except Exception as e:
+        st.error(f"Error saving progress: {e}")
+        return False
+
+# Load student progress from S3
+def load_student_progress(student_s3_prefix):
+    """Load student progress from S3"""
+    try:
+        progress_key = f"{student_s3_prefix}/progress.json"
+        content = read_s3_file(progress_key)
+        if content:
+            return json.loads(content.decode('utf-8'))
+        return None
+    except:
+        return None
+
+# Update progress data
+def update_progress_data(current_day, answers, completed=False):
+    """Update the student's progress data"""
+    if "student_progress" not in st.session_state:
+        st.session_state.student_progress = {}
+    
+    # Initialize day data if not exists
+    if current_day not in st.session_state.student_progress:
+        st.session_state.student_progress[current_day] = {
+            "answers": {},
+            "completed": False,
+            "last_updated": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
+    
+    # Update answers for the day
+    st.session_state.student_progress[current_day]["answers"].update(answers)
+    st.session_state.student_progress[current_day]["last_updated"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    
+    if completed:
+        st.session_state.student_progress[current_day]["completed"] = True
+    
+    # Save to S3
+    if "student_s3_prefix" in st.session_state:
+        save_student_progress(st.session_state.student_s3_prefix, st.session_state.student_progress)import streamlit as st
 import json
 import base64
 import boto3
@@ -37,8 +90,12 @@ if "transition_audio_played" not in st.session_state:
     st.session_state.transition_audio_played = set()
 if "audio_containers" not in st.session_state:
     st.session_state.audio_containers = {}
-if "scroll_to_top" not in st.session_state:
-    st.session_state.scroll_to_top = False
+if "practice_done" not in st.session_state:
+    st.session_state.practice_done = {}
+if "audio_timestamps" not in st.session_state:
+    st.session_state.audio_timestamps = {}
+if "student_progress" not in st.session_state:
+    st.session_state.student_progress = {}
 
 # S3 Configuration
 BUCKET_NAME = "summer-activities-streamli-app"
@@ -70,17 +127,8 @@ def add_custom_css():
     st.markdown("""
     <style>
     /* Smooth transitions and prevent flashing */
-    iframe {
-        visibility: hidden;
-    }
-    
-    iframe.finished-loading {
-        visibility: visible;
-    }
-    
-    /* Hide Streamlit's default processing message */
-    .stSpinner > div {
-        display: none;
+    .stApp {
+        transition: opacity 0.3s ease;
     }
     
     /* Custom animations */
@@ -117,36 +165,6 @@ def add_custom_css():
         animation-fill-mode: forwards;
     }
     
-    /* Custom chart styles */
-    .progress-bar-container {
-        margin: 20px 0;
-        padding: 15px;
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-    
-    .progress-bar {
-        background-color: #f0f0f0;
-        border-radius: 15px;
-        height: 30px;
-        overflow: hidden;
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .progress-fill {
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-        font-size: 14px;
-        transition: width 0.5s ease;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        border-radius: 15px;
-    }
-    
     /* Navigation buttons */
     .nav-button {
         background: linear-gradient(45deg, #4ECDC4, #44A3AA);
@@ -158,36 +176,27 @@ def add_custom_css():
         margin: 10px 5px;
     }
     
-    /* Hide duplicate audio buttons */
-    div[data-testid="stButton"] > button {
-        transition: none !important;
+    /* Practice confirmation style */
+    .practice-confirm {
+        background-color: #e8f5e9;
+        border: 2px solid #4CAF50;
+        border-radius: 10px;
+        padding: 10px;
+        margin: 10px 0;
     }
     
-    /* Scroll to top on page change */
-    .scroll-top {
-        scroll-behavior: auto;
-        position: fixed;
-        top: 0;
+    /* Scroll to top */
+    html {
+        scroll-behavior: smooth;
     }
     </style>
-    
-    <script>
-    // Prevent iframe flashing
-    window.addEventListener('load', function() {
-        setTimeout(function() {
-            document.querySelectorAll('iframe').forEach(function(iframe) {
-                iframe.classList.add('finished-loading');
-            });
-        }, 100);
-    });
-    </script>
     """, unsafe_allow_html=True)
 
 # Helper function to scroll to top
 def scroll_to_top():
     st.markdown("""
     <script>
-    window.scrollTo({top: 0, behavior: 'instant'});
+    window.scrollTo(0, 0);
     </script>
     """, unsafe_allow_html=True)
 
@@ -352,24 +361,36 @@ def play_audio_with_autoplay(s3_key, element_id="opening-audio"):
         """
         st.markdown(audio_html, unsafe_allow_html=True)
 
-# Play audio hidden with container management
+# Play audio hidden - fixed for multiple plays
 def play_audio_hidden(s3_key, audio_key=None):
-    """Play audio with proper handling"""
-    if audio_key not in st.session_state.audio_containers:
-        st.session_state.audio_containers[audio_key] = st.empty()
-    
+    """Play audio with proper handling for multiple plays"""
     audio_content = read_s3_file(s3_key)
     if audio_content:
         b64 = base64.b64encode(audio_content).decode()
-        unique_id = f"{audio_key}_{str(time.time()).replace('.', '')}"
         
-        with st.session_state.audio_containers[audio_key]:
+        # Create unique ID with timestamp to allow replay
+        timestamp = str(time.time()).replace('.', '')
+        unique_id = f"{audio_key}_{timestamp}" if audio_key else timestamp
+        
+        # Store in container or create new one
+        if audio_key and audio_key in st.session_state.audio_containers:
+            container = st.session_state.audio_containers[audio_key]
+            container.empty()  # Clear previous audio
+        else:
+            container = st.empty()
+            if audio_key:
+                st.session_state.audio_containers[audio_key] = container
+        
+        with container:
             st.markdown(f"""
             <audio id="audio_{unique_id}" autoplay>
                 <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
             </audio>
             <script>
-                document.getElementById('audio_{unique_id}').play();
+                var audio = document.getElementById('audio_{unique_id}');
+                if (audio) {{
+                    audio.play();
+                }}
             </script>
             """, unsafe_allow_html=True)
 
@@ -424,7 +445,7 @@ def play_story_with_highlight(story_text, audio_s3_key):
         """
         st.markdown(highlighted_html, unsafe_allow_html=True)
 
-# Calculate similarity
+# Calculate similarity - updated for 50% threshold
 def calculate_similarity(user_answer, correct_answer):
     """Calculate similarity percentage between two strings"""
     if not user_answer or not correct_answer:
@@ -437,7 +458,7 @@ def calculate_similarity(user_answer, correct_answer):
     return similarity * 100
 
 def is_valid_dictation_answer(user_answer, correct_answer):
-    """Check if user answer is valid for dictation"""
+    """Check if user answer is valid for dictation (50% similarity threshold)"""
     if not user_answer:
         return False, "Please write your answer"
     
@@ -446,48 +467,39 @@ def is_valid_dictation_answer(user_answer, correct_answer):
         return False, "Please write at least 2 words"
     
     similarity = calculate_similarity(user_answer, correct_answer)
-    if similarity < 20:
+    if similarity < 50:  # Changed from 20% to 50%
         return False, "Please try again or type 'I don't know'"
     
     return True, f"Good effort! ({similarity:.0f}% accurate)"
 
-# Create a beautiful combined progress chart
-def create_combined_progress_chart(activities_data):
+# Create a beautiful combined progress chart with graph
+def create_combined_progress_chart(activities_data, all_days_progress=None):
     """Create a visually appealing combined progress visualization"""
     if not activities_data:
         return
     
-    # Calculate total progress
+    # Calculate total progress for current day
     total_correct = sum(data['correct'] for data in activities_data.values())
     total_questions = sum(data['total'] for data in activities_data.values())
     overall_percentage = (total_correct / total_questions * 100) if total_questions > 0 else 0
     
-    # Create circular progress indicator
-    radius = 60
-    circumference = 2 * math.pi * radius
-    offset = circumference - (overall_percentage / 100 * circumference)
-    
-    # Color based on performance
+    # Display overall percentage at top
     if overall_percentage >= 80:
-        color = "#4CAF50"
         emoji = "🌟"
     elif overall_percentage >= 60:
-        color = "#FFA500"
         emoji = "👍"
     else:
-        color = "#FF6B6B"
         emoji = "💪"
     
-    # Display circular progress
     st.markdown(f"""
     <div style="text-align: center; margin: 20px 0;">
-        <h3>{overall_percentage:.0f}% {emoji}</h3>
+        <h2>{overall_percentage:.0f}% {emoji}</h2>
         <h4>Today's Activity Completion</h4>
     </div>
     """, unsafe_allow_html=True)
     
     # Show individual activities
-    st.markdown("### 📚 Activities")
+    st.markdown("### 📚 Today's Activities")
     
     for activity_name, data in activities_data.items():
         percentage = (data['correct'] / data['total'] * 100) if data['total'] > 0 else 0
@@ -502,11 +514,48 @@ def create_combined_progress_chart(activities_data):
         # Display score
         st.caption(f"{data['correct']}/{data['total']} correct ({percentage:.0f}%)")
     
-    # Overall progress at bottom
+    # Historical progress graph at bottom
     st.markdown("---")
-    st.markdown("### 📊 Overall Progress")
-    st.progress(overall_percentage / 100)
-    st.markdown(f"**{total_correct}/{total_questions} Total Questions Correct ({overall_percentage:.0f}%)**")
+    st.markdown("### 📊 Progress Over Time")
+    
+    if all_days_progress and len(all_days_progress) > 0:
+        # Create a bar chart showing progress for each completed day
+        st.markdown("""
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin: 10px 0;">
+        """, unsafe_allow_html=True)
+        
+        for day, day_percentage in all_days_progress.items():
+            bar_color = "#4CAF50" if day_percentage >= 80 else "#FFA500" if day_percentage >= 60 else "#FF6B6B"
+            day_label = day.replace('day', 'Day ')
+            
+            st.markdown(f"""
+            <div style="margin: 10px 0;">
+                <div style="display: flex; align-items: center; margin-bottom: 5px;">
+                    <span style="width: 60px; font-weight: bold;">{day_label}:</span>
+                    <div style="flex: 1; background-color: #e0e0e0; border-radius: 10px; height: 25px; margin: 0 10px; position: relative;">
+                        <div style="width: {day_percentage}%; background: {bar_color}; height: 100%; border-radius: 10px; 
+                                    display: flex; align-items: center; padding: 0 10px; color: white; font-weight: bold;">
+                            {day_percentage:.0f}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+        # Calculate overall average
+        if all_days_progress:
+            avg_percentage = sum(all_days_progress.values()) / len(all_days_progress)
+            avg_color = "#4CAF50" if avg_percentage >= 80 else "#FFA500" if avg_percentage >= 60 else "#FF6B6B"
+            
+            st.markdown(f"""
+            <div style="margin-top: 20px; text-align: center;">
+                <h4 style="color: {avg_color};">Overall Average: {avg_percentage:.0f}%</h4>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        st.info("Complete more days to see your progress over time!")
 
 # Progress sidebar
 def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_prefix):
@@ -563,8 +612,41 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
                             'component': component
                         }
             
-            # Create beautiful combined chart
-            create_combined_progress_chart(activities_data)
+            # Calculate progress for all completed days
+            all_days_progress = {}
+            if st.session_state.student_progress:
+                for day in st.session_state.completed_days:
+                    if day in day_to_content:
+                        day_data = day_to_content[day]
+                        day_correct = 0
+                        day_total = 0
+                        
+                        for field in day_data['fields']:
+                            if field.get('type') == 'enhanced_structured_literacy_session':
+                                content = field.get('content', {})
+                                
+                                for activity in content.get('activities', []):
+                                    for q_idx, q in enumerate(activity.get('questions', [])):
+                                        day_total += 1
+                                        # Find the answer for this question
+                                        for global_idx, (act, _, question) in enumerate([(a, i, qu) for a in content.get('activities', []) for i, qu in enumerate(a.get('questions', []))]):
+                                            if act == activity and question == q:
+                                                answer_key = f"answer_{day}_{global_idx}"
+                                                user_answer = st.session_state.answers.get(answer_key)
+                                                
+                                                if q.get('answer_type') == 'single_select':
+                                                    if user_answer == q.get('correct_answer'):
+                                                        day_correct += 1
+                                                elif q.get('answer_type') == 'text_input':
+                                                    if user_answer and (is_valid_dictation_answer(user_answer, q.get('correct_answer', ''))[0] or user_answer.lower() == "i don't know"):
+                                                        day_correct += 1
+                                                break
+                        
+                        if day_total > 0:
+                            all_days_progress[day] = (day_correct / day_total) * 100
+            
+            # Create beautiful combined chart with historical data
+            create_combined_progress_chart(activities_data, all_days_progress)
         
         # Day status
         st.markdown("---")
@@ -644,11 +726,6 @@ def main():
     st.title("Student Activities")
     add_custom_css()
 
-    # Check if we need to scroll to top
-    if st.session_state.get('scroll_to_top', False):
-        scroll_to_top()
-        st.session_state.scroll_to_top = False
-
     student_to_group = _get_all_students()
 
     if not student_to_group:
@@ -697,6 +774,22 @@ def main():
                         st.session_state.student = selected_student.capitalize()
                         st.session_state.group = group
                         st.session_state.original_student = original_student
+                        st.session_state.student_s3_prefix = f"Summer_Activities/{group}/{original_student}"
+                        
+                        # Load saved progress
+                        saved_progress = load_student_progress(st.session_state.student_s3_prefix)
+                        if saved_progress:
+                            st.session_state.student_progress = saved_progress
+                            # Restore completed days
+                            st.session_state.completed_days = set(
+                                day for day, data in saved_progress.items() 
+                                if data.get("completed", False)
+                            )
+                            # Restore all answers
+                            for day, day_data in saved_progress.items():
+                                if "answers" in day_data:
+                                    st.session_state.answers.update(day_data["answers"])
+                        
                         st.balloons()
                         show_welcome_animation(selected_student)
                         time.sleep(2)
@@ -711,8 +804,18 @@ def main():
         st.write(f"Welcome back, {st.session_state.student}!")
         
         if st.button("Logout", key="logout_button"):
-            for key in list(st.session_state.keys()):
-                del st.session_state[key]
+            # Save progress before logout
+            if "student_s3_prefix" in st.session_state:
+                update_progress_data(st.session_state.get("current_day"), st.session_state.get("answers", {}))
+            
+            # Clear only authentication, not progress
+            st.session_state.authenticated = False
+            st.session_state.audio_containers = {}
+            st.session_state.audio_playing = {}
+            st.session_state.opening_audio_played = set()
+            st.session_state.transition_audio_played = set()
+            st.session_state.day_started = False
+            st.session_state.question_page = 0
             st.rerun()
 
         student_s3_prefix = f"Summer_Activities/{st.session_state.group}/{st.session_state.original_student}"
@@ -812,20 +915,37 @@ def main():
                     total_pages = (len(all_questions) + questions_per_page - 1) // questions_per_page
                     page = st.session_state.question_page
 
-                    # Navigation at top
+                    # Navigation at top FIRST
+                    st.markdown("---")
                     nav_col1, nav_col2, nav_col3 = st.columns([1, 2, 1])
                     with nav_col1:
                         if page > 0:
                             if st.button("⬅️ Previous", key="prev_top", use_container_width=True):
                                 st.session_state.question_page -= 1
-                                st.session_state.scroll_to_top = True
                                 st.session_state.audio_containers = {}
+                                scroll_to_top()
                                 st.rerun()
                     
-                    start_idx = page * questions_per_page
-                    end_idx = start_idx + questions_per_page
-                    current_questions = all_questions[start_idx:end_idx]
-
+                    with nav_col3:
+                        # Check if current page questions are answered
+                        start_idx = page * questions_per_page
+                        end_idx = start_idx + questions_per_page
+                        current_questions = all_questions[start_idx:end_idx]
+                        
+                        current_page_answered = all(
+                            st.session_state.answers.get(f"answer_{current_day}_{start_idx + i}")
+                            for i in range(len(current_questions))
+                        )
+                        
+                        if current_page_answered and page + 1 < total_pages:
+                            if st.button("Next ➡️", key="next_top", type="primary", use_container_width=True):
+                                st.session_state.question_page += 1
+                                st.session_state.audio_containers = {}
+                                scroll_to_top()
+                                st.rerun()
+                    
+                    st.markdown("---")
+                    
                     # Check for transition audio
                     if page > 0:
                         transition_key = f"transition_{current_day}_{page}"
@@ -860,7 +980,7 @@ def main():
                             </div>
                             """, unsafe_allow_html=True)
                             
-                            # Activity intro button
+                            # Activity intro button - always play when clicked
                             tutor_audio = activity.get('tutor_intro_audio_file', '')
                             if tutor_audio:
                                 tutor_audio_key = fix_audio_path(tutor_audio, student_s3_prefix, current_day)
@@ -884,11 +1004,19 @@ def main():
                                     multisensory_audio_key = fix_audio_path(multisensory_audio, student_s3_prefix, current_day)
                                     practice_key = f"practice_{current_day}_{activity.get('activity_number')}"
                                     
-                                    if multisensory_audio_key and st.button("🤹 Practice", key=f"multi_{activity.get('activity_number')}_{page}", use_container_width=True, type="secondary"):
+                                    if multisensory_audio_key and st.button("🤹 Multisensory Practice", key=f"multi_{activity.get('activity_number')}_{page}", use_container_width=True, type="secondary"):
                                         play_audio_hidden(multisensory_audio_key, f"multi_{activity.get('activity_number')}_{page}")
-                                        if not st.session_state.get(practice_key):
-                                            st.session_state[practice_key] = True
-                                            st.success("✅ Practice completed!")
+                            
+                            # Practice checkbox below buttons
+                            practice_key = f"practice_{current_day}_{activity.get('activity_number')}"
+                            practice_done = st.checkbox(
+                                "✅ I completed the multisensory practice!", 
+                                key=practice_key,
+                                value=st.session_state.practice_done.get(practice_key, False)
+                            )
+                            if practice_done:
+                                st.session_state.practice_done[practice_key] = True
+                                st.success("Great job completing the practice!")
                         
                         # Reading comprehension story
                         if activity.get('component') == 'Reading Comprehension' and local_idx == 0 and activity.get('story_display'):
@@ -913,7 +1041,7 @@ def main():
                         # Question display
                         st.markdown(f"**Q{global_idx + 1}: {q.get('prompt', '')}**")
                         
-                        # Question audio
+                        # Question audio - always play when clicked
                         q_audio = q.get('prompt_audio_file', '')
                         if q_audio:
                             audio_s3_key = fix_audio_path(q_audio, student_s3_prefix, current_day)
@@ -957,6 +1085,8 @@ def main():
                                             'feedback_audio': q.get('feedback_audio_file', ''),
                                             'show_time': time.time()
                                         }
+                                        # Save answer immediately
+                                        update_progress_data(current_day, {answer_key: label})
                                         st.rerun()
                                 
                                 with col2:
@@ -985,9 +1115,31 @@ def main():
                                 is_valid, message = is_valid_dictation_answer(current_answer, q.get('correct_answer', ''))
                                 if is_valid or current_answer.lower() == "i don't know":
                                     st.session_state.answers[answer_key] = current_answer
+                                    # Save answer immediately
+                                    update_progress_data(current_day, {answer_key: current_answer})
                                     st.success(message if current_answer.lower() != "i don't know" else "That's okay!")
                                 else:
                                     st.warning(message)
+                        
+                        # Paragraph writing final display
+                        if activity.get('component') == 'Paragraph Writing':
+                            activity_questions = [q for q in activity.get('questions', [])]
+                            all_activity_answered = all(
+                                st.session_state.answers.get(f"answer_{current_day}_{all_questions.index((activity, j, q))}")
+                                for j, q in enumerate(activity_questions)
+                            )
+                            
+                            if all_activity_answered and local_idx == len(activity_questions) - 1:
+                                final_display = activity.get('final_display', {})
+                                if final_display.get('complete_paragraph'):
+                                    st.markdown("### 📝 Your Complete Paragraph:")
+                                    st.success(final_display['complete_paragraph'])
+                                    
+                                    paragraph_audio = final_display.get('audio_file', '')
+                                    if paragraph_audio:
+                                        para_key = fix_audio_path(paragraph_audio, student_s3_prefix, current_day)
+                                        if para_key and st.button("🎧 Listen to Paragraph", key=f"para_{activity.get('activity_number')}_{page}", use_container_width=True):
+                                            play_audio_hidden(para_key, f"para_{activity.get('activity_number')}_{page}")
                         
                         if i < len(current_questions) - 1:
                             st.divider()
@@ -1004,47 +1156,36 @@ def main():
                         for i in range(len(current_questions))
                     )
 
-                    # Bottom navigation
-                    st.markdown("<br><br>", unsafe_allow_html=True)
-                    nav_col1, nav_col2, nav_col3 = st.columns([1, 2, 1])
-                    
-                    with nav_col1:
-                        if page > 0 and st.button("⬅️ Previous", key="prev_bottom", type="secondary", use_container_width=True):
-                            st.session_state.question_page -= 1
-                            st.session_state.scroll_to_top = True
-                            st.session_state.audio_containers = {}
-                            st.rerun()
-                    
-                    with nav_col3:
-                        if all_answered:
-                            if page + 1 < total_pages:
-                                if st.button("Next ➡️", key="next_page", type="primary", use_container_width=True):
-                                    st.session_state.question_page += 1
-                                    st.session_state.scroll_to_top = True
+                    # Bottom navigation only for complete day
+                    if all_answered and page + 1 >= total_pages:
+                        st.markdown("<br><br>", unsafe_allow_html=True)
+                        col1, col2, col3 = st.columns([1, 2, 1])
+                        with col2:
+                            if st.button("✅ Complete Day", key="complete_day", type="primary", use_container_width=True):
+                                st.session_state.completed_days.add(current_day)
+                                # Mark day as completed in progress
+                                update_progress_data(current_day, st.session_state.answers, completed=True)
+                                
+                                current_index = all_days.index(current_day)
+                                
+                                if current_index + 1 < len(all_days):
+                                    st.session_state.current_day = all_days[current_index + 1]
+                                    st.session_state.question_page = 0
+                                    # Don't clear answers - keep them for progress tracking
+                                    st.session_state.day_started = False
                                     st.session_state.audio_containers = {}
+                                    st.session_state.transition_audio_played = set()
+                                    st.session_state.practice_done = {}
+                                    st.success(f"Great job! Moving to next day...")
+                                    time.sleep(1)
                                     st.rerun()
-                            else:
-                                if st.button("✅ Complete Day", key="complete_day", type="primary", use_container_width=True):
-                                    st.session_state.completed_days.add(current_day)
-                                    current_index = all_days.index(current_day)
-                                    
-                                    if current_index + 1 < len(all_days):
-                                        st.session_state.current_day = all_days[current_index + 1]
-                                        st.session_state.question_page = 0
-                                        st.session_state.answers = {}
-                                        st.session_state.day_started = False
-                                        st.session_state.audio_containers = {}
-                                        st.session_state.transition_audio_played = set()
-                                        st.success(f"Great job! Moving to next day...")
-                                        time.sleep(1)
-                                        st.rerun()
-                                    else:
-                                        show_success_animation("All activities completed! 🎉")
-                                        st.balloons()
+                                else:
+                                    show_success_animation("All activities completed! 🎉")
+                                    st.balloons()
                     
-                    with nav_col2:
-                        if not all_answered:
-                            st.warning("Answer all questions to continue")
+                    elif not all_answered:
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        st.warning("Answer all questions on this page to continue")
 
 if __name__ == "__main__":
     main()
