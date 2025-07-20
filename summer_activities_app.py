@@ -935,7 +935,7 @@ def main():
                     total_pages = (len(all_questions) + questions_per_page - 1) // questions_per_page
                     page = st.session_state.question_page
 
-                    # Navigation at top FIRST
+                    # Navigation at top
                     st.markdown("---")
                     nav_col1, nav_col2, nav_col3 = st.columns([1, 2, 1])
                     with nav_col1:
@@ -1025,20 +1025,26 @@ def main():
                                 multisensory_audio = activity.get('multisensory_audio', '')
                                 if multisensory_audio:
                                     multisensory_audio_key = fix_audio_path(multisensory_audio, student_s3_prefix, current_day)
-                                    if multisensory_audio_key:
-                                        if st.button("🤹 Multisensory Practice", key=f"multi_{activity.get('activity_number')}_{page}", use_container_width=True, type="secondary"):
-                                            play_audio_hidden(multisensory_audio_key, f"multi_{activity.get('activity_number')}_{page}_{time.time()}")
+                                    multi_clicked_key = f"multi_clicked_{current_day}_{activity.get('activity_number')}"
+                                    
+                                    if st.button("🤹 Multisensory Practice", key=f"multi_{activity.get('activity_number')}_{page}", use_container_width=True, type="secondary"):
+                                        play_audio_hidden(multisensory_audio_key, f"multi_{activity.get('activity_number')}_{page}_{time.time()}")
+                                        # Mark that multisensory was clicked
+                                        st.session_state[multi_clicked_key] = True
                             
-                            # Practice checkbox below buttons
+                            # Practice checkbox only shows after multisensory button is clicked
+                            multi_clicked_key = f"multi_clicked_{current_day}_{activity.get('activity_number')}"
                             practice_key = f"practice_{current_day}_{activity.get('activity_number')}"
-                            practice_done = st.checkbox(
-                                "✅ I completed the multisensory practice!", 
-                                key=practice_key,
-                                value=st.session_state.practice_done.get(practice_key, False)
-                            )
-                            if practice_done:
-                                st.session_state.practice_done[practice_key] = True
-                                st.success("Great job completing the practice!")
+                            
+                            if st.session_state.get(multi_clicked_key, False):
+                                practice_done = st.checkbox(
+                                    "✅ I completed the multisensory practice!", 
+                                    key=practice_key,
+                                    value=st.session_state.practice_done.get(practice_key, False)
+                                )
+                                if practice_done:
+                                    st.session_state.practice_done[practice_key] = True
+                                    st.success("Great job completing the practice!")
                         
                         # Reading comprehension story
                         if activity.get('component') == 'Reading Comprehension' and local_idx == 0 and activity.get('story_display'):
@@ -1182,36 +1188,58 @@ def main():
                         for i in range(len(current_questions))
                     )
 
-                    # Bottom navigation only for complete day
-                    if all_answered and page + 1 >= total_pages:
-                        st.markdown("<br><br>", unsafe_allow_html=True)
-                        col1, col2, col3 = st.columns([1, 2, 1])
-                        with col2:
-                            if st.button("✅ Complete Day", key="complete_day", type="primary", use_container_width=True):
-                                st.session_state.completed_days.add(current_day)
-                                # Mark day as completed in progress
-                                update_progress_data(current_day, st.session_state.answers, completed=True)
-                                
-                                current_index = all_days.index(current_day)
-                                
-                                if current_index + 1 < len(all_days):
-                                    st.session_state.current_day = all_days[current_index + 1]
-                                    st.session_state.question_page = 0
-                                    # Don't clear answers - keep them for progress tracking
-                                    st.session_state.day_started = False
-                                    st.session_state.audio_containers = {}
-                                    st.session_state.transition_audio_played = set()
-                                    st.session_state.practice_done = {}
-                                    st.success(f"Great job! Moving to next day...")
-                                    time.sleep(1)
-                                    st.rerun()
-                                else:
-                                    show_success_animation("All activities completed! 🎉")
-                                    st.balloons()
+                    # Bottom navigation
+                    st.markdown("<br><br>", unsafe_allow_html=True)
+                    st.markdown("---")
                     
-                    elif not all_answered:
-                        st.markdown("<br>", unsafe_allow_html=True)
-                        st.warning("Answer all questions on this page to continue")
+                    # Navigation buttons at bottom
+                    nav_col1_bottom, nav_col2_bottom, nav_col3_bottom = st.columns([1, 2, 1])
+                    
+                    with nav_col1_bottom:
+                        if page > 0:
+                            if st.button("⬅️ Previous", key="prev_bottom", use_container_width=True):
+                                st.session_state.question_page -= 1
+                                st.session_state.audio_containers = {}
+                                scroll_to_top()
+                                st.rerun()
+                    
+                    with nav_col3_bottom:
+                        if all_answered:
+                            if page + 1 < total_pages:
+                                if st.button("Next ➡️", key="next_bottom", type="primary", use_container_width=True):
+                                    st.session_state.question_page += 1
+                                    st.session_state.audio_containers = {}
+                                    scroll_to_top()
+                                    st.rerun()
+                            else:
+                                # Complete day button
+                                if st.button("✅ Complete Day", key="complete_day", type="primary", use_container_width=True):
+                                    st.session_state.completed_days.add(current_day)
+                                    # Mark day as completed in progress
+                                    update_progress_data(current_day, st.session_state.answers, completed=True)
+                                    
+                                    current_index = all_days.index(current_day)
+                                    
+                                    if current_index + 1 < len(all_days):
+                                        st.session_state.current_day = all_days[current_index + 1]
+                                        st.session_state.question_page = 0
+                                        # Don't clear answers - keep them for progress tracking
+                                        st.session_state.day_started = False
+                                        st.session_state.audio_containers = {}
+                                        st.session_state.transition_audio_played = set()
+                                        st.session_state.practice_done = {}
+                                        st.success(f"Great job! Moving to next day...")
+                                        time.sleep(1)
+                                        st.rerun()
+                                    else:
+                                        show_success_animation("All activities completed! 🎉")
+                                        st.balloons()
+                    
+                    with nav_col2_bottom:
+                        if not all_answered:
+                            st.warning("Answer all questions on this page to continue")
+                        elif page + 1 < total_pages:
+                            st.info(f"Page {page + 1} of {total_pages}")
 
 if __name__ == "__main__":
     main()
