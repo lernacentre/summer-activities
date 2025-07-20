@@ -355,8 +355,7 @@ def play_audio_with_autoplay(s3_key, element_id="opening-audio"):
         """
         st.markdown(audio_html, unsafe_allow_html=True)
 
-# Fixed play audio function with unique containers
-@st.fragment
+# Fixed play audio function without fragment decorator
 def play_audio_hidden(s3_key, audio_key=None):
     """Play audio with proper handling and unique containers"""
     audio_content = read_s3_file(s3_key)
@@ -562,11 +561,12 @@ def create_activity_progress(activity_name, correct, total, component):
             st.markdown("🔴")
 
 # Function to create progress sidebar
-@st.fragment
 def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_prefix):
     """Create a sidebar with progress tracking"""
     with st.sidebar:
-        st.markdown(f"## 👤 {st.session_state.student}")
+        # Ensure student is in session state
+        if "student" in st.session_state:
+            st.markdown(f"## 👤 {st.session_state.student}")
         st.markdown("---")
         
         # Overall progress
