@@ -478,110 +478,35 @@ def create_combined_progress_chart(activities_data):
         color = "#FF6B6B"
         emoji = "💪"
     
+    # Display circular progress
     st.markdown(f"""
     <div style="text-align: center; margin: 20px 0;">
-        <svg width="150" height="150" style="transform: rotate(-90deg);">
-            <circle cx="75" cy="75" r="{radius}" stroke="#e0e0e0" stroke-width="15" fill="none" />
-            <circle cx="75" cy="75" r="{radius}" stroke="{color}" stroke-width="15" fill="none"
-                    stroke-dasharray="{circumference}" stroke-dashoffset="{offset}"
-                    style="transition: stroke-dashoffset 0.5s ease;" />
-        </svg>
-        <div style="margin-top: -90px; font-size: 36px; font-weight: bold; color: {color};">
-            {overall_percentage:.0f}% {emoji}
-        </div>
-        <h4 style="margin-top: 20px;">Today's Activity Completion</h4>
+        <h3>{overall_percentage:.0f}% {emoji}</h3>
+        <h4>Today's Activity Completion</h4>
     </div>
     """, unsafe_allow_html=True)
     
-    # Show individual activities with beautiful bar charts
+    # Show individual activities
     st.markdown("### 📚 Activities")
     
     for activity_name, data in activities_data.items():
         percentage = (data['correct'] / data['total'] * 100) if data['total'] > 0 else 0
         component = data.get('component', '')
         
-        # Determine color scheme
-        if percentage >= 80:
-            bar_gradient = 'linear-gradient(90deg, #4CAF50 0%, #45a049 100%)'
-            text_color = '#4CAF50'
-        elif percentage >= 60:
-            bar_gradient = 'linear-gradient(90deg, #FFA500 0%, #ff8c00 100%)'
-            text_color = '#FFA500'
-        else:
-            bar_gradient = 'linear-gradient(90deg, #FF6B6B 0%, #ff5252 100%)'
-            text_color = '#FF6B6B'
+        # Display activity name
+        st.markdown(f"**{component}**")
         
-        # Create beautiful bar chart for each activity
-        percent_text = f'{percentage:.0f}%' if percentage > 15 else ''
-        extra_percent = f'({percentage:.0f}%)' if percentage <= 15 else ''
+        # Use Streamlit's native progress bar
+        st.progress(percentage / 100)
         
-        st.markdown(f"""
-        <div style="margin: 15px 0;">
-            <h5 style="margin-bottom: 8px; color: #1a1a1a; font-weight: 600; font-size: 14px;">{component}</h5>
-            <div style="background-color: #f0f0f0; border-radius: 10px; height: 20px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
-                <div style="
-                    width: {percentage}%;
-                    height: 100%;
-                    background: {bar_gradient};
-                    border-radius: 10px;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: white;
-                    font-weight: bold;
-                    font-size: 12px;
-                    transition: width 0.5s ease;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-                ">
-                    {percent_text}
-                </div>
-            </div>
-            <p style="text-align: right; margin-top: 3px; color: {text_color}; font-size: 11px; font-weight: 500;">
-                {data['correct']}/{data['total']} correct {extra_percent}
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
+        # Display score
+        st.caption(f"{data['correct']}/{data['total']} correct ({percentage:.0f}%)")
     
-    # Add overall progress bar at the bottom
+    # Overall progress at bottom
     st.markdown("---")
     st.markdown("### 📊 Overall Progress")
-    
-    # Determine overall color
-    if overall_percentage >= 80:
-        overall_gradient = 'linear-gradient(90deg, #4CAF50 0%, #45a049 100%)'
-        overall_color = '#4CAF50'
-    elif overall_percentage >= 60:
-        overall_gradient = 'linear-gradient(90deg, #FFA500 0%, #ff8c00 100%)'
-        overall_color = '#FFA500'
-    else:
-        overall_gradient = 'linear-gradient(90deg, #FF6B6B 0%, #ff5252 100%)'
-        overall_color = '#FF6B6B'
-    
-    st.markdown(f"""
-    <div style="margin: 15px 0;">
-        <div style="background-color: #f0f0f0; border-radius: 12px; height: 25px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
-            <div style="
-                width: {overall_percentage}%;
-                height: 100%;
-                background: {overall_gradient};
-                border-radius: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-weight: bold;
-                font-size: 14px;
-                transition: width 0.5s ease;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            ">
-                {overall_percentage:.0f}%
-            </div>
-        </div>
-        <p style="text-align: center; margin-top: 5px; color: {overall_color}; font-size: 13px; font-weight: 600;">
-            {total_correct}/{total_questions} Total Questions Correct
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.progress(overall_percentage / 100)
+    st.markdown(f"**{total_correct}/{total_questions} Total Questions Correct ({overall_percentage:.0f}%)**")
 
 # Progress sidebar
 def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_prefix):
