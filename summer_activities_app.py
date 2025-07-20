@@ -491,34 +491,42 @@ def create_combined_progress_chart(activities_data):
     </div>
     """, unsafe_allow_html=True)
     
-    # Show individual activities
+    # Show individual activities with beautiful bar charts
     st.markdown("### 📚 Activities")
-    cols = st.columns(2)
     
-    for idx, (activity_name, data) in enumerate(activities_data.items()):
-        with cols[idx % 2]:
-            percentage = (data['correct'] / data['total'] * 100) if data['total'] > 0 else 0
-            component = data.get('component', '')
-            
-            # Create gradient background based on performance
-            if percentage >= 80:
-                gradient = "linear-gradient(135deg, #4CAF50 0%, #45a049 100%)"
-            elif percentage >= 60:
-                gradient = "linear-gradient(135deg, #FFA500 0%, #ff8c00 100%)"
-            else:
-                gradient = "linear-gradient(135deg, #FF6B6B 0%, #ff5252 100%)"
-            
-            st.markdown(f"""
-            <div class="activity-chart" style="background: {gradient};">
-                <h3 style="margin: 0; font-size: 16px;">{component}</h3>
-                <div style="font-size: 48px; font-weight: bold; margin: 10px 0;">
+    for activity_name, data in activities_data.items():
+        percentage = (data['correct'] / data['total'] * 100) if data['total'] > 0 else 0
+        component = data.get('component', '')
+        
+        # Create beautiful bar chart for each activity
+        st.markdown(f"""
+        <div style="margin: 20px 0;">
+            <h4 style="margin-bottom: 10px; color: #2c3e50;">{component}</h4>
+            <div style="background-color: #f0f0f0; border-radius: 15px; height: 30px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+                <div style="
+                    width: {percentage}%;
+                    height: 100%;
+                    background: linear-gradient(90deg, 
+                        {'#4CAF50' if percentage >= 80 else '#FFA500' if percentage >= 60 else '#FF6B6B'} 0%, 
+                        {'#45a049' if percentage >= 80 else '#ff8c00' if percentage >= 60 else '#ff5252'} 100%);
+                    border-radius: 15px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    font-weight: bold;
+                    font-size: 14px;
+                    transition: width 0.5s ease;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                ">
                     {percentage:.0f}%
                 </div>
-                <p style="margin: 0; opacity: 0.9;">
-                    {data['correct']}/{data['total']} correct
-                </p>
             </div>
-            """, unsafe_allow_html=True)
+            <p style="text-align: center; margin-top: 5px; color: #7f8c8d; font-size: 12px;">
+                {data['correct']}/{data['total']} correct
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
 # Progress sidebar
 def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_prefix):
