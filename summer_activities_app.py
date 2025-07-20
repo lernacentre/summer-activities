@@ -32,116 +32,36 @@ if "day_scores" not in st.session_state:
     st.session_state.day_scores = {}
 
 # S3 Configuration
-@st.cache_resource(show_spinner=False)
+BUCKET_NAME = "summer-activities-streamli-app"
+BUCKET_REGION = "eu-north-1"
+
+@st.cache_resource
 def get_s3_client():
-    AWS_ACCESS_KEY_ID = st.secrets["AWS_ACCESS_KEY_ID"]
-    AWS_SECRET_ACCESS_KEY = st.secrets["AWS_SECRET_ACCESS_KEY"]
-    BUCKET_NAME = "summer-activities-streamli-app"
-    BUCKET_REGION = "eu-north-1"
-   
-    client = boto3.client(
-        's3',
-        region_name=BUCKET_REGION,
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-    )
-    # Test connection
-    client.head_bucket(Bucket=BUCKET_NAME)
-    return client, BUCKET_NAME
+    try:
+        AWS_ACCESS_KEY_ID = st.secrets["AWS_ACCESS_KEY_ID"]
+        AWS_SECRET_ACCESS_KEY = st.secrets["AWS_SECRET_ACCESS_KEY"]
+        
+        client = boto3.client(
+            's3',
+            region_name=BUCKET_REGION,
+            aws_access_key_id=AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+        )
+        return client
+    except Exception as e:
+        st.error(f"Failed to create S3 client: {e}")
+        return None
 
 try:
-    s3, BUCKET_NAME = get_s3_client()
-except KeyError as e:
-    st.error(f"❌ Missing secret: {e}")
-    st.info("Please add AWS credentials to Streamlit secrets")
-    st.stop()
-except ClientError as e:
-    st.error(f"❌ S3 Connection Error: {e}")
-    st.info("Check your AWS credentials and bucket name")
-    st.stop()
+    s3 = get_s3_client()
+    if not s3:
+        st.stop()
 except Exception as e:
     st.error(f"❌ Unexpected error: {e}")
     st.stop()
 
-# Add custom CSS for animations and styling
-def add_custom_css():
-    st.markdown("""
-    <style>
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-   
-    @keyframes confetti {
-        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-        100% { transform: translateY(300px) rotate(720deg); opacity: 0; }
-    }
-    
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-    }
-   
-    .welcome-animation {
-        animation: fadeIn 1s ease-out;
-    }
-   
-    .completion-animation {
-        animation: fadeIn 0.8s ease-out;
-    }
-   
-    .confetti {
-        position: fixed;
-        width: 10px;
-        height: 10px;
-        background-color: #f0f;
-        animation: confetti 3s ease-out;
-        animation-fill-mode: forwards;
-    }
-    
-    .start-day-button {
-        animation: pulse 2s infinite;
-        background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
-        color: white;
-        font-size: 24px;
-        padding: 20px 40px;
-        border-radius: 50px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        transition: all 0.3s ease;
-    }
-    
-    .start-day-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-    }
-    
-    /* Sidebar progress styles */
-    .progress-bar {
-        background-color: #e0e0e0;
-        border-radius: 10px;
-        height: 20px;
-        overflow: hidden;
-        margin: 5px 0;
-    }
-    
-    .progress-fill {
-        background-color: #4CAF50;
-        height: 100%;
-        transition: width 0.3s ease;
-    }
-    
-    .activity-progress {
-        background-color: #f5f5f5;
-        border-radius: 8px;
-        padding: 10px;
-        margin: 5px 0;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
 # Helper function to read files from S3
-@st.cache_data(show_spinner=False)
+@st.cache_data
 def read_s3_file(s3_key):
     """Read a file from S3 and return its content"""
     try:
@@ -151,7 +71,7 @@ def read_s3_file(s3_key):
         return None
 
 # Get all students from all groups
-@st.cache_data(show_spinner=False)
+@st.cache_data
 def get_all_students():
     student_to_group = {}
     base_prefix = "Summer_Activities/"
@@ -235,7 +155,7 @@ def fix_audio_path(audio_file, student_s3_prefix, current_day):
         return f"{student_s3_prefix}/{current_day}/{audio_file}"
 
 # Load passwords - prioritize txt files over json
-@st.cache_data(show_spinner=False)
+@st.cache_data
 def load_passwords(group_folder):
     passwords = {}
     
