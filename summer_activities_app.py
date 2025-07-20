@@ -366,7 +366,7 @@ def play_audio_with_autoplay(s3_key, element_id="opening-audio"):
         """
         st.markdown(audio_html, unsafe_allow_html=True)
 
-# Play audio hidden - fixed for multiple plays
+# Play audio hidden - fixed for multiple consecutive plays
 def play_audio_hidden(s3_key, audio_key=None):
     """Play audio with proper handling for multiple plays"""
     audio_content = read_s3_file(s3_key)
@@ -377,25 +377,24 @@ def play_audio_hidden(s3_key, audio_key=None):
         timestamp = str(time.time()).replace('.', '')
         unique_id = f"{audio_key}_{timestamp}" if audio_key else timestamp
         
-        # Store in container or create new one
-        if audio_key and audio_key in st.session_state.audio_containers:
-            container = st.session_state.audio_containers[audio_key]
-            container.empty()  # Clear previous audio
-        else:
-            container = st.empty()
-            if audio_key:
-                st.session_state.audio_containers[audio_key] = container
+        # Create a placeholder for audio
+        audio_placeholder = st.empty()
         
-        with container:
+        # Use the placeholder to render audio
+        with audio_placeholder:
             st.markdown(f"""
             <audio id="audio_{unique_id}" autoplay>
                 <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
             </audio>
             <script>
-                var audio = document.getElementById('audio_{unique_id}');
-                if (audio) {{
-                    audio.play();
-                }}
+                (function() {{
+                    var audio = document.getElementById('audio_{unique_id}');
+                    if (audio) {{
+                        audio.play().catch(function(e) {{
+                            console.log('Audio play error:', e);
+                        }});
+                    }}
+                }})();
             </script>
             """, unsafe_allow_html=True)
 
@@ -488,18 +487,33 @@ def create_combined_progress_chart(activities_data, all_days_progress=None):
     total_questions = sum(data['total'] for data in activities_data.values())
     overall_percentage = (total_correct / total_questions * 100) if total_questions > 0 else 0
     
-    # Display overall percentage at top
+    # Display overall percentage with pie chart
     if overall_percentage >= 80:
         emoji = "🌟"
+        color = "#4CAF50"
     elif overall_percentage >= 60:
         emoji = "👍"
+        color = "#FFA500"
     else:
         emoji = "💪"
+        color = "#FF6B6B"
+    
+    # Create pie chart for today's completion
+    remaining = 100 - overall_percentage
     
     st.markdown(f"""
     <div style="text-align: center; margin: 20px 0;">
-        <h2>{overall_percentage:.0f}% {emoji}</h2>
-        <h4>Today's Activity Completion</h4>
+        <svg width="120" height="120" viewBox="0 0 42 42">
+            <circle cx="21" cy="21" r="15.915494309189533" fill="transparent" stroke="#e0e0e0" stroke-width="3"></circle>
+            <circle cx="21" cy="21" r="15.915494309189533" fill="transparent" stroke="{color}" stroke-width="3"
+                    stroke-dasharray="{overall_percentage} {remaining}"
+                    stroke-dashoffset="25"
+                    style="transition: stroke-dasharray 0.5s ease;"></circle>
+            <text x="21" y="26" text-anchor="middle" font-size="8" font-weight="bold" fill="{color}">
+                {overall_percentage:.0f}%
+            </text>
+        </svg>
+        <h4>Today's Activity Completion {emoji}</h4>
     </div>
     """, unsafe_allow_html=True)
     
@@ -529,7 +543,7 @@ def create_combined_progress_chart(activities_data, all_days_progress=None):
         <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin: 10px 0;">
         """, unsafe_allow_html=True)
         
-        for day, day_percentage in all_days_progress.items():
+        for day, day_percentage in sorted(all_days_progress.items()):
             bar_color = "#4CAF50" if day_percentage >= 80 else "#FFA500" if day_percentage >= 60 else "#FF6B6B"
             day_label = day.replace('day', 'Day ')
             
@@ -537,9 +551,10 @@ def create_combined_progress_chart(activities_data, all_days_progress=None):
             <div style="margin: 10px 0;">
                 <div style="display: flex; align-items: center; margin-bottom: 5px;">
                     <span style="width: 60px; font-weight: bold;">{day_label}:</span>
-                    <div style="flex: 1; background-color: #e0e0e0; border-radius: 10px; height: 25px; margin: 0 10px; position: relative;">
+                    <div style="flex: 1; background-color: #e0e0e0; border-radius: 10px; height: 25px; margin: 0 10px; position: relative; overflow: hidden;">
                         <div style="width: {day_percentage}%; background: {bar_color}; height: 100%; border-radius: 10px; 
-                                    display: flex; align-items: center; padding: 0 10px; color: white; font-weight: bold;">
+                                    display: flex; align-items: center; padding: 0 10px; color: white; font-weight: bold;
+                                    transition: width 0.5s ease;">
                             {day_percentage:.0f}%
                         </div>
                     </div>
@@ -990,8 +1005,10 @@ def main():
                             if tutor_audio:
                                 tutor_audio_key = fix_audio_path(tutor_audio, student_s3_prefix, current_day)
                                 if tutor_audio_key:
-                                    if st.button("🎯 Activity Introduction", key=f"intro_{activity.get('activity_number')}_{page}", use_container_width=True):
-                                        play_audio_hidden(tutor_audio_key, f"intro_{activity.get('activity_number')}_{page}")
+                                    intro_container = st.container()
+                                    with intro_container:
+                                        if st.button("🎯 Activity Introduction", key=f"intro_{activity.get('activity_number')}_{page}", use_container_width=True):
+                                            play_audio_hidden(tutor_audio_key, f"intro_{activity.get('activity_number')}_{page}_{time.time()}")
                             
                             # Teaching and practice buttons
                             col1, col2 = st.columns(2)
@@ -1000,17 +1017,17 @@ def main():
                                 teaching_audio = activity.get('teaching_audio', '')
                                 if teaching_audio:
                                     teaching_audio_key = fix_audio_path(teaching_audio, student_s3_prefix, current_day)
-                                    if teaching_audio_key and st.button("📖 Teach Me", key=f"teach_{activity.get('activity_number')}_{page}", use_container_width=True, type="primary"):
-                                        play_audio_hidden(teaching_audio_key, f"teach_{activity.get('activity_number')}_{page}")
+                                    if teaching_audio_key:
+                                        if st.button("📖 Teach Me", key=f"teach_{activity.get('activity_number')}_{page}", use_container_width=True, type="primary"):
+                                            play_audio_hidden(teaching_audio_key, f"teach_{activity.get('activity_number')}_{page}_{time.time()}")
                             
                             with col2:
                                 multisensory_audio = activity.get('multisensory_audio', '')
                                 if multisensory_audio:
                                     multisensory_audio_key = fix_audio_path(multisensory_audio, student_s3_prefix, current_day)
-                                    practice_key = f"practice_{current_day}_{activity.get('activity_number')}"
-                                    
-                                    if multisensory_audio_key and st.button("🤹 Multisensory Practice", key=f"multi_{activity.get('activity_number')}_{page}", use_container_width=True, type="secondary"):
-                                        play_audio_hidden(multisensory_audio_key, f"multi_{activity.get('activity_number')}_{page}")
+                                    if multisensory_audio_key:
+                                        if st.button("🤹 Multisensory Practice", key=f"multi_{activity.get('activity_number')}_{page}", use_container_width=True, type="secondary"):
+                                            play_audio_hidden(multisensory_audio_key, f"multi_{activity.get('activity_number')}_{page}_{time.time()}")
                             
                             # Practice checkbox below buttons
                             practice_key = f"practice_{current_day}_{activity.get('activity_number')}"
@@ -1032,8 +1049,9 @@ def main():
                                 
                                 if story_audio:
                                     story_key = fix_audio_path(story_audio, student_s3_prefix, current_day)
-                                    if story_key and st.button("🎧 Listen & Read", key=f"story_{activity.get('activity_number')}_{page}", use_container_width=True):
-                                        play_story_with_highlight(story_text, story_key)
+                                    if story_key:
+                                        if st.button("🎧 Listen & Read", key=f"story_{activity.get('activity_number')}_{page}", use_container_width=True):
+                                            play_story_with_highlight(story_text, story_key)
                                 
                                 st.markdown(f"""
                                 <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #4CAF50;">
@@ -1050,8 +1068,9 @@ def main():
                         q_audio = q.get('prompt_audio_file', '')
                         if q_audio:
                             audio_s3_key = fix_audio_path(q_audio, student_s3_prefix, current_day)
-                            if audio_s3_key and st.button(f"🔊 Play Question", key=f"q_{global_idx}_{page}"):
-                                play_audio_hidden(audio_s3_key, f"q_{global_idx}_{page}")
+                            if audio_s3_key:
+                                if st.button(f"🔊 Play Question", key=f"q_{global_idx}_{page}"):
+                                    play_audio_hidden(audio_s3_key, f"q_{global_idx}_{page}_{time.time()}")
 
                         answer_key = f"answer_{current_day}_{global_idx}"
                         
@@ -1098,8 +1117,9 @@ def main():
                                     opt_audio = option.get('audio_file', '')
                                     if opt_audio and opt_audio != "[Path to audio]":
                                         audio_s3_key = fix_audio_path(opt_audio, student_s3_prefix, current_day)
-                                        if audio_s3_key and st.button("🔊", key=f"opt_audio_{global_idx}_{opt_idx}_{page}"):
-                                            play_audio_hidden(audio_s3_key, f"opt_audio_{global_idx}_{opt_idx}_{page}")
+                                        if audio_s3_key:
+                                            if st.button("🔊", key=f"opt_audio_{global_idx}_{opt_idx}_{page}"):
+                                                play_audio_hidden(audio_s3_key, f"opt_audio_{global_idx}_{opt_idx}_{page}_{time.time()}")
 
                         elif q.get('answer_type') == 'text_input':
                             if q.get('question_type') == 'text_input_dictation':
@@ -1112,7 +1132,7 @@ def main():
                                             st.info("📝 Click play to hear the sentence")
                                         with col2:
                                             if st.button("▶️ Play", key=f"dict_{global_idx}_{page}", type="primary"):
-                                                play_audio_hidden(dictation_key, f"dict_{global_idx}_{page}")
+                                                play_audio_hidden(dictation_key, f"dict_{global_idx}_{page}_{time.time()}")
                             
                             current_answer = st.text_input("Your Answer:", key=answer_key, value=st.session_state.answers.get(answer_key, ""))
                             
@@ -1143,8 +1163,9 @@ def main():
                                     paragraph_audio = final_display.get('audio_file', '')
                                     if paragraph_audio:
                                         para_key = fix_audio_path(paragraph_audio, student_s3_prefix, current_day)
-                                        if para_key and st.button("🎧 Listen to Paragraph", key=f"para_{activity.get('activity_number')}_{page}", use_container_width=True):
-                                            play_audio_hidden(para_key, f"para_{activity.get('activity_number')}_{page}")
+                                        if para_key:
+                                            if st.button("🎧 Listen to Paragraph", key=f"para_{activity.get('activity_number')}_{page}", use_container_width=True):
+                                                play_audio_hidden(para_key, f"para_{activity.get('activity_number')}_{page}_{time.time()}")
                         
                         if i < len(current_questions) - 1:
                             st.divider()
