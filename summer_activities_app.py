@@ -6,8 +6,10 @@ from botocore.exceptions import ClientError
 from io import BytesIO
 import time
 import random
-import plotly.graph_objects as go
 from difflib import SequenceMatcher
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import numpy as np
 
 # Initialize session state
 if "authenticated" not in st.session_state:
@@ -518,37 +520,39 @@ def create_activity_pie_chart(activity_name, correct, total):
     incorrect = total - correct
     percentage = (correct / total * 100) if total > 0 else 0
     
-    colors = ['#4CAF50', '#FF6B6B'] if percentage > 50 else ['#FFA500', '#E0E0E0']
+    # Create figure
+    fig, ax = plt.subplots(figsize=(3, 3))
     
-    fig = go.Figure(data=[go.Pie(
-        labels=['Correct', 'Incorrect'],
-        values=[correct, incorrect],
-        hole=.3,
-        marker_colors=colors,
-        textinfo='percent',
-        textposition='inside',
-        showlegend=False
-    )])
+    # Data
+    sizes = [correct, incorrect]
+    labels = ['Correct', 'Incorrect']
     
-    fig.update_layout(
-        height=200,
-        margin=dict(t=30, b=0, l=0, r=0),
-        title={
-            'text': f"<b>{activity_name}</b>",
-            'y':0.95,
-            'x':0.5,
-            'xanchor': 'center',
-            'yanchor': 'top',
-            'font': {'size': 14}
-        },
-        annotations=[{
-            'text': f'{percentage:.0f}%',
-            'x': 0.5, 'y': 0.5,
-            'font_size': 20,
-            'showarrow': False
-        }]
-    )
+    # Colors based on performance
+    if percentage > 80:
+        colors = ['#4CAF50', '#E8F5E9']  # Green
+    elif percentage > 60:
+        colors = ['#FFA500', '#FFF3E0']  # Orange
+    else:
+        colors = ['#FF6B6B', '#FFEBEE']  # Red
     
+    # Create pie chart
+    wedges, texts = ax.pie(sizes, colors=colors, startangle=90)
+    
+    # Add percentage in center
+    ax.text(0, 0, f'{percentage:.0f}%', 
+            ha='center', va='center', fontsize=20, fontweight='bold')
+    
+    # Title
+    ax.set_title(activity_name, fontsize=12, fontweight='bold', pad=20)
+    
+    # Equal aspect ratio ensures that pie is drawn as a circle
+    ax.axis('equal')
+    
+    # Remove background
+    fig.patch.set_facecolor('none')
+    ax.set_facecolor('none')
+    
+    plt.tight_layout()
     return fig
 
 # Function to create progress sidebar
@@ -613,7 +617,8 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
                         # Display pie chart
                         with cols[col_idx % 2]:
                             fig = create_activity_pie_chart(activity_name, correct, total)
-                            st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+                            st.pyplot(fig, use_container_width=True)
+                            plt.close(fig)  # Clean up
                             st.caption(component)
                         
                         col_idx += 1
@@ -632,26 +637,39 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
                     percentages.append((scores["correct"] / scores["total"]) * 100)
             
             if activity_names:
-                fig = go.Figure(data=[
-                    go.Bar(
-                        x=activity_names,
-                        y=percentages,
-                        marker_color=['#4CAF50' if p >= 80 else '#FFA500' if p >= 60 else '#FF6B6B' for p in percentages],
-                        text=[f'{p:.0f}%' for p in percentages],
-                        textposition='auto',
-                    )
-                ])
+                fig, ax = plt.subplots(figsize=(6, 4))
                 
-                fig.update_layout(
-                    height=300,
-                    margin=dict(t=0, b=0, l=0, r=0),
-                    xaxis_title="Activities",
-                    yaxis_title="Success Rate (%)",
-                    yaxis=dict(range=[0, 100]),
-                    showlegend=False
-                )
+                # Create bar colors based on performance
+                colors = ['#4CAF50' if p >= 80 else '#FFA500' if p >= 60 else '#FF6B6B' for p in percentages]
                 
-                st.plotly_chart(fig, use_container_width=True, config={'displayModeBar': False})
+                # Create bars
+                bars = ax.bar(activity_names, percentages, color=colors)
+                
+                # Add value labels on bars
+                for bar, pct in zip(bars, percentages):
+                    height = bar.get_height()
+                    ax.text(bar.get_x() + bar.get_width()/2., height,
+                           f'{pct:.0f}%', ha='center', va='bottom')
+                
+                # Styling
+                ax.set_xlabel('Activities', fontsize=10)
+                ax.set_ylabel('Success Rate (%)', fontsize=10)
+                ax.set_ylim(0, 100)
+                ax.set_title('Overall Performance', fontsize=12, fontweight='bold')
+                
+                # Rotate x labels if needed
+                plt.xticks(rotation=45, ha='right')
+                
+                # Remove top and right spines
+                ax.spines['top'].set_visible(False)
+                ax.spines['right'].set_visible(False)
+                
+                # Grid
+                ax.grid(axis='y', alpha=0.3)
+                
+                plt.tight_layout()
+                st.pyplot(fig, use_container_width=True)
+                plt.close(fig)
         
         # Day-by-day status
         st.markdown("---")
