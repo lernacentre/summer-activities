@@ -62,7 +62,7 @@ def get_s3_client():
         )
         return client
     except Exception as e:
-        st.error(f"Failed to create S3 client: {e}")
+        st.error("Failed to create S3 client")
         return None
 
 s3 = get_s3_client()
@@ -154,7 +154,7 @@ def save_student_progress(student_s3_prefix, progress_data):
         )
         return True
     except Exception as e:
-        st.error(f"Error saving progress: {e}")
+        st.error("Error saving progress")
         return False
 
 # Load student progress from S3
@@ -262,7 +262,7 @@ def _get_all_students():
         return student_to_group
         
     except Exception as e:
-        st.error(f"Error loading students: {e}")
+        st.error("Error loading students")
         return {}
 
 # Fix audio paths
@@ -455,8 +455,15 @@ def calculate_similarity(user_answer, correct_answer):
     if not user_answer or not correct_answer:
         return 0
     
-    user_lower = user_answer.lower().strip()
-    correct_lower = correct_answer.lower().strip()
+    # Normalize both strings - lowercase, strip whitespace, remove extra spaces
+    user_lower = ' '.join(user_answer.lower().strip().split())
+    correct_lower = ' '.join(correct_answer.lower().strip().split())
+    
+    # Remove punctuation for better matching
+    import string
+    translator = str.maketrans('', '', string.punctuation)
+    user_lower = user_lower.translate(translator)
+    correct_lower = correct_lower.translate(translator)
     
     similarity = SequenceMatcher(None, user_lower, correct_lower).ratio()
     return similarity * 100
@@ -466,15 +473,26 @@ def is_valid_dictation_answer(user_answer, correct_answer):
     if not user_answer:
         return False, "Please write your answer"
     
-    word_count = len(user_answer.strip().split())
+    # Strip whitespace
+    user_answer = user_answer.strip()
+    
+    word_count = len(user_answer.split())
     if word_count < 2:
         return False, "Please write at least 2 words"
     
-    similarity = calculate_similarity(user_answer, correct_answer)
-    if similarity < 50:  # Changed from 20% to 50%
-        return False, "Please try again or type 'I don't know'"
+    # Check for exact match first (case-insensitive)
+    if user_answer.lower() == "i don't know" or user_answer.lower() == "i dont know":
+        return True, "That's okay! Let's continue."
     
-    return True, f"Good effort! ({similarity:.0f}% accurate)"
+    similarity = calculate_similarity(user_answer, correct_answer)
+    
+    # If similarity is 100%, give perfect feedback
+    if similarity >= 95:
+        return True, f"Perfect! 🌟"
+    elif similarity >= 50:
+        return True, f"Good effort! ({similarity:.0f}% accurate)"
+    else:
+        return False, "Please try again or type 'I don't know'"
 
 # Create a beautiful combined progress chart with graph
 def create_combined_progress_chart(activities_data, all_days_progress=None):
@@ -501,19 +519,26 @@ def create_combined_progress_chart(activities_data, all_days_progress=None):
     # Create pie chart for today's completion
     remaining = 100 - overall_percentage
     
+    # SVG pie chart with correct proportions
     st.markdown(f"""
     <div style="text-align: center; margin: 20px 0;">
-        <svg width="120" height="120" viewBox="0 0 42 42">
-            <circle cx="21" cy="21" r="15.915494309189533" fill="transparent" stroke="#e0e0e0" stroke-width="3"></circle>
-            <circle cx="21" cy="21" r="15.915494309189533" fill="transparent" stroke="{color}" stroke-width="3"
-                    stroke-dasharray="{overall_percentage} {remaining}"
-                    stroke-dashoffset="25"
-                    style="transition: stroke-dasharray 0.5s ease;"></circle>
-            <text x="21" y="26" text-anchor="middle" font-size="8" font-weight="bold" fill="{color}">
-                {overall_percentage:.0f}%
-            </text>
-        </svg>
-        <h4>Today's Activity Completion {emoji}</h4>
+        <div style="position: relative; width: 150px; height: 150px; margin: 0 auto;">
+            <svg width="150" height="150" viewBox="0 0 150 150" style="transform: rotate(-90deg);">
+                <!-- Background circle -->
+                <circle cx="75" cy="75" r="60" fill="none" stroke="#e0e0e0" stroke-width="20"></circle>
+                <!-- Progress arc -->
+                <circle cx="75" cy="75" r="60" fill="none" stroke="{color}" stroke-width="20"
+                        stroke-dasharray="{overall_percentage * 3.77} {remaining * 3.77}"
+                        stroke-linecap="round"
+                        style="transition: stroke-dasharray 0.5s ease;">
+                </circle>
+            </svg>
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                <div style="font-size: 32px; font-weight: bold; color: {color};">{overall_percentage:.0f}%</div>
+                <div style="font-size: 24px;">{emoji}</div>
+            </div>
+        </div>
+        <h4 style="margin-top: 10px;">Today's Activity Completion</h4>
     </div>
     """, unsafe_allow_html=True)
     
@@ -623,8 +648,15 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
                                         if user_answer == q.get('correct_answer'):
                                             correct += 1
                                     elif q.get('answer_type') == 'text_input':
-                                        if user_answer and (is_valid_dictation_answer(user_answer, q.get('correct_answer', ''))[0] or user_answer.lower() == "i don't know"):
-                                            correct += 1
+                                        if user_answer:
+                                            # For any text input, count as correct if answered
+                                            # This includes reading comprehension and dictation
+                                            if q.get('question_type') == 'text_input_dictation':
+                                                if is_valid_dictation_answer(user_answer, q.get('correct_answer', ''))[0] or user_answer.lower() == "i don't know":
+                                                    correct += 1
+                                            else:
+                                                # For regular text inputs like reading comprehension, count as correct if answered
+                                                correct += 1
                         
                         activities_data[f"activity_{activity_num}"] = {
                             'correct': correct,
@@ -658,8 +690,14 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
                                                     if user_answer == q.get('correct_answer'):
                                                         day_correct += 1
                                                 elif q.get('answer_type') == 'text_input':
-                                                    if user_answer and (is_valid_dictation_answer(user_answer, q.get('correct_answer', ''))[0] or user_answer.lower() == "i don't know"):
-                                                        day_correct += 1
+                                                    if user_answer:
+                                                        # For any text input, count as correct if answered
+                                                        if q.get('question_type') == 'text_input_dictation':
+                                                            if is_valid_dictation_answer(user_answer, q.get('correct_answer', ''))[0] or user_answer.lower() == "i don't know":
+                                                                day_correct += 1
+                                                        else:
+                                                            # For regular text inputs like reading comprehension
+                                                            day_correct += 1
                                                 break
                         
                         if day_total > 0:
@@ -867,7 +905,7 @@ def main():
                         day_to_content[day_folder] = data
                 return all_days, day_to_content
             except ClientError as e:
-                st.error(f"Error loading activities: {e}")
+                st.error("Error loading activities")
                 return [], {}
        
         all_days, day_to_content = load_day_packs(student_s3_prefix)
@@ -1051,21 +1089,38 @@ def main():
                             story_text = activity.get('story_text', '')
                             if story_text:
                                 st.markdown("📖 **Read the story:**")
-                                story_audio = activity.get('story_audio_file', '')
                                 
+                                # Story container
+                                story_container = st.container()
+                                
+                                story_audio = activity.get('story_audio_file', '')
                                 if story_audio:
                                     story_key = fix_audio_path(story_audio, student_s3_prefix, current_day)
                                     if story_key:
                                         if st.button("🎧 Listen & Read", key=f"story_{activity.get('activity_number')}_{page}", use_container_width=True):
-                                            play_story_with_highlight(story_text, story_key)
-                                
-                                st.markdown(f"""
-                                <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #4CAF50;">
-                                    <p style="font-size: 18px; line-height: 2; color: #333;">
-                                        {story_text}
-                                    </p>
-                                </div>
-                                """, unsafe_allow_html=True)
+                                            with story_container:
+                                                st.empty()  # Clear any existing content
+                                                play_story_with_highlight(story_text, story_key)
+                                        else:
+                                            # Show plain story text when button not clicked
+                                            with story_container:
+                                                st.markdown(f"""
+                                                <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #4CAF50;">
+                                                    <p style="font-size: 18px; line-height: 2; color: #333;">
+                                                        {story_text}
+                                                    </p>
+                                                </div>
+                                                """, unsafe_allow_html=True)
+                                else:
+                                    # No audio, just show text
+                                    with story_container:
+                                        st.markdown(f"""
+                                        <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #4CAF50;">
+                                            <p style="font-size: 18px; line-height: 2; color: #333;">
+                                                {story_text}
+                                            </p>
+                                        </div>
+                                        """, unsafe_allow_html=True)
                         
                         # Question display
                         st.markdown(f"**Q{global_idx + 1}: {q.get('prompt', '')}**")
@@ -1093,10 +1148,13 @@ def main():
                                 
                                 if is_correct:
                                     st.success("✅ Correct! Well done!")
-                                    if feedback_data.get('feedback_audio'):
+                                    # Only play feedback audio if it hasn't been played for this specific feedback
+                                    fb_played_key = f"fb_played_{feedback_key}"
+                                    if feedback_data.get('feedback_audio') and not st.session_state.get(fb_played_key, False):
                                         feedback_audio_key = fix_audio_path(feedback_data['feedback_audio'], student_s3_prefix, current_day)
                                         if feedback_audio_key:
-                                            play_audio_hidden(feedback_audio_key, f"fb_{global_idx}")
+                                            play_audio_hidden(feedback_audio_key, f"fb_{global_idx}_{time.time()}")
+                                            st.session_state[fb_played_key] = True
                                 else:
                                     st.warning("❌ Try again!")
                             
@@ -1139,18 +1197,27 @@ def main():
                                         with col2:
                                             if st.button("▶️ Play", key=f"dict_{global_idx}_{page}", type="primary"):
                                                 play_audio_hidden(dictation_key, f"dict_{global_idx}_{page}_{time.time()}")
-                            
-                            current_answer = st.text_input("Your Answer:", key=answer_key, value=st.session_state.answers.get(answer_key, ""))
-                            
-                            if current_answer:
-                                is_valid, message = is_valid_dictation_answer(current_answer, q.get('correct_answer', ''))
-                                if is_valid or current_answer.lower() == "i don't know":
+                                
+                                current_answer = st.text_input("Your Answer:", key=answer_key, value=st.session_state.answers.get(answer_key, ""))
+                                
+                                if current_answer:
+                                    is_valid, message = is_valid_dictation_answer(current_answer, q.get('correct_answer', ''))
+                                    if is_valid or current_answer.lower() == "i don't know":
+                                        st.session_state.answers[answer_key] = current_answer
+                                        # Save answer immediately
+                                        update_progress_data(current_day, {answer_key: current_answer})
+                                        st.success(message if current_answer.lower() != "i don't know" else "That's okay!")
+                                    else:
+                                        st.warning(message)
+                            else:
+                                # Regular text input (e.g., reading comprehension)
+                                current_answer = st.text_input("Your Answer:", key=answer_key, value=st.session_state.answers.get(answer_key, ""))
+                                
+                                if current_answer:
                                     st.session_state.answers[answer_key] = current_answer
                                     # Save answer immediately
                                     update_progress_data(current_day, {answer_key: current_answer})
-                                    st.success(message if current_answer.lower() != "i don't know" else "That's okay!")
-                                else:
-                                    st.warning(message)
+                                    st.success("Answer saved!")
                         
                         # Paragraph writing final display
                         if activity.get('component') == 'Paragraph Writing':
@@ -1178,15 +1245,40 @@ def main():
 
                     # Clean old feedback
                     current_time = time.time()
-                    keys_to_remove = [key for key in st.session_state if key.startswith(f"feedback_{current_day}_") and isinstance(st.session_state[key], dict) and current_time - st.session_state[key].get('show_time', 0) > 5]
+                    keys_to_remove = []
+                    for key in list(st.session_state.keys()):
+                        if key.startswith(f"feedback_{current_day}_") and isinstance(st.session_state.get(key), dict):
+                            if current_time - st.session_state[key].get('show_time', 0) > 5:
+                                keys_to_remove.append(key)
+                                # Also remove the played flag for this feedback
+                                keys_to_remove.append(f"fb_played_{key}")
+                    
                     for key in keys_to_remove:
-                        del st.session_state[key]
+                        if key in st.session_state:
+                            del st.session_state[key]
 
                     # Check if all answered
-                    all_answered = all(
-                        st.session_state.answers.get(f"answer_{current_day}_{start_idx + i}")
-                        for i in range(len(current_questions))
-                    )
+                    all_answered = True
+                    for i in range(len(current_questions)):
+                        answer_key = f"answer_{current_day}_{start_idx + i}"
+                        user_answer = st.session_state.answers.get(answer_key)
+                        _, _, q = current_questions[i]
+                        
+                        if q.get('answer_type') == 'single_select':
+                            if not user_answer:
+                                all_answered = False
+                                break
+                        elif q.get('answer_type') == 'text_input':
+                            if q.get('question_type') == 'text_input_dictation':
+                                # For dictation, check if valid answer exists
+                                if not user_answer or (not is_valid_dictation_answer(user_answer, q.get('correct_answer', ''))[0] and user_answer.lower() != "i don't know"):
+                                    all_answered = False
+                                    break
+                            else:
+                                # For regular text input (like reading comprehension), just check if answered
+                                if not user_answer:
+                                    all_answered = False
+                                    break
 
                     # Bottom navigation
                     st.markdown("<br><br>", unsafe_allow_html=True)
@@ -1238,8 +1330,6 @@ def main():
                     with nav_col2_bottom:
                         if not all_answered:
                             st.warning("Answer all questions on this page to continue")
-                        elif page + 1 < total_pages:
-                            st.info(f"Page {page + 1} of {total_pages}")
 
 if __name__ == "__main__":
     main()
