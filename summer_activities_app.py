@@ -1,57 +1,4 @@
-# Save student progress to S3
-def save_student_progress(student_s3_prefix, progress_data):
-    """Save student progress to S3 as JSON"""
-    try:
-        progress_key = f"{student_s3_prefix}/progress.json"
-        progress_json = json.dumps(progress_data, indent=2)
-        
-        s3.put_object(
-            Bucket=BUCKET_NAME,
-            Key=progress_key,
-            Body=progress_json.encode('utf-8'),
-            ContentType='application/json'
-        )
-        return True
-    except Exception as e:
-        st.error(f"Error saving progress: {e}")
-        return False
-
-# Load student progress from S3
-def load_student_progress(student_s3_prefix):
-    """Load student progress from S3"""
-    try:
-        progress_key = f"{student_s3_prefix}/progress.json"
-        content = read_s3_file(progress_key)
-        if content:
-            return json.loads(content.decode('utf-8'))
-        return None
-    except:
-        return None
-
-# Update progress data
-def update_progress_data(current_day, answers, completed=False):
-    """Update the student's progress data"""
-    if "student_progress" not in st.session_state:
-        st.session_state.student_progress = {}
-    
-    # Initialize day data if not exists
-    if current_day not in st.session_state.student_progress:
-        st.session_state.student_progress[current_day] = {
-            "answers": {},
-            "completed": False,
-            "last_updated": time.strftime("%Y-%m-%d %H:%M:%S")
-        }
-    
-    # Update answers for the day
-    st.session_state.student_progress[current_day]["answers"].update(answers)
-    st.session_state.student_progress[current_day]["last_updated"] = time.strftime("%Y-%m-%d %H:%M:%S")
-    
-    if completed:
-        st.session_state.student_progress[current_day]["completed"] = True
-    
-    # Save to S3
-    if "student_s3_prefix" in st.session_state:
-        save_student_progress(st.session_state.student_s3_prefix, st.session_state.student_progress)import streamlit as st
+import streamlit as st
 import json
 import base64
 import boto3
@@ -215,7 +162,8 @@ def load_student_progress(student_s3_prefix):
     """Load student progress from S3"""
     try:
         progress_key = f"{student_s3_prefix}/progress.json"
-        content = read_s3_file(progress_key)
+        response = s3.get_object(Bucket=BUCKET_NAME, Key=progress_key)
+        content = response['Body'].read()
         if content:
             return json.loads(content.decode('utf-8'))
         return None
