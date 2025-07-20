@@ -118,31 +118,33 @@ def add_custom_css():
     }
     
     /* Custom chart styles */
-    .activity-chart {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 20px;
-        padding: 20px;
-        margin: 10px 0;
+    .progress-bar-container {
+        margin: 20px 0;
+        padding: 15px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .progress-bar {
+        background-color: #f0f0f0;
+        border-radius: 15px;
+        height: 30px;
+        overflow: hidden;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .progress-fill {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         color: white;
-        text-align: center;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease;
-    }
-    
-    .activity-chart:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.2);
-    }
-    
-    .progress-ring {
-        display: inline-block;
-        position: relative;
-    }
-    
-    .progress-ring__circle {
-        transition: stroke-dashoffset 0.35s;
-        transform: rotate(-90deg);
-        transform-origin: 50% 50%;
+        font-weight: bold;
+        font-size: 14px;
+        transition: width 0.5s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        border-radius: 15px;
     }
     
     /* Navigation buttons */
@@ -498,35 +500,85 @@ def create_combined_progress_chart(activities_data):
         percentage = (data['correct'] / data['total'] * 100) if data['total'] > 0 else 0
         component = data.get('component', '')
         
+        # Determine color scheme
+        if percentage >= 80:
+            bar_gradient = 'linear-gradient(90deg, #4CAF50 0%, #45a049 100%)'
+            text_color = '#4CAF50'
+        elif percentage >= 60:
+            bar_gradient = 'linear-gradient(90deg, #FFA500 0%, #ff8c00 100%)'
+            text_color = '#FFA500'
+        else:
+            bar_gradient = 'linear-gradient(90deg, #FF6B6B 0%, #ff5252 100%)'
+            text_color = '#FF6B6B'
+        
         # Create beautiful bar chart for each activity
         st.markdown(f"""
-        <div style="margin: 20px 0;">
-            <h4 style="margin-bottom: 10px; color: #2c3e50;">{component}</h4>
-            <div style="background-color: #f0f0f0; border-radius: 15px; height: 30px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+        <div style="margin: 15px 0;">
+            <h5 style="margin-bottom: 8px; color: #2c3e50; font-weight: 600;">{component}</h5>
+            <div style="background-color: #f0f0f0; border-radius: 10px; height: 20px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
                 <div style="
                     width: {percentage}%;
                     height: 100%;
-                    background: linear-gradient(90deg, 
-                        {'#4CAF50' if percentage >= 80 else '#FFA500' if percentage >= 60 else '#FF6B6B'} 0%, 
-                        {'#45a049' if percentage >= 80 else '#ff8c00' if percentage >= 60 else '#ff5252'} 100%);
-                    border-radius: 15px;
+                    background: {bar_gradient};
+                    border-radius: 10px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     color: white;
                     font-weight: bold;
-                    font-size: 14px;
+                    font-size: 12px;
                     transition: width 0.5s ease;
                     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                 ">
-                    {percentage:.0f}%
+                    {f'{percentage:.0f}%' if percentage > 15 else ''}
                 </div>
             </div>
-            <p style="text-align: center; margin-top: 5px; color: #7f8c8d; font-size: 12px;">
-                {data['correct']}/{data['total']} correct
+            <p style="text-align: right; margin-top: 3px; color: {text_color}; font-size: 11px; font-weight: 500;">
+                {data['correct']}/{data['total']} correct {f'({percentage:.0f}%)' if percentage <= 15 else ''}
             </p>
         </div>
         """, unsafe_allow_html=True)
+    
+    # Add overall progress bar at the bottom
+    st.markdown("---")
+    st.markdown("### 📊 Overall Progress")
+    
+    # Determine overall color
+    if overall_percentage >= 80:
+        overall_gradient = 'linear-gradient(90deg, #4CAF50 0%, #45a049 100%)'
+        overall_color = '#4CAF50'
+    elif overall_percentage >= 60:
+        overall_gradient = 'linear-gradient(90deg, #FFA500 0%, #ff8c00 100%)'
+        overall_color = '#FFA500'
+    else:
+        overall_gradient = 'linear-gradient(90deg, #FF6B6B 0%, #ff5252 100%)'
+        overall_color = '#FF6B6B'
+    
+    st.markdown(f"""
+    <div style="margin: 15px 0;">
+        <div style="background-color: #f0f0f0; border-radius: 12px; height: 25px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="
+                width: {overall_percentage}%;
+                height: 100%;
+                background: {overall_gradient};
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-weight: bold;
+                font-size: 14px;
+                transition: width 0.5s ease;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            ">
+                {overall_percentage:.0f}%
+            </div>
+        </div>
+        <p style="text-align: center; margin-top: 5px; color: {overall_color}; font-size: 13px; font-weight: 600;">
+            {total_correct}/{total_questions} Total Questions Correct
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
 # Progress sidebar
 def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_prefix):
