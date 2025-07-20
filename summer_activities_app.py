@@ -28,6 +28,8 @@ if "first_activity_time" not in st.session_state:
     st.session_state.first_activity_time = 0
 if "audio_playing" not in st.session_state:
     st.session_state.audio_playing = {}
+if "day_scores" not in st.session_state:
+    st.session_state.day_scores = {}
 
 # S3 Configuration
 @st.cache_resource(show_spinner=False)
@@ -112,6 +114,28 @@ def add_custom_css():
     .start-day-button:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    
+    /* Sidebar progress styles */
+    .progress-bar {
+        background-color: #e0e0e0;
+        border-radius: 10px;
+        height: 20px;
+        overflow: hidden;
+        margin: 5px 0;
+    }
+    
+    .progress-fill {
+        background-color: #4CAF50;
+        height: 100%;
+        transition: width 0.3s ease;
+    }
+    
+    .activity-progress {
+        background-color: #f5f5f5;
+        border-radius: 8px;
+        padding: 10px;
+        margin: 5px 0;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -322,14 +346,8 @@ def play_audio_with_autoplay(s3_key, element_id="opening-audio"):
 # Fixed play audio function
 def play_audio_hidden(s3_key, audio_key=None):
     """Play audio with proper handling"""
-    if audio_key and st.session_state.audio_playing.get(audio_key, False):
-        return  # Don't play if already playing
-    
     audio_content = read_s3_file(s3_key)
     if audio_content:
-        if audio_key:
-            st.session_state.audio_playing[audio_key] = True
-        
         b64 = base64.b64encode(audio_content).decode()
         unique_id = str(time.time()).replace('.', '')
         
@@ -432,8 +450,101 @@ def show_welcome_animation(student_name):
     </div>
     """, unsafe_allow_html=True)
 
+# Function to check text similarity for dictation validation
+def is_valid_dictation_answer(user_answer, correct_answer):
+    """Check if user answer is valid for dictation (at least 2 words)"""
+    if not user_answer:
+        return False
+    
+    # Count words
+    word_count = len(user_answer.strip().split())
+    return word_count >= 2
+
+# Function to create progress sidebar
+def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_prefix):
+    """Create a sidebar with progress tracking"""
+    with st.sidebar:
+        st.markdown(f"## 👤 {st.session_state.student}")
+        st.markdown("---")
+        
+        # Overall progress
+        st.markdown("### 📊 Overall Progress")
+        completed_count = len(st.session_state.completed_days)
+        total_days = len(all_days)
+        progress_percentage = (completed_count / total_days * 100) if total_days > 0 else 0
+        
+        st.markdown(f"""
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: {progress_percentage}%"></div>
+        </div>
+        <p style="text-align: center; margin-top: 5px;">{completed_count}/{total_days} Days Completed ({progress_percentage:.0f}%)</p>
+        """, unsafe_allow_html=True)
+        
+        # Day-by-day progress
+        st.markdown("### 📅 Daily Progress")
+        for day in all_days:
+            is_current = day == current_day
+            is_completed = day in st.session_state.completed_days
+            
+            if is_current:
+                st.markdown(f"**➡️ {day.replace('day', 'Day ')} (Current)**")
+            elif is_completed:
+                st.markdown(f"✅ {day.replace('day', 'Day ')}")
+            else:
+                st.markdown(f"⭕ {day.replace('day', 'Day ')}")
+        
+        # Current day activity progress
+        if current_day and current_day in day_to_content:
+            st.markdown("---")
+            st.markdown(f"### 📚 {current_day.replace('day', 'Day ')} Activities")
+            
+            day_data = day_to_content[current_day]
+            for field in day_data['fields']:
+                if field.get('type') == 'enhanced_structured_literacy_session':
+                    content = field.get('content', {})
+                    
+                    # Calculate activity scores
+                    for activity in content.get('activities', []):
+                        activity_num = activity.get('activity_number', '')
+                        component = activity.get('component', '')
+                        
+                        # Count correct answers for this activity
+                        correct = 0
+                        total = 0
+                        
+                        # Get all questions for this activity
+                        for q in activity.get('questions', []):
+                            total += 1
+                            # Find the global index for this question
+                            for global_idx, (act, _, question) in enumerate([(a, i, qu) for a in content.get('activities', []) for i, qu in enumerate(a.get('questions', []))]):
+                                if act == activity and question == q:
+                                    answer_key = f"answer_{current_day}_{global_idx}"
+                                    user_answer = st.session_state.answers.get(answer_key)
+                                    
+                                    if q.get('answer_type') == 'single_select':
+                                        if user_answer == q.get('correct_answer'):
+                                            correct += 1
+                                    elif q.get('answer_type') == 'text_input':
+                                        # For dictation, just check if valid answer exists
+                                        if user_answer and is_valid_dictation_answer(user_answer, q.get('correct_answer', '')):
+                                            correct += 1
+                        
+                        # Display activity progress
+                        if total > 0:
+                            percentage = (correct / total * 100)
+                            st.markdown(f"""
+                            <div class="activity-progress">
+                                <strong>Activity {activity_num}: {component}</strong>
+                                <div class="progress-bar" style="height: 15px;">
+                                    <div class="progress-fill" style="width: {percentage}%; background-color: {'#4CAF50' if percentage == 100 else '#FFA500'}"></div>
+                                </div>
+                                <small>{correct}/{total} correct ({percentage:.0f}%)</small>
+                            </div>
+                            """, unsafe_allow_html=True)
+
 # Main app
 def main():
+    st.set_page_config(layout="wide", page_title="Student Activities", page_icon="📚")
     st.title("Student Activities")
    
     # Add custom CSS
@@ -556,6 +667,9 @@ def main():
 
         current_day = st.session_state.current_day
 
+        # Create progress sidebar
+        create_progress_sidebar(all_days, day_to_content, current_day, student_s3_prefix)
+
         if current_day and current_day in day_to_content:
             day_data = day_to_content[current_day]
             
@@ -592,27 +706,7 @@ def main():
                         if audio_s3_key:
                             play_audio_with_autoplay(audio_s3_key)
                             st.session_state.opening_audio_played.add(current_day)
-                            
-                            # Set a flag to play first activity intro after delay
-                            st.session_state.play_first_activity = True
-                            st.session_state.first_activity_time = time.time()
                     
-                    # Check if we should play first activity intro (after 3 second delay)
-                    if (st.session_state.get('play_first_activity', False) and 
-                        time.time() - st.session_state.get('first_activity_time', 0) > 3):
-                        
-                        # Play first activity introduction
-                        if content.get('activities'):
-                            first_activity = content['activities'][0]
-                            first_tutor_audio = first_activity.get('tutor_intro_audio_file', '')
-                            first_tutor_key = fix_audio_path(first_tutor_audio, student_s3_prefix, current_day)
-                            if first_tutor_key:
-                                play_audio_hidden(first_tutor_key)
-                        
-                        # Clear the flag
-                        st.session_state.play_first_activity = False
-                        st.rerun()  # Rerun to update the UI
-                   
                     st.header(f"Day: {current_day.replace('day', 'Day ')}")
                     st.subheader(content.get('theme', current_day))
                     
@@ -661,7 +755,7 @@ def main():
                                     with col2:
                                         audio_key = f"tutor_{current_day}_{activity.get('activity_number')}"
                                         if st.button("🎯 Activity Introduction", key=audio_key, use_container_width=True):
-                                            play_audio_hidden(tutor_audio_key, audio_key)
+                                            play_audio_hidden(tutor_audio_key)
                             
                             # Session state keys for practice tracking
                             practice_key = f"practice_done_{current_day}_{activity.get('activity_number')}"
@@ -809,7 +903,15 @@ def main():
                                             if st.button("▶️ Play Dictation", key=audio_key, type="primary"):
                                                 play_audio_hidden(dictation_key, audio_key)
                             
-                            st.session_state.answers[answer_key] = st.text_input("Your Answer:", key=answer_key)
+                            current_answer = st.text_input("Your Answer:", key=answer_key, value=st.session_state.answers.get(answer_key, ""))
+                            
+                            # For dictation, validate and store the answer
+                            if current_answer:
+                                if is_valid_dictation_answer(current_answer, q.get('correct_answer', '')):
+                                    st.session_state.answers[answer_key] = current_answer
+                                    st.success("✅ Good job writing your answer!")
+                                else:
+                                    st.warning("Please write at least 2 words")
                         
                         # Special handling for reading comprehension stories
                         if activity.get('component') == 'Reading Comprehension' and local_idx == 0:
@@ -878,10 +980,23 @@ def main():
                         if key in st.session_state:
                             del st.session_state[key]
 
-                    all_answered = all(
-                        st.session_state.answers.get(f"answer_{current_day}_{start_idx + i}")
-                        for i in range(len(current_questions))
-                    )
+                    # Check if all questions are answered (with special handling for dictation)
+                    all_answered = True
+                    for i in range(len(current_questions)):
+                        answer_key = f"answer_{current_day}_{start_idx + i}"
+                        user_answer = st.session_state.answers.get(answer_key)
+                        _, _, q = current_questions[i]
+                        
+                        if q.get('answer_type') == 'text_input' and q.get('question_type') == 'text_input_dictation':
+                            # For dictation, check if valid answer exists
+                            if not user_answer or not is_valid_dictation_answer(user_answer, q.get('correct_answer', '')):
+                                all_answered = False
+                                break
+                        else:
+                            # For other types, just check if answer exists
+                            if not user_answer:
+                                all_answered = False
+                                break
 
                     if all_answered:
                         if page + 1 < total_pages:
