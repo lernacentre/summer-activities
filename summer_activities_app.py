@@ -512,6 +512,9 @@ def create_combined_progress_chart(activities_data):
             text_color = '#FF6B6B'
         
         # Create beautiful bar chart for each activity
+        percent_text = f'{percentage:.0f}%' if percentage > 15 else ''
+        extra_percent = f'({percentage:.0f}%)' if percentage <= 15 else ''
+        
         st.markdown(f"""
         <div style="margin: 15px 0;">
             <h5 style="margin-bottom: 8px; color: #1a1a1a; font-weight: 600; font-size: 14px;">{component}</h5>
@@ -530,11 +533,11 @@ def create_combined_progress_chart(activities_data):
                     transition: width 0.5s ease;
                     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                 ">
-                    {f'{percentage:.0f}%' if percentage > 15 else ''}
+                    {percent_text}
                 </div>
             </div>
             <p style="text-align: right; margin-top: 3px; color: {text_color}; font-size: 11px; font-weight: 500;">
-                {data['correct']}/{data['total']} correct {f'({percentage:.0f}%)' if percentage <= 15 else ''}
+                {data['correct']}/{data['total']} correct {extra_percent}
             </p>
         </div>
         """, unsafe_allow_html=True)
