@@ -7,9 +7,9 @@ from io import BytesIO
 import time
 import random
 from difflib import SequenceMatcher
-import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-import numpy as np
+
+# Page config must be first
+st.set_page_config(layout="wide", page_title="Student Activities", page_icon="📚")
 
 # Initialize session state
 if "authenticated" not in st.session_state:
@@ -70,6 +70,15 @@ except Exception as e:
 def add_custom_css():
     st.markdown("""
     <style>
+    /* Prevent screen flashing */
+    .stApp {
+        transition: none !important;
+    }
+    
+    .element-container {
+        transition: none !important;
+    }
+    
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
@@ -149,6 +158,25 @@ def add_custom_css():
     /* Hide duplicate buttons */
     .row-widget.stButton {
         display: inline-block;
+    }
+    
+    /* Progress circles alignment */
+    .progress-circle-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        text-align: center;
+        margin: 10px 0;
+    }
+    
+    /* Disable transitions that cause flashing */
+    .main > div {
+        transition: none !important;
+    }
+    
+    [data-testid="stSidebar"] {
+        transition: none !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -328,6 +356,7 @@ def play_audio_with_autoplay(s3_key, element_id="opening-audio"):
         st.markdown(audio_html, unsafe_allow_html=True)
 
 # Fixed play audio function with unique containers
+@st.fragment
 def play_audio_hidden(s3_key, audio_key=None):
     """Play audio with proper handling and unique containers"""
     audio_content = read_s3_file(s3_key)
@@ -335,26 +364,21 @@ def play_audio_hidden(s3_key, audio_key=None):
         b64 = base64.b64encode(audio_content).decode()
         unique_id = f"{audio_key}_{str(time.time()).replace('.', '')}" if audio_key else str(time.time()).replace('.', '')
         
-        # Create a unique placeholder for this audio
-        if audio_key not in st.session_state.audio_elements:
-            st.session_state.audio_elements[audio_key] = st.empty()
-        
-        with st.session_state.audio_elements[audio_key]:
-            st.markdown(f"""
-            <audio id="audio_{unique_id}" autoplay>
-                <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-            </audio>
-            <script>
-                (function() {{
-                    var audio = document.getElementById('audio_{unique_id}');
-                    if (audio) {{
-                        audio.play().catch(function(e) {{
-                            console.error('Audio play error:', e);
-                        }});
-                    }}
-                }})();
-            </script>
-            """, unsafe_allow_html=True)
+        st.markdown(f"""
+        <audio id="audio_{unique_id}" autoplay>
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+        </audio>
+        <script>
+            (function() {{
+                var audio = document.getElementById('audio_{unique_id}');
+                if (audio) {{
+                    audio.play().catch(function(e) {{
+                        console.error('Audio play error:', e);
+                    }});
+                }}
+            }})();
+        </script>
+        """, unsafe_allow_html=True)
 
 # Play story with highlighted text
 def play_story_with_highlight(story_text, audio_s3_key):
@@ -514,48 +538,31 @@ def show_welcome_animation(student_name):
     </div>
     """, unsafe_allow_html=True)
 
-# Create activity pie chart
-def create_activity_pie_chart(activity_name, correct, total):
-    """Create a colorful pie chart for activity progress"""
-    incorrect = total - correct
+# Create simple progress visualization using Streamlit metrics
+def create_activity_progress(activity_name, correct, total, component):
+    """Create a simple progress visualization using Streamlit components"""
     percentage = (correct / total * 100) if total > 0 else 0
     
-    # Create figure
-    fig, ax = plt.subplots(figsize=(3, 3))
-    
-    # Data
-    sizes = [correct, incorrect]
-    labels = ['Correct', 'Incorrect']
-    
-    # Colors based on performance
-    if percentage > 80:
-        colors = ['#4CAF50', '#E8F5E9']  # Green
-    elif percentage > 60:
-        colors = ['#FFA500', '#FFF3E0']  # Orange
-    else:
-        colors = ['#FF6B6B', '#FFEBEE']  # Red
-    
-    # Create pie chart
-    wedges, texts = ax.pie(sizes, colors=colors, startangle=90)
-    
-    # Add percentage in center
-    ax.text(0, 0, f'{percentage:.0f}%', 
-            ha='center', va='center', fontsize=20, fontweight='bold')
-    
-    # Title
-    ax.set_title(activity_name, fontsize=12, fontweight='bold', pad=20)
-    
-    # Equal aspect ratio ensures that pie is drawn as a circle
-    ax.axis('equal')
-    
-    # Remove background
-    fig.patch.set_facecolor('none')
-    ax.set_facecolor('none')
-    
-    plt.tight_layout()
-    return fig
+    # Use Streamlit's native metric component
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.metric(
+            label=activity_name,
+            value=f"{percentage:.0f}%",
+            delta=component,
+            delta_color="off"
+        )
+    with col2:
+        # Create a simple progress indicator using emojis
+        if percentage >= 80:
+            st.markdown("🟢")
+        elif percentage >= 60:
+            st.markdown("🟡")
+        else:
+            st.markdown("🔴")
 
 # Function to create progress sidebar
+@st.fragment
 def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_prefix):
     """Create a sidebar with progress tracking"""
     with st.sidebar:
@@ -574,17 +581,14 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
         # Current day progress
         if current_day and current_day in day_to_content:
             st.markdown("---")
-            st.markdown(f"### 📚 Today's Progress")
+            st.markdown(f"### 📚 Today's Activity Completion")
             
             day_data = day_to_content[current_day]
             for field in day_data['fields']:
                 if field.get('type') == 'enhanced_structured_literacy_session':
                     content = field.get('content', {})
                     
-                    # Create pie charts for each activity
-                    cols = st.columns(2)
-                    col_idx = 0
-                    
+                    # Create progress for each activity
                     for activity in content.get('activities', []):
                         activity_num = activity.get('activity_number', '')
                         component = activity.get('component', '')
@@ -611,65 +615,22 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
                         # Store scores for all-time tracking
                         if activity_name not in st.session_state.all_time_scores:
                             st.session_state.all_time_scores[activity_name] = {"correct": 0, "total": 0}
-                        st.session_state.all_time_scores[activity_name]["correct"] += correct
-                        st.session_state.all_time_scores[activity_name]["total"] += total
                         
-                        # Display pie chart
-                        with cols[col_idx % 2]:
-                            fig = create_activity_pie_chart(activity_name, correct, total)
-                            st.pyplot(fig, use_container_width=True)
-                            plt.close(fig)  # Clean up
-                            st.caption(component)
-                        
-                        col_idx += 1
+                        # Display progress
+                        create_activity_progress(activity_name, correct, total, component)
         
         # All-time activity progress
         st.markdown("---")
         st.markdown("### 📈 All-Time Progress")
         
         if st.session_state.all_time_scores:
-            activity_names = []
-            percentages = []
-            
+            # Create a simple bar chart using progress bars
             for activity, scores in st.session_state.all_time_scores.items():
                 if scores["total"] > 0:
-                    activity_names.append(activity)
-                    percentages.append((scores["correct"] / scores["total"]) * 100)
-            
-            if activity_names:
-                fig, ax = plt.subplots(figsize=(6, 4))
-                
-                # Create bar colors based on performance
-                colors = ['#4CAF50' if p >= 80 else '#FFA500' if p >= 60 else '#FF6B6B' for p in percentages]
-                
-                # Create bars
-                bars = ax.bar(activity_names, percentages, color=colors)
-                
-                # Add value labels on bars
-                for bar, pct in zip(bars, percentages):
-                    height = bar.get_height()
-                    ax.text(bar.get_x() + bar.get_width()/2., height,
-                           f'{pct:.0f}%', ha='center', va='bottom')
-                
-                # Styling
-                ax.set_xlabel('Activities', fontsize=10)
-                ax.set_ylabel('Success Rate (%)', fontsize=10)
-                ax.set_ylim(0, 100)
-                ax.set_title('Overall Performance', fontsize=12, fontweight='bold')
-                
-                # Rotate x labels if needed
-                plt.xticks(rotation=45, ha='right')
-                
-                # Remove top and right spines
-                ax.spines['top'].set_visible(False)
-                ax.spines['right'].set_visible(False)
-                
-                # Grid
-                ax.grid(axis='y', alpha=0.3)
-                
-                plt.tight_layout()
-                st.pyplot(fig, use_container_width=True)
-                plt.close(fig)
+                    percentage = (scores["correct"] / scores["total"]) * 100
+                    st.markdown(f"**{activity}**")
+                    st.progress(percentage / 100)
+                    st.caption(f"{percentage:.0f}% ({scores['correct']}/{scores['total']})")
         
         # Day-by-day status
         st.markdown("---")
@@ -687,7 +648,6 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
 
 # Main app
 def main():
-    st.set_page_config(layout="wide", page_title="Student Activities", page_icon="📚")
     st.title("Student Activities")
    
     # Add custom CSS
