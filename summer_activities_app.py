@@ -514,7 +514,7 @@ def create_combined_progress_chart(activities_data):
         # Create beautiful bar chart for each activity
         st.markdown(f"""
         <div style="margin: 15px 0;">
-            <h5 style="margin-bottom: 8px; color: #2c3e50; font-weight: 600;">{component}</h5>
+            <h5 style="margin-bottom: 8px; color: #1a1a1a; font-weight: 600; font-size: 14px;">{component}</h5>
             <div style="background-color: #f0f0f0; border-radius: 10px; height: 20px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
                 <div style="
                     width: {percentage}%;
