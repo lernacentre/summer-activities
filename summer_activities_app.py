@@ -206,18 +206,29 @@ def scroll_to_top():
     """, unsafe_allow_html=True)
 
 # Helper function to read files from S3
-@st.cache_data
 def read_s3_file(s3_key):
     """Read a file from S3 and return its content"""
+    # Check if already cached in session state
+    cache_key = f"_s3_file_cache_{s3_key}"
+    if cache_key in st.session_state:
+        return st.session_state[cache_key]
+    
     try:
         response = s3.get_object(Bucket=BUCKET_NAME, Key=s3_key)
-        return response['Body'].read()
+        content = response['Body'].read()
+        # Cache small files only (less than 10MB)
+        if len(content) < 10 * 1024 * 1024:
+            st.session_state[cache_key] = content
+        return content
     except ClientError:
         return None
 
 # Get all students - hidden from UI
-@st.cache_data
 def _get_all_students():
+    # Check if already cached in session state
+    if "_all_students_cache" in st.session_state:
+        return st.session_state._all_students_cache
+    
     student_to_group = {}
     base_prefix = "Summer_Activities/"
     
@@ -259,6 +270,8 @@ def _get_all_students():
                     if student not in student_to_group:
                         student_to_group[student] = group
         
+        # Cache in session state
+        st.session_state._all_students_cache = student_to_group
         return student_to_group
         
     except Exception as e:
@@ -275,8 +288,12 @@ def fix_audio_path(audio_file, student_s3_prefix, current_day):
         return f"{student_s3_prefix}/{current_day}/{audio_file}"
 
 # Load passwords - hidden function
-@st.cache_data
 def _load_passwords(group_folder):
+    # Check if already cached in session state
+    cache_key = f"_passwords_cache_{group_folder}"
+    if cache_key in st.session_state:
+        return st.session_state[cache_key]
+    
     passwords = {}
     
     group_password_key = f"Summer_Activities/{group_folder}/{group_folder}_passwords.txt"
@@ -326,6 +343,8 @@ def _load_passwords(group_folder):
             except json.JSONDecodeError:
                 pass
     
+    # Cache in session state
+    st.session_state[cache_key] = passwords
     return passwords
 
 # Play audio with autoplay
@@ -879,8 +898,12 @@ def main():
         student_s3_prefix = f"Summer_Activities/{st.session_state.group}/{st.session_state.original_student}"
 
         # Load day packs
-        @st.cache_data
         def load_day_packs(student_s3_prefix):
+            # Check if already cached in session state
+            cache_key = f"_day_packs_cache_{student_s3_prefix}"
+            if cache_key in st.session_state:
+                return st.session_state[cache_key]
+            
             all_days = []
             day_to_content = {}
             try:
@@ -903,7 +926,11 @@ def main():
                         data = json.loads(content.decode('utf-8'))
                         all_days.append(day_folder)
                         day_to_content[day_folder] = data
-                return all_days, day_to_content
+                
+                # Cache in session state
+                result = (all_days, day_to_content)
+                st.session_state[cache_key] = result
+                return result
             except ClientError as e:
                 st.error("Error loading activities")
                 return [], {}
@@ -1090,37 +1117,33 @@ def main():
                             if story_text:
                                 st.markdown("📖 **Read the story:**")
                                 
-                                # Story container
-                                story_container = st.container()
-                                
                                 story_audio = activity.get('story_audio_file', '')
                                 if story_audio:
                                     story_key = fix_audio_path(story_audio, student_s3_prefix, current_day)
                                     if story_key:
+                                        story_clicked_key = f"story_clicked_{activity.get('activity_number')}_{page}"
+                                        
                                         if st.button("🎧 Listen & Read", key=f"story_{activity.get('activity_number')}_{page}", use_container_width=True):
-                                            with story_container:
-                                                st.empty()  # Clear any existing content
-                                                play_story_with_highlight(story_text, story_key)
-                                        else:
-                                            # Show plain story text when button not clicked
-                                            with story_container:
-                                                st.markdown(f"""
-                                                <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #4CAF50;">
-                                                    <p style="font-size: 18px; line-height: 2; color: #333;">
-                                                        {story_text}
-                                                    </p>
-                                                </div>
-                                                """, unsafe_allow_html=True)
+                                            st.session_state[story_clicked_key] = True
+                                            play_story_with_highlight(story_text, story_key)
+                                        elif not st.session_state.get(story_clicked_key, False):
+                                            # Show plain story text only if button hasn't been clicked
+                                            st.markdown(f"""
+                                            <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #4CAF50;">
+                                                <p style="font-size: 18px; line-height: 2; color: #333;">
+                                                    {story_text}
+                                                </p>
+                                            </div>
+                                            """, unsafe_allow_html=True)
                                 else:
                                     # No audio, just show text
-                                    with story_container:
-                                        st.markdown(f"""
-                                        <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #4CAF50;">
-                                            <p style="font-size: 18px; line-height: 2; color: #333;">
-                                                {story_text}
-                                            </p>
-                                        </div>
-                                        """, unsafe_allow_html=True)
+                                    st.markdown(f"""
+                                    <div style="background-color: #f9f9f9; padding: 20px; border-radius: 10px; margin: 15px 0; border-left: 4px solid #4CAF50;">
+                                        <p style="font-size: 18px; line-height: 2; color: #333;">
+                                            {story_text}
+                                        </p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
                         
                         # Question display
                         st.markdown(f"**Q{global_idx + 1}: {q.get('prompt', '')}**")
@@ -1198,17 +1221,43 @@ def main():
                                             if st.button("▶️ Play", key=f"dict_{global_idx}_{page}", type="primary"):
                                                 play_audio_hidden(dictation_key, f"dict_{global_idx}_{page}_{time.time()}")
                                 
+                                # Add attempt tracking
+                                attempt_key = f"dictation_attempts_{global_idx}_{page}"
+                                if attempt_key not in st.session_state:
+                                    st.session_state[attempt_key] = 0
+                                
                                 current_answer = st.text_input("Your Answer:", key=answer_key, value=st.session_state.answers.get(answer_key, ""))
                                 
-                                if current_answer:
+                                if current_answer and not current_answer.startswith("[Shown:"):
                                     is_valid, message = is_valid_dictation_answer(current_answer, q.get('correct_answer', ''))
+                                    
                                     if is_valid or current_answer.lower() == "i don't know":
                                         st.session_state.answers[answer_key] = current_answer
+                                        # Reset attempts on success
+                                        st.session_state[attempt_key] = 0
                                         # Save answer immediately
                                         update_progress_data(current_day, {answer_key: current_answer})
                                         st.success(message if current_answer.lower() != "i don't know" else "That's okay!")
                                     else:
-                                        st.warning(message)
+                                        # Increment attempts
+                                        st.session_state[attempt_key] += 1
+                                        
+                                        if st.session_state[attempt_key] >= 2:
+                                            # After 2 attempts, show correct answer and auto-pass
+                                            correct_answer = q.get('correct_answer', '')
+                                            st.warning(f"The correct answer is: **{correct_answer}**")
+                                            st.info("Let's continue to the next question!")
+                                            # Auto-save "shown answer" to allow progression
+                                            st.session_state.answers[answer_key] = f"[Shown: {correct_answer}]"
+                                            update_progress_data(current_day, {answer_key: f"[Shown: {correct_answer}]"})
+                                            # Reset attempts
+                                            st.session_state[attempt_key] = 0
+                                            st.rerun()
+                                        else:
+                                            st.warning(f"{message} (Attempt {st.session_state[attempt_key]}/2)")
+                                elif current_answer and current_answer.startswith("[Shown:"):
+                                    # If answer was shown, display success message
+                                    st.success("Answer recorded. Let's continue!")
                             else:
                                 # Regular text input (e.g., reading comprehension)
                                 current_answer = st.text_input("Your Answer:", key=answer_key, value=st.session_state.answers.get(answer_key, ""))
@@ -1270,8 +1319,8 @@ def main():
                                 break
                         elif q.get('answer_type') == 'text_input':
                             if q.get('question_type') == 'text_input_dictation':
-                                # For dictation, check if valid answer exists
-                                if not user_answer or (not is_valid_dictation_answer(user_answer, q.get('correct_answer', ''))[0] and user_answer.lower() != "i don't know"):
+                                # For dictation, check if valid answer exists (including auto-shown answers)
+                                if not user_answer:
                                     all_answered = False
                                     break
                             else:
