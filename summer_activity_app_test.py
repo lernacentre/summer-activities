@@ -8,6 +8,8 @@ import time
 import random
 from difflib import SequenceMatcher
 import math
+import plotly.graph_objects as go
+import plotly.express as px
 
 # Page config must be first
 st.set_page_config(layout="wide", page_title="Student Activities", page_icon="📚")
@@ -517,8 +519,11 @@ def is_valid_dictation_answer(user_answer, correct_answer):
     else:
         return False, "Please try again or type 'I don't know'"
 # Create a beautiful combined progress chart with graph
+# Add this import at the top of your file with other imports
+
+# Replace the create_combined_progress_chart function with this updated version
 def create_combined_progress_chart(activities_data, all_days_progress=None):
-    """Create a visually appealing combined progress visualization"""
+    """Create a visually appealing combined progress visualization with proper plots"""
     if not activities_data:
         return
     
@@ -541,7 +546,7 @@ def create_combined_progress_chart(activities_data, all_days_progress=None):
     # Create pie chart for today's completion
     remaining = 100 - overall_percentage
     
-    # SVG pie chart with correct proportions
+    # SVG pie chart with correct proportions (keeping this part as is)
     st.markdown(f"""
     <div style="text-align: center; margin: 20px 0;">
         <div style="position: relative; width: 150px; height: 150px; margin: 0 auto;">
@@ -585,44 +590,170 @@ def create_combined_progress_chart(activities_data, all_days_progress=None):
     st.markdown("### 📊 Progress Over Time")
     
     if all_days_progress and len(all_days_progress) > 0:
-        # Create a bar chart showing progress for each completed day
-        st.markdown("""
-        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin: 10px 0;">
-        """, unsafe_allow_html=True)
+        # Prepare data for plotting
+        days = sorted(all_days_progress.keys())
+        day_labels = [day.replace('day', 'Day ') for day in days]
+        percentages = [all_days_progress[day] for day in days]
         
-        for day, day_percentage in sorted(all_days_progress.items()):
-            bar_color = "#4CAF50" if day_percentage >= 80 else "#FFA500" if day_percentage >= 60 else "#FF6B6B"
-            day_label = day.replace('day', 'Day ')
-            
-            st.markdown(f"""
-            <div style="margin: 10px 0;">
-                <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                    <span style="width: 60px; font-weight: bold;">{day_label}:</span>
-                    <div style="flex: 1; background-color: #e0e0e0; border-radius: 10px; height: 25px; margin: 0 10px; position: relative; overflow: hidden;">
-                        <div style="width: {day_percentage}%; background: {bar_color}; height: 100%; border-radius: 10px; 
-                                    display: flex; align-items: center; padding: 0 10px; color: white; font-weight: bold;
-                                    transition: width 0.5s ease;">
-                            {day_percentage:.0f}%
-                        </div>
-                    </div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+        # Create color list based on performance
+        colors = ['#4CAF50' if p >= 80 else '#FFA500' if p >= 60 else '#FF6B6B' for p in percentages]
         
-        st.markdown("</div>", unsafe_allow_html=True)
+        # Create the line chart with markers
+        fig = go.Figure()
         
-        # Calculate overall average
-        if all_days_progress:
-            avg_percentage = sum(all_days_progress.values()) / len(all_days_progress)
+        # Add line trace
+        fig.add_trace(go.Scatter(
+            x=day_labels,
+            y=percentages,
+            mode='lines+markers',
+            name='Progress',
+            line=dict(color='#2196F3', width=3),
+            marker=dict(
+                size=12,
+                color=colors,
+                line=dict(color='white', width=2)
+            ),
+            text=[f'{p:.0f}%' for p in percentages],
+            textposition="top center",
+            hovertemplate='<b>%{x}</b><br>Score: %{y:.1f}%<extra></extra>'
+        ))
+        
+        # Add bar chart as background
+        fig.add_trace(go.Bar(
+            x=day_labels,
+            y=percentages,
+            name='Daily Score',
+            marker_color=colors,
+            opacity=0.3,
+            showlegend=False,
+            hovertemplate='<b>%{x}</b><br>Score: %{y:.1f}%<extra></extra>'
+        ))
+        
+        # Add target lines
+        fig.add_hline(y=80, line_dash="dash", line_color="green", opacity=0.5,
+                      annotation_text="Excellent (80%)", annotation_position="right")
+        fig.add_hline(y=60, line_dash="dash", line_color="orange", opacity=0.5,
+                      annotation_text="Good (60%)", annotation_position="right")
+        
+        # Update layout
+        fig.update_layout(
+            title=dict(
+                text='Daily Progress Chart',
+                font=dict(size=20, color='#2c3e50'),
+                x=0.5,
+                xanchor='center'
+            ),
+            xaxis=dict(
+                title='Days',
+                showgrid=True,
+                gridcolor='rgba(0,0,0,0.1)',
+                tickfont=dict(size=12)
+            ),
+            yaxis=dict(
+                title='Score (%)',
+                range=[0, 105],
+                showgrid=True,
+                gridcolor='rgba(0,0,0,0.1)',
+                tickfont=dict(size=12)
+            ),
+            plot_bgcolor='rgba(250,250,250,0.8)',
+            paper_bgcolor='white',
+            hovermode='x unified',
+            showlegend=False,
+            margin=dict(l=50, r=50, t=80, b=50),
+            height=400
+        )
+        
+        # Add gradient fill under the line
+        fig.add_trace(go.Scatter(
+            x=day_labels,
+            y=percentages,
+            fill='tozeroy',
+            fillcolor='rgba(33, 150, 243, 0.1)',
+            line=dict(color='rgba(255,255,255,0)'),
+            showlegend=False,
+            hoverinfo='skip'
+        ))
+        
+        # Display the plot
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Calculate and display statistics
+        avg_percentage = sum(percentages) / len(percentages)
+        max_percentage = max(percentages)
+        min_percentage = min(percentages)
+        
+        # Statistics cards
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
             avg_color = "#4CAF50" if avg_percentage >= 80 else "#FFA500" if avg_percentage >= 60 else "#FF6B6B"
-            
             st.markdown(f"""
-            <div style="margin-top: 20px; text-align: center;">
-                <h4 style="color: {avg_color};">Overall Average: {avg_percentage:.0f}%</h4>
+            <div style="text-align: center; padding: 20px; background-color: #f8f9fa; border-radius: 10px; border-left: 4px solid {avg_color};">
+                <h3 style="margin: 0; color: {avg_color};">{avg_percentage:.0f}%</h3>
+                <p style="margin: 5px 0 0 0; color: #666;">Average Score</p>
             </div>
             """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown(f"""
+            <div style="text-align: center; padding: 20px; background-color: #f8f9fa; border-radius: 10px; border-left: 4px solid #4CAF50;">
+                <h3 style="margin: 0; color: #4CAF50;">{max_percentage:.0f}%</h3>
+                <p style="margin: 5px 0 0 0; color: #666;">Best Day</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col3:
+            improvement = percentages[-1] - percentages[0] if len(percentages) > 1 else 0
+            improvement_color = "#4CAF50" if improvement > 0 else "#FF6B6B" if improvement < 0 else "#FFA500"
+            improvement_icon = "📈" if improvement > 0 else "📉" if improvement < 0 else "➡️"
+            st.markdown(f"""
+            <div style="text-align: center; padding: 20px; background-color: #f8f9fa; border-radius: 10px; border-left: 4px solid {improvement_color};">
+                <h3 style="margin: 0; color: {improvement_color};">{improvement_icon} {abs(improvement):.0f}%</h3>
+                <p style="margin: 5px 0 0 0; color: #666;">Overall Change</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Optional: Add a secondary chart showing activity breakdown over days
+        if st.checkbox("Show detailed activity breakdown", value=False):
+            # This would require storing activity-level data for each day
+            # For now, showing a placeholder message
+            st.info("Activity-level tracking will be available in future updates!")
+            
     else:
         st.info("Complete more days to see your progress over time!")
+        
+        # Show a preview chart with example data
+        st.markdown("#### 📊 What your progress chart will look like:")
+        
+        # Example data
+        example_days = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5']
+        example_percentages = [65, 72, 78, 85, 88]
+        example_colors = ['#FF6B6B', '#FFA500', '#FFA500', '#4CAF50', '#4CAF50']
+        
+        fig_example = go.Figure()
+        
+        fig_example.add_trace(go.Scatter(
+            x=example_days,
+            y=example_percentages,
+            mode='lines+markers',
+            line=dict(color='#2196F3', width=3, dash='dot'),
+            marker=dict(size=10, color=example_colors),
+            text=[f'{p}%' for p in example_percentages],
+            textposition="top center",
+            name='Example Progress'
+        ))
+        
+        fig_example.update_layout(
+            title='Example Progress Chart',
+            xaxis_title='Days',
+            yaxis=dict(title='Score (%)', range=[0, 100]),
+            height=300,
+            showlegend=False,
+            plot_bgcolor='rgba(250,250,250,0.5)'
+        )
+        
+        st.plotly_chart(fig_example, use_container_width=True)
 
 # Progress sidebar
 def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_prefix):
