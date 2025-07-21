@@ -934,6 +934,7 @@ def show_success_animation(message):
 
 # Main app
 # Main app
+# Main app
 def main():
     st.title("Lerna ReadTogether")
     add_custom_css()
@@ -1414,7 +1415,7 @@ def main():
                                     update_progress_data(current_day, {answer_key: current_answer})
                                     st.success("Answer saved!")
                         
-                        # Paragraph writing final display
+                        # Paragraph writing final display - UPDATED WITH COMPARISON
                         if activity.get('component') == 'Paragraph Writing':
                             activity_questions = [q for q in activity.get('questions', [])]
                             all_activity_answered = all(
@@ -1424,16 +1425,102 @@ def main():
                             
                             if all_activity_answered and local_idx == len(activity_questions) - 1:
                                 final_display = activity.get('final_display', {})
-                                if final_display.get('complete_paragraph'):
-                                    st.markdown("### 📝 Your Complete Paragraph:")
-                                    st.success(final_display['complete_paragraph'])
-                                    
-                                    paragraph_audio = final_display.get('audio_file', '')
-                                    if paragraph_audio:
-                                        para_key = fix_audio_path(paragraph_audio, student_s3_prefix, current_day)
-                                        if para_key:
-                                            if st.button("🎧 Listen to Paragraph", key=f"para_{activity.get('activity_number')}_{page}", use_container_width=True):
-                                                play_audio_hidden(para_key, f"para_{activity.get('activity_number')}_{page}_{time.time()}")
+                                
+                                # Assemble student's paragraph from their choices
+                                student_paragraph_parts = []
+                                for j, q in enumerate(activity_questions):
+                                    answer_key = f"answer_{current_day}_{all_questions.index((activity, j, q))}"
+                                    student_answer = st.session_state.answers.get(answer_key, "")
+                                    if student_answer:
+                                        # Extract just the sentence part if it includes both sentences
+                                        sentences = student_answer.split('. ')
+                                        for sentence in sentences:
+                                            if sentence.strip():
+                                                # Add period if not present
+                                                sentence = sentence.strip()
+                                                if not sentence.endswith('.'):
+                                                    sentence += '.'
+                                                student_paragraph_parts.append(sentence)
+                                
+                                # Join the student's choices into a paragraph
+                                student_paragraph = ' '.join(student_paragraph_parts)
+                                
+                                # Get the correct paragraph
+                                correct_paragraph = final_display.get('complete_paragraph', '')
+                                
+                                # Display comparison
+                                st.markdown("### 📝 Paragraph Writing Results")
+                                
+                                # Create two columns for comparison
+                                col1, col2 = st.columns(2)
+                                
+                                with col1:
+                                    st.markdown("#### 👤 Your Paragraph:")
+                                    st.info(student_paragraph)
+                                
+                                with col2:
+                                    st.markdown("#### ✅ Model Paragraph:")
+                                    st.success(correct_paragraph)
+                                
+                                # Calculate similarity
+                                similarity = calculate_similarity(student_paragraph, correct_paragraph)
+                                
+                                # Show similarity score with color coding
+                                if similarity >= 90:
+                                    similarity_color = "#4CAF50"
+                                    similarity_message = "Excellent match!"
+                                    similarity_emoji = "🌟"
+                                elif similarity >= 70:
+                                    similarity_color = "#FFA500"
+                                    similarity_message = "Good job!"
+                                    similarity_emoji = "👍"
+                                else:
+                                    similarity_color = "#2196F3"
+                                    similarity_message = "Nice effort!"
+                                    similarity_emoji = "💪"
+                                
+                                st.markdown(f"""
+                                <div style="text-align: center; margin: 20px 0; padding: 15px; background-color: #f8f9fa; border-radius: 10px;">
+                                    <h4 style="color: {similarity_color}; margin: 0;">
+                                        {similarity_emoji} Similarity Score: {similarity:.0f}% {similarity_emoji}
+                                    </h4>
+                                    <p style="color: #666; margin: 5px 0 0 0;">{similarity_message}</p>
+                                </div>
+                                """, unsafe_allow_html=True)
+                                
+                                # Show differences if similarity is not perfect
+                                if similarity < 95 and correct_paragraph:
+                                    with st.expander("📊 See detailed comparison"):
+                                        st.markdown("#### Key Differences:")
+                                        
+                                        # Simple word-level comparison
+                                        student_words = student_paragraph.lower().split()
+                                        correct_words = correct_paragraph.lower().split()
+                                        
+                                        # Find unique words in correct but not in student
+                                        missing_words = set(correct_words) - set(student_words)
+                                        extra_words = set(student_words) - set(correct_words)
+                                        
+                                        if missing_words:
+                                            st.markdown(f"**Words from model paragraph not in yours:** {', '.join(sorted(missing_words))}")
+                                        
+                                        if extra_words:
+                                            st.markdown(f"**Extra words in your paragraph:** {', '.join(sorted(extra_words))}")
+                                        
+                                        # Sentence count comparison
+                                        student_sentences = [s.strip() for s in student_paragraph.split('.') if s.strip()]
+                                        correct_sentences = [s.strip() for s in correct_paragraph.split('.') if s.strip()]
+                                        
+                                        st.markdown(f"**Sentence count:** Your paragraph has {len(student_sentences)} sentences, model has {len(correct_sentences)} sentences.")
+                                
+                                # Audio playback for the correct paragraph
+                                paragraph_audio = final_display.get('audio_file', '')
+                                if paragraph_audio:
+                                    para_key = fix_audio_path(paragraph_audio, student_s3_prefix, current_day)
+                                    if para_key:
+                                        st.markdown("---")
+                                        if st.button("🎧 Listen to Model Paragraph", key=f"para_{activity.get('activity_number')}_{page}", use_container_width=True):
+                                            play_audio_hidden(para_key, f"para_{activity.get('activity_number')}_{page}_{time.time()}")
                         
                         if i < len(current_questions) - 1:
                             st.divider()
@@ -1525,6 +1612,5 @@ def main():
                     with nav_col2_bottom:
                         if not all_answered:
                             st.warning("Answer all questions on this page to continue")
-                            
 if __name__ == "__main__":
     main()
