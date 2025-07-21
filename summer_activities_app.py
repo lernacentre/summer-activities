@@ -803,7 +803,7 @@ def show_success_animation(message):
 
 # Main app
 def main():
-    st.title("Student Activities")
+    st.title("Lerna ReadTogether")
     add_custom_css()
 
     student_to_group = _get_all_students()
