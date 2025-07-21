@@ -802,6 +802,7 @@ def show_success_animation(message):
     """, unsafe_allow_html=True)
 
 # Main app
+# Main app
 def main():
     st.title("Lerna ReadTogether")
     add_custom_css()
@@ -1148,8 +1149,14 @@ def main():
                                     </div>
                                     """, unsafe_allow_html=True)
                         
-                        # Question display
-                        st.markdown(f"**Q{global_idx + 1}: {q.get('prompt', '')}**")
+                        # Question display - FIXED TO USE question_display WITH HTML
+                        question_text = q.get('question_display', q.get('prompt', ''))
+                        if q.get('question_display'):
+                            # Use markdown with HTML enabled for highlighting
+                            st.markdown(f"**Q{global_idx + 1}:** {question_text}", unsafe_allow_html=True)
+                        else:
+                            # Fallback to regular display
+                            st.markdown(f"**Q{global_idx + 1}: {question_text}**")
                         
                         # Question audio - always play when clicked
                         q_audio = q.get('prompt_audio_file', '')
@@ -1173,7 +1180,12 @@ def main():
                                 is_correct = feedback_data['selected'] == feedback_data['correct']
                                 
                                 if is_correct:
-                                    st.success("✅ Correct! Well done!")
+                                    # Use feedback_display if available, otherwise use feedback
+                                    feedback_text = q.get('feedback_display', q.get('feedback', 'Correct! Well done!'))
+                                    if q.get('feedback_display'):
+                                        st.markdown(f'<div style="padding: 1rem; background-color: #d4edda; border-color: #c3e6cb; color: #155724; border: 1px solid; border-radius: .25rem;">✅ {feedback_text}</div>', unsafe_allow_html=True)
+                                    else:
+                                        st.success(f"✅ {feedback_text}")
                                     # Only play feedback audio if it hasn't been played for this specific feedback
                                     fb_played_key = f"fb_played_{feedback_key}"
                                     if feedback_data.get('feedback_audio') and not st.session_state.get(fb_played_key, False):
@@ -1382,6 +1394,6 @@ def main():
                     with nav_col2_bottom:
                         if not all_answered:
                             st.warning("Answer all questions on this page to continue")
-
+                            
 if __name__ == "__main__":
     main()
