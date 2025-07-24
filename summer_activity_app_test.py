@@ -77,7 +77,7 @@ def add_custom_css():
     <style>
     /* Smooth transitions and prevent flashing */
     .stApp {
-        transition: none !important;
+        transition: opacity 0.3s ease;
     }
     
     /* Custom animations */
@@ -134,37 +134,11 @@ def add_custom_css():
         margin: 10px 0;
     }
     
-    /* Force scroll position on load */
-    html, body {
-        scroll-behavior: auto !important;
-    }
-    
-    .main {
-        overflow-y: auto;
-    }
-    
-    /* Prevent layout shift during navigation */
-    .stApp > div {
-        min-height: 100vh;
-    }
-    
-    /* Prevent duplicate elements */
-    .stTextInput > div {
-        position: relative;
-    }
-
-    /* Smooth form transitions */
-    form {
-        transition: opacity 0.2s ease;
+    /* Scroll to top */
+    html {
+        scroll-behavior: smooth;
     }
     </style>
-    
-    <script>
-        // Force scroll on page load
-        window.addEventListener('DOMContentLoaded', function() {
-            window.scrollTo(0, 0);
-        });
-    </script>
     """, unsafe_allow_html=True)
 
 # Save student progress to S3
@@ -227,26 +201,9 @@ def update_progress_data(current_day, answers, completed=False):
 
 # Helper function to scroll to top
 def scroll_to_top():
-    """Force scroll to top of page"""
-    # Use a simpler approach with markdown
     st.markdown("""
     <script>
-        // Multiple methods to ensure scroll works
         window.scrollTo(0, 0);
-        document.body.scrollTop = 0;
-        document.documentElement.scrollTop = 0;
-        
-        // Find main content area and scroll it too
-        const mainContent = document.querySelector('.main');
-        if (mainContent) {
-            mainContent.scrollTop = 0;
-        }
-        
-        // Also try the stApp container
-        const stApp = document.querySelector('.stApp');
-        if (stApp) {
-            stApp.scrollTop = 0;
-        }
     </script>
     """, unsafe_allow_html=True)
 
@@ -437,47 +394,30 @@ def play_audio_hidden(s3_key, audio_key=None):
     if audio_content:
         b64 = base64.b64encode(audio_content).decode()
         
-        # Create unique ID for each play
-        unique_id = f"audio_{int(time.time() * 1000)}_{random.randint(1000, 9999)}"
+        # Create unique ID with timestamp to allow replay
+        timestamp = str(time.time()).replace('.', '')
+        unique_id = f"{audio_key}_{timestamp}" if audio_key else timestamp
         
-        # Use st.empty() to create a placeholder that won't duplicate
+        # Create a placeholder for audio
         audio_placeholder = st.empty()
         
-        # Insert the audio element
-        audio_placeholder.markdown(f"""
-        <audio id="{unique_id}" style="display: none;">
-            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-        </audio>
-        <script>
-            (function() {{
-                const audio = document.getElementById('{unique_id}');
-                if (audio) {{
-                    // Reset the audio to beginning
-                    audio.currentTime = 0;
-                    // Force load
-                    audio.load();
-                    // Play with promise handling
-                    const playPromise = audio.play();
-                    if (playPromise !== undefined) {{
-                        playPromise.then(() => {{
-                            console.log('Audio playing: {unique_id}');
-                        }}).catch(error => {{
-                            console.log('Play error:', error);
+        # Use the placeholder to render audio
+        with audio_placeholder:
+            st.markdown(f"""
+            <audio id="audio_{unique_id}" autoplay>
+                <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+            </audio>
+            <script>
+                (function() {{
+                    var audio = document.getElementById('audio_{unique_id}');
+                    if (audio) {{
+                        audio.play().catch(function(e) {{
+                            console.log('Audio play error:', e);
                         }});
                     }}
-                    
-                    // Clean up after audio ends
-                    audio.addEventListener('ended', function() {{
-                        setTimeout(() => {{
-                            if (audio && audio.parentNode) {{
-                                audio.parentNode.removeChild(audio);
-                            }}
-                        }}, 100);
-                    }});
-                }}
-            }})();
-        </script>
-        """, unsafe_allow_html=True)
+                }})();
+            </script>
+            """, unsafe_allow_html=True)
 
 # Play story with highlight
 def play_story_with_highlight(story_text, audio_s3_key):
@@ -578,39 +518,35 @@ def is_valid_dictation_answer(user_answer, correct_answer):
         return True, f"Good effort! ({similarity:.0f}% accurate)"
     else:
         return False, "Please try again or type 'I don't know'"
-
 # Create a beautiful combined progress chart with graph
-def create_combined_progress_chart(activities_data, all_days_progress=None, all_activities_historical=None):
+# Add this import at the top of your file with other imports
+
+# Replace the create_combined_progress_chart function with this updated version
+def create_combined_progress_chart(activities_data, all_days_progress=None):
     """Create a visually appealing combined progress visualization with proper plots"""
     if not activities_data:
         return
     
-    # Calculate completion percentage (not correctness) for current day
-    total_answered = 0
-    total_questions = 0
+    # Calculate total progress for current day
+    total_correct = sum(data['correct'] for data in activities_data.values())
+    total_questions = sum(data['total'] for data in activities_data.values())
+    overall_percentage = (total_correct / total_questions * 100) if total_questions > 0 else 0
     
-    for activity_name, data in activities_data.items():
-        total_questions += data['total']
-        # Count answered questions (not just correct ones)
-        total_answered += data.get('answered', data['correct'])  # fallback to correct if answered not provided
-    
-    completion_percentage = (total_answered / total_questions * 100) if total_questions > 0 else 0
-    
-    # Display completion percentage with pie chart
-    if completion_percentage >= 90:
+    # Display overall percentage with pie chart
+    if overall_percentage >= 80:
         emoji = "🌟"
         color = "#4CAF50"
-    elif completion_percentage >= 70:
+    elif overall_percentage >= 60:
         emoji = "👍"
         color = "#FFA500"
     else:
         emoji = "💪"
         color = "#FF6B6B"
     
-    # Create pie chart for today's completion (not correctness)
-    remaining = 100 - completion_percentage
+    # Create pie chart for today's completion
+    remaining = 100 - overall_percentage
     
-    # SVG pie chart
+    # SVG pie chart with correct proportions (keeping this part as is)
     st.markdown(f"""
     <div style="text-align: center; margin: 20px 0;">
         <div style="position: relative; width: 150px; height: 150px; margin: 0 auto;">
@@ -619,13 +555,13 @@ def create_combined_progress_chart(activities_data, all_days_progress=None, all_
                 <circle cx="75" cy="75" r="60" fill="none" stroke="#e0e0e0" stroke-width="20"></circle>
                 <!-- Progress arc -->
                 <circle cx="75" cy="75" r="60" fill="none" stroke="{color}" stroke-width="20"
-                        stroke-dasharray="{completion_percentage * 3.77} {remaining * 3.77}"
+                        stroke-dasharray="{overall_percentage * 3.77} {remaining * 3.77}"
                         stroke-linecap="round"
                         style="transition: stroke-dasharray 0.5s ease;">
                 </circle>
             </svg>
             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                <div style="font-size: 32px; font-weight: bold; color: {color};">{completion_percentage:.0f}%</div>
+                <div style="font-size: 32px; font-weight: bold; color: {color};">{overall_percentage:.0f}%</div>
                 <div style="font-size: 24px;">{emoji}</div>
             </div>
         </div>
@@ -633,77 +569,76 @@ def create_combined_progress_chart(activities_data, all_days_progress=None, all_
     </div>
     """, unsafe_allow_html=True)
     
-    # Show individual activities with both completion and correctness
+    # Show individual activities
     st.markdown("### 📚 Today's Activities")
     
     for activity_name, data in activities_data.items():
-        answered = data.get('answered', data['correct'])
-        completion_pct = (answered / data['total'] * 100) if data['total'] > 0 else 0
-        correctness_pct = (data['correct'] / data['total'] * 100) if data['total'] > 0 else 0
+        percentage = (data['correct'] / data['total'] * 100) if data['total'] > 0 else 0
         component = data.get('component', '')
         
         # Display activity name
         st.markdown(f"**{component}**")
         
-        # Completion bar
-        st.caption("Completion:")
-        st.progress(completion_pct / 100)
+        # Use Streamlit's native progress bar
+        st.progress(percentage / 100)
         
-        # Correctness info
-        if answered > 0:
-            st.caption(f"Score: {data['correct']}/{answered} correct ({correctness_pct:.0f}%)")
-        else:
-            st.caption("Not started")
+        # Display score
+        st.caption(f"{data['correct']}/{data['total']} correct ({percentage:.0f}%)")
     
-    # Historical progress graph with activity breakdown
+    # Historical progress graph at bottom
     st.markdown("---")
     st.markdown("### 📊 Progress Over Time")
     
-    if all_activities_historical and len(all_activities_historical) > 0:
-        # Prepare data for activity-level tracking
-        days = sorted(all_activities_historical.keys())
+    if all_days_progress and len(all_days_progress) > 0:
+        # Prepare data for plotting
+        days = sorted(all_days_progress.keys())
         day_labels = [day.replace('day', 'Day ') for day in days]
+        percentages = [all_days_progress[day] for day in days]
         
-        # Get unique components across all days
-        all_components = set()
-        for day_data in all_activities_historical.values():
-            for activity in day_data.get('activities', []):
-                all_components.add(activity.get('component', 'Unknown'))
+        # Create color list based on performance
+        colors = ['#4CAF50' if p >= 80 else '#FFA500' if p >= 60 else '#FF6B6B' for p in percentages]
         
-        # Create traces for each component
+        # Create the line chart with markers
         fig = go.Figure()
         
-        colors = px.colors.qualitative.Set3  # Use a nice color palette
+        # Add line trace
+        fig.add_trace(go.Scatter(
+            x=day_labels,
+            y=percentages,
+            mode='lines+markers',
+            name='Progress',
+            line=dict(color='#2196F3', width=3),
+            marker=dict(
+                size=12,
+                color=colors,
+                line=dict(color='white', width=2)
+            ),
+            text=[f'{p:.0f}%' for p in percentages],
+            textposition="top center",
+            hovertemplate='<b>%{x}</b><br>Score: %{y:.1f}%<extra></extra>'
+        ))
         
-        for idx, component in enumerate(sorted(all_components)):
-            component_scores = []
-            
-            for day in days:
-                day_data = all_activities_historical[day]
-                component_score = None
-                
-                # Find score for this component on this day
-                for activity in day_data.get('activities', []):
-                    if activity.get('component') == component:
-                        if activity.get('total', 0) > 0:
-                            component_score = (activity.get('correct', 0) / activity.get('total', 0)) * 100
-                        break
-                
-                component_scores.append(component_score)
-            
-            # Add bar trace for this component
-            fig.add_trace(go.Bar(
-                name=component,
-                x=day_labels,
-                y=component_scores,
-                marker_color=colors[idx % len(colors)],
-                hovertemplate='<b>%{x}</b><br>' + component + ': %{y:.1f}%<extra></extra>'
-            ))
+        # Add bar chart as background
+        fig.add_trace(go.Bar(
+            x=day_labels,
+            y=percentages,
+            name='Daily Score',
+            marker_color=colors,
+            opacity=0.3,
+            showlegend=False,
+            hovertemplate='<b>%{x}</b><br>Score: %{y:.1f}%<extra></extra>'
+        ))
         
-        # Update layout for grouped bar chart
+        # Add target lines
+        fig.add_hline(y=80, line_dash="dash", line_color="green", opacity=0.5,
+                      annotation_text="Excellent (80%)", annotation_position="right")
+        fig.add_hline(y=60, line_dash="dash", line_color="orange", opacity=0.5,
+                      annotation_text="Good (60%)", annotation_position="right")
+        
+        # Update layout
         fig.update_layout(
             title=dict(
-                text='Activity Performance Across Days',
+                text='Daily Progress Chart',
                 font=dict(size=20, color='#2c3e50'),
                 x=0.5,
                 xanchor='center'
@@ -724,85 +659,101 @@ def create_combined_progress_chart(activities_data, all_days_progress=None, all_
             plot_bgcolor='rgba(250,250,250,0.8)',
             paper_bgcolor='white',
             hovermode='x unified',
-            barmode='group',  # Group bars side by side
-            showlegend=True,
-            legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.02,
-                xanchor="right",
-                x=1
-            ),
+            showlegend=False,
             margin=dict(l=50, r=50, t=80, b=50),
             height=400
         )
         
+        # Add gradient fill under the line
+        fig.add_trace(go.Scatter(
+            x=day_labels,
+            y=percentages,
+            fill='tozeroy',
+            fillcolor='rgba(33, 150, 243, 0.1)',
+            line=dict(color='rgba(255,255,255,0)'),
+            showlegend=False,
+            hoverinfo='skip'
+        ))
+        
         # Display the plot
         st.plotly_chart(fig, use_container_width=True)
         
-        # Component-specific statistics
-        st.markdown("#### 📈 Component Analysis")
+        # Calculate and display statistics
+        avg_percentage = sum(percentages) / len(percentages)
+        max_percentage = max(percentages)
+        min_percentage = min(percentages)
         
-        # Calculate average score per component
-        component_averages = {}
-        for component in sorted(all_components):
-            scores = []
-            for day in days:
-                day_data = all_activities_historical[day]
-                for activity in day_data.get('activities', []):
-                    if activity.get('component') == component and activity.get('total', 0) > 0:
-                        score = (activity.get('correct', 0) / activity.get('total', 0)) * 100
-                        scores.append(score)
+        # Statistics cards
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            avg_color = "#4CAF50" if avg_percentage >= 80 else "#FFA500" if avg_percentage >= 60 else "#FF6B6B"
+            st.markdown(f"""
+            <div style="text-align: center; padding: 20px; background-color: #f8f9fa; border-radius: 10px; border-left: 4px solid {avg_color};">
+                <h3 style="margin: 0; color: {avg_color};">{avg_percentage:.0f}%</h3>
+                <p style="margin: 5px 0 0 0; color: #666;">Average Score</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown(f"""
+            <div style="text-align: center; padding: 20px; background-color: #f8f9fa; border-radius: 10px; border-left: 4px solid #4CAF50;">
+                <h3 style="margin: 0; color: #4CAF50;">{max_percentage:.0f}%</h3>
+                <p style="margin: 5px 0 0 0; color: #666;">Best Day</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        with col3:
+            improvement = percentages[-1] - percentages[0] if len(percentages) > 1 else 0
+            improvement_color = "#4CAF50" if improvement > 0 else "#FF6B6B" if improvement < 0 else "#FFA500"
+            improvement_icon = "📈" if improvement > 0 else "📉" if improvement < 0 else "➡️"
+            st.markdown(f"""
+            <div style="text-align: center; padding: 20px; background-color: #f8f9fa; border-radius: 10px; border-left: 4px solid {improvement_color};">
+                <h3 style="margin: 0; color: {improvement_color};">{improvement_icon} {abs(improvement):.0f}%</h3>
+                <p style="margin: 5px 0 0 0; color: #666;">Overall Change</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Optional: Add a secondary chart showing activity breakdown over days
+        if st.checkbox("Show detailed activity breakdown", value=False):
+            # This would require storing activity-level data for each day
+            # For now, showing a placeholder message
+            st.info("Activity-level tracking will be available in future updates!")
             
-            if scores:
-                component_averages[component] = sum(scores) / len(scores)
-        
-        # Display component averages in columns
-        cols = st.columns(min(3, len(component_averages)))
-        for idx, (component, avg_score) in enumerate(component_averages.items()):
-            col_idx = idx % len(cols)
-            with cols[col_idx]:
-                avg_color = "#4CAF50" if avg_score >= 80 else "#FFA500" if avg_score >= 60 else "#FF6B6B"
-                st.markdown(f"""
-                <div style="text-align: center; padding: 15px; background-color: #f8f9fa; border-radius: 10px; border-left: 4px solid {avg_color};">
-                    <h5 style="margin: 0; color: #333;">{component}</h5>
-                    <h3 style="margin: 5px 0; color: {avg_color};">{avg_score:.0f}%</h3>
-                    <p style="margin: 0; color: #666; font-size: 0.8em;">Average</p>
-                </div>
-                """, unsafe_allow_html=True)
-        
     else:
-        # If no historical data available, show overall progress only
-        if all_days_progress and len(all_days_progress) > 0:
-            # Show simple line chart of overall progress
-            days = sorted(all_days_progress.keys())
-            day_labels = [day.replace('day', 'Day ') for day in days]
-            percentages = [all_days_progress[day] for day in days]
-            
-            fig = go.Figure()
-            
-            fig.add_trace(go.Scatter(
-                x=day_labels,
-                y=percentages,
-                mode='lines+markers',
-                name='Overall Progress',
-                line=dict(color='#2196F3', width=3),
-                marker=dict(size=12),
-                text=[f'{p:.0f}%' for p in percentages],
-                textposition="top center"
-            ))
-            
-            fig.update_layout(
-                title='Overall Progress',
-                xaxis_title='Days',
-                yaxis=dict(title='Score (%)', range=[0, 105]),
-                height=300,
-                showlegend=False
-            )
-            
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("Complete more days to see your progress over time!")
+        st.info("Complete more days to see your progress over time!")
+        
+        # Show a preview chart with example data
+        st.markdown("#### 📊 What your progress chart will look like:")
+        
+        # Example data
+        example_days = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5']
+        example_percentages = [65, 72, 78, 85, 88]
+        example_colors = ['#FF6B6B', '#FFA500', '#FFA500', '#4CAF50', '#4CAF50']
+        
+        fig_example = go.Figure()
+        
+        fig_example.add_trace(go.Scatter(
+            x=example_days,
+            y=example_percentages,
+            mode='lines+markers',
+            line=dict(color='#2196F3', width=3, dash='dot'),
+            marker=dict(size=10, color=example_colors),
+            text=[f'{p}%' for p in example_percentages],
+            textposition="top center",
+            name='Example Progress'
+        ))
+        
+        fig_example.update_layout(
+            title='Example Progress Chart',
+            xaxis_title='Days',
+            yaxis=dict(title='Score (%)', range=[0, 100]),
+            height=300,
+            showlegend=False,
+            plot_bgcolor='rgba(250,250,250,0.5)'
+        )
+        
+        st.plotly_chart(fig_example, use_container_width=True)
 
 # Progress sidebar
 def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_prefix):
@@ -828,73 +779,6 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
             day_data = day_to_content[current_day]
             activities_data = {}
             
-            # Calculate progress for all completed days with activity breakdown
-            all_days_progress = {}
-            all_activities_historical = {}
-            
-            # Process ALL days that have any progress (completed + current)
-            days_to_process = list(st.session_state.completed_days)
-            if current_day and current_day not in days_to_process:
-                days_to_process.append(current_day)
-            
-            for day in days_to_process:
-                if day in day_to_content:
-                    day_data_hist = day_to_content[day]
-                    day_correct = 0
-                    day_total = 0
-                    day_activities = []
-                    
-                    for field in day_data_hist['fields']:
-                        if field.get('type') == 'enhanced_structured_literacy_session':
-                            content = field.get('content', {})
-                            
-                            for activity in content.get('activities', []):
-                                activity_correct = 0
-                                activity_total = 0
-                                activity_answered = 0
-                                
-                                for q_idx, q in enumerate(activity.get('questions', [])):
-                                    activity_total += 1
-                                    day_total += 1
-                                    
-                                    # Find the answer for this question
-                                    for global_idx, (act, _, question) in enumerate([(a, i, qu) for a in content.get('activities', []) for i, qu in enumerate(a.get('questions', []))]):
-                                        if act == activity and question == q:
-                                            answer_key = f"answer_{day}_{global_idx}"
-                                            user_answer = st.session_state.answers.get(answer_key)
-                                            
-                                            if user_answer:  # Question was answered
-                                                activity_answered += 1
-                                                
-                                                if q.get('answer_type') == 'single_select':
-                                                    if user_answer == q.get('correct_answer'):
-                                                        activity_correct += 1
-                                                        day_correct += 1
-                                                elif q.get('answer_type') == 'text_input':
-                                                    # For text inputs, count as correct if valid
-                                                    if q.get('question_type') == 'text_input_dictation':
-                                                        if is_valid_dictation_answer(user_answer, q.get('correct_answer', ''))[0] or user_answer.lower() == "i don't know":
-                                                            activity_correct += 1
-                                                            day_correct += 1
-                                                    else:
-                                                        # For regular text inputs
-                                                        activity_correct += 1
-                                                        day_correct += 1
-                                            break
-                                
-                                # Store activity data
-                                day_activities.append({
-                                    'component': activity.get('component', ''),
-                                    'correct': activity_correct,
-                                    'total': activity_total,
-                                    'answered': activity_answered
-                                })
-                    
-                    if day_total > 0:
-                        all_days_progress[day] = (day_correct / day_total) * 100
-                        all_activities_historical[day] = {'activities': day_activities}
-            
-            # Process current day activities
             for field in day_data['fields']:
                 if field.get('type') == 'enhanced_structured_literacy_session':
                     content = field.get('content', {})
@@ -905,7 +789,6 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
                         
                         correct = 0
                         total = 0
-                        answered = 0
                         
                         for q in activity.get('questions', []):
                             total += 1
@@ -914,28 +797,67 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
                                     answer_key = f"answer_{current_day}_{global_idx}"
                                     user_answer = st.session_state.answers.get(answer_key)
                                     
-                                    if user_answer:  # Question was answered
-                                        answered += 1
-                                        
-                                        if q.get('answer_type') == 'single_select':
-                                            if user_answer == q.get('correct_answer'):
-                                                correct += 1
-                                        elif q.get('answer_type') == 'text_input':
+                                    if q.get('answer_type') == 'single_select':
+                                        if user_answer == q.get('correct_answer'):
+                                            correct += 1
+                                    elif q.get('answer_type') == 'text_input':
+                                        if user_answer:
+                                            # For any text input, count as correct if answered
+                                            # This includes reading comprehension and dictation
                                             if q.get('question_type') == 'text_input_dictation':
                                                 if is_valid_dictation_answer(user_answer, q.get('correct_answer', ''))[0] or user_answer.lower() == "i don't know":
                                                     correct += 1
                                             else:
+                                                # For regular text inputs like reading comprehension, count as correct if answered
                                                 correct += 1
                         
                         activities_data[f"activity_{activity_num}"] = {
                             'correct': correct,
                             'total': total,
-                            'answered': answered,
                             'component': component
                         }
             
+            # Calculate progress for all completed days
+            all_days_progress = {}
+            if st.session_state.student_progress:
+                for day in st.session_state.completed_days:
+                    if day in day_to_content:
+                        day_data = day_to_content[day]
+                        day_correct = 0
+                        day_total = 0
+                        
+                        for field in day_data['fields']:
+                            if field.get('type') == 'enhanced_structured_literacy_session':
+                                content = field.get('content', {})
+                                
+                                for activity in content.get('activities', []):
+                                    for q_idx, q in enumerate(activity.get('questions', [])):
+                                        day_total += 1
+                                        # Find the answer for this question
+                                        for global_idx, (act, _, question) in enumerate([(a, i, qu) for a in content.get('activities', []) for i, qu in enumerate(a.get('questions', []))]):
+                                            if act == activity and question == q:
+                                                answer_key = f"answer_{day}_{global_idx}"
+                                                user_answer = st.session_state.answers.get(answer_key)
+                                                
+                                                if q.get('answer_type') == 'single_select':
+                                                    if user_answer == q.get('correct_answer'):
+                                                        day_correct += 1
+                                                elif q.get('answer_type') == 'text_input':
+                                                    if user_answer:
+                                                        # For any text input, count as correct if answered
+                                                        if q.get('question_type') == 'text_input_dictation':
+                                                            if is_valid_dictation_answer(user_answer, q.get('correct_answer', ''))[0] or user_answer.lower() == "i don't know":
+                                                                day_correct += 1
+                                                        else:
+                                                            # For regular text inputs like reading comprehension
+                                                            day_correct += 1
+                                                break
+                        
+                        if day_total > 0:
+                            all_days_progress[day] = (day_correct / day_total) * 100
+            
             # Create beautiful combined chart with historical data
-            create_combined_progress_chart(activities_data, all_days_progress, all_activities_historical)
+            create_combined_progress_chart(activities_data, all_days_progress)
         
         # Day status
         st.markdown("---")
@@ -1011,13 +933,11 @@ def show_success_animation(message):
     """, unsafe_allow_html=True)
 
 # Main app
+# Main app
+# Main app
 def main():
     st.title("Lerna ReadTogether")
     add_custom_css()
-    
-    # Add interaction tracking
-    if 'last_interaction' not in st.session_state:
-        st.session_state.last_interaction = None
 
     student_to_group = _get_all_students()
 
@@ -1289,7 +1209,7 @@ def main():
                                     intro_container = st.container()
                                     with intro_container:
                                         if st.button("🎯 Activity Introduction", key=f"intro_{activity.get('activity_number')}_{page}", use_container_width=True):
-                                            play_audio_hidden(tutor_audio_key, f"intro_{activity.get('activity_number')}_{page}")
+                                            play_audio_hidden(tutor_audio_key, f"intro_{activity.get('activity_number')}_{page}_{time.time()}")
                             
                             # Teaching and practice buttons
                             col1, col2 = st.columns(2)
@@ -1300,7 +1220,7 @@ def main():
                                     teaching_audio_key = fix_audio_path(teaching_audio, student_s3_prefix, current_day)
                                     if teaching_audio_key:
                                         if st.button("📖 Teach Me", key=f"teach_{activity.get('activity_number')}_{page}", use_container_width=True, type="primary"):
-                                            play_audio_hidden(teaching_audio_key, f"teach_{activity.get('activity_number')}_{page}")
+                                            play_audio_hidden(teaching_audio_key, f"teach_{activity.get('activity_number')}_{page}_{time.time()}")
                             
                             with col2:
                                 multisensory_audio = activity.get('multisensory_audio', '')
@@ -1309,7 +1229,7 @@ def main():
                                     multi_clicked_key = f"multi_clicked_{current_day}_{activity.get('activity_number')}"
                                     
                                     if st.button("🤹 Multisensory Practice", key=f"multi_{activity.get('activity_number')}_{page}", use_container_width=True, type="secondary"):
-                                        play_audio_hidden(multisensory_audio_key, f"multi_{activity.get('activity_number')}_{page}")
+                                        play_audio_hidden(multisensory_audio_key, f"multi_{activity.get('activity_number')}_{page}_{time.time()}")
                                         # Mark that multisensory was clicked
                                         st.session_state[multi_clicked_key] = True
                             
@@ -1403,7 +1323,7 @@ def main():
                                     if feedback_data.get('feedback_audio') and not st.session_state.get(fb_played_key, False):
                                         feedback_audio_key = fix_audio_path(feedback_data['feedback_audio'], student_s3_prefix, current_day)
                                         if feedback_audio_key:
-                                            play_audio_hidden(feedback_audio_key, f"fb_{global_idx}")
+                                            play_audio_hidden(feedback_audio_key, f"fb_{global_idx}_{time.time()}")
                                             st.session_state[fb_played_key] = True
                                 else:
                                     st.warning("❌ Try again!")
@@ -1433,7 +1353,7 @@ def main():
                                         audio_s3_key = fix_audio_path(opt_audio, student_s3_prefix, current_day)
                                         if audio_s3_key:
                                             if st.button("🔊", key=f"opt_audio_{global_idx}_{opt_idx}_{page}"):
-                                                play_audio_hidden(audio_s3_key, f"opt_audio_{global_idx}_{opt_idx}")
+                                                play_audio_hidden(audio_s3_key, f"opt_audio_{global_idx}_{opt_idx}_{page}_{time.time()}")
 
                         elif q.get('answer_type') == 'text_input':
                             if q.get('question_type') == 'text_input_dictation':
@@ -1446,71 +1366,54 @@ def main():
                                             st.info("📝 Click play to hear the sentence")
                                         with col2:
                                             if st.button("▶️ Play", key=f"dict_{global_idx}_{page}", type="primary"):
-                                                play_audio_hidden(dictation_key, f"dict_{global_idx}")
+                                                play_audio_hidden(dictation_key, f"dict_{global_idx}_{page}_{time.time()}")
                                 
                                 # Add attempt tracking
                                 attempt_key = f"dictation_attempts_{global_idx}_{page}"
                                 if attempt_key not in st.session_state:
                                     st.session_state[attempt_key] = 0
                                 
-                                # Create text input with proper handling
-                                current_answer = st.session_state.answers.get(answer_key, "")
+                                current_answer = st.text_input("Your Answer:", key=answer_key, value=st.session_state.answers.get(answer_key, ""))
                                 
-                                # Use a form to prevent auto-rerun on every keystroke
-                                with st.form(key=f"text_form_{global_idx}_{page}"):
-                                    user_input = st.text_input("Your Answer:", value=current_answer, key=f"text_input_{global_idx}")
-                                    submitted = st.form_submit_button("Submit Answer")
-                                    
-                                    if submitted and user_input:
-                                        if user_input != current_answer:  # Only process if answer changed
-                                            is_valid, message = is_valid_dictation_answer(user_input, q.get('correct_answer', ''))
-                                            
-                                            if is_valid or user_input.lower() == "i don't know":
-                                                st.session_state.answers[answer_key] = user_input
-                                                st.session_state[attempt_key] = 0
-                                                update_progress_data(current_day, {answer_key: user_input})
-                                                st.success(message if user_input.lower() != "i don't know" else "That's okay!")
-                                                # Use rerun only when necessary
-                                                time.sleep(0.5)
-                                                st.rerun()
-                                            else:
-                                                st.session_state[attempt_key] += 1
-                                                
-                                                if st.session_state[attempt_key] >= 2:
-                                                    correct_answer = q.get('correct_answer', '')
-                                                    st.warning(f"The correct answer is: **{correct_answer}**")
-                                                    st.info("Let's continue to the next question!")
-                                                    st.session_state.answers[answer_key] = f"[Shown: {correct_answer}]"
-                                                    update_progress_data(current_day, {answer_key: f"[Shown: {correct_answer}]"})
-                                                    st.session_state[attempt_key] = 0
-                                                    time.sleep(1)
-                                                    st.rerun()
-                                                else:
-                                                    st.warning(f"{message} (Attempt {st.session_state[attempt_key]}/2)")
-                                
-                                # Show saved answer status
                                 if current_answer and not current_answer.startswith("[Shown:"):
-                                    st.success("✓ Answer saved")
-                                elif current_answer and current_answer.startswith("[Shown:"):
-                                    st.success("Answer recorded. Let's continue!")
-                            
-                            else:
-                                # Regular text input (e.g., reading comprehension) with form
-                                current_answer = st.session_state.answers.get(answer_key, "")
-                                
-                                with st.form(key=f"text_form_regular_{global_idx}_{page}"):
-                                    user_input = st.text_input("Your Answer:", value=current_answer, key=f"text_regular_{global_idx}")
-                                    submitted = st.form_submit_button("Submit Answer")
+                                    is_valid, message = is_valid_dictation_answer(current_answer, q.get('correct_answer', ''))
                                     
-                                    if submitted and user_input and user_input != current_answer:
-                                        st.session_state.answers[answer_key] = user_input
-                                        update_progress_data(current_day, {answer_key: user_input})
-                                        st.success("Answer saved!")
-                                        time.sleep(0.5)
-                                        st.rerun()
+                                    if is_valid or current_answer.lower() == "i don't know":
+                                        st.session_state.answers[answer_key] = current_answer
+                                        # Reset attempts on success
+                                        st.session_state[attempt_key] = 0
+                                        # Save answer immediately
+                                        update_progress_data(current_day, {answer_key: current_answer})
+                                        st.success(message if current_answer.lower() != "i don't know" else "That's okay!")
+                                    else:
+                                        # Increment attempts
+                                        st.session_state[attempt_key] += 1
+                                        
+                                        if st.session_state[attempt_key] >= 2:
+                                            # After 2 attempts, show correct answer and auto-pass
+                                            correct_answer = q.get('correct_answer', '')
+                                            st.warning(f"The correct answer is: **{correct_answer}**")
+                                            st.info("Let's continue to the next question!")
+                                            # Auto-save "shown answer" to allow progression
+                                            st.session_state.answers[answer_key] = f"[Shown: {correct_answer}]"
+                                            update_progress_data(current_day, {answer_key: f"[Shown: {correct_answer}]"})
+                                            # Reset attempts
+                                            st.session_state[attempt_key] = 0
+                                            st.rerun()
+                                        else:
+                                            st.warning(f"{message} (Attempt {st.session_state[attempt_key]}/2)")
+                                elif current_answer and current_answer.startswith("[Shown:"):
+                                    # If answer was shown, display success message
+                                    st.success("Answer recorded. Let's continue!")
+                            else:
+                                # Regular text input (e.g., reading comprehension)
+                                current_answer = st.text_input("Your Answer:", key=answer_key, value=st.session_state.answers.get(answer_key, ""))
                                 
                                 if current_answer:
-                                    st.success("✓ Answer saved")
+                                    st.session_state.answers[answer_key] = current_answer
+                                    # Save answer immediately
+                                    update_progress_data(current_day, {answer_key: current_answer})
+                                    st.success("Answer saved!")
                         
                         # Paragraph writing final display - UPDATED WITH COMPARISON
                         if activity.get('component') == 'Paragraph Writing':
@@ -1617,7 +1520,7 @@ def main():
                                     if para_key:
                                         st.markdown("---")
                                         if st.button("🎧 Listen to Model Paragraph", key=f"para_{activity.get('activity_number')}_{page}", use_container_width=True):
-                                            play_audio_hidden(para_key, f"para_{activity.get('activity_number')}_{page}")
+                                            play_audio_hidden(para_key, f"para_{activity.get('activity_number')}_{page}_{time.time()}")
                         
                         if i < len(current_questions) - 1:
                             st.divider()
@@ -1709,9 +1612,5 @@ def main():
                     with nav_col2_bottom:
                         if not all_answered:
                             st.warning("Answer all questions on this page to continue")
-                            
-                    # Call scroll to top after rendering
-                    scroll_to_top()
-
 if __name__ == "__main__":
     main()
