@@ -587,6 +587,12 @@ def create_combined_progress_chart(activities_data, all_days_progress=None):
     
     # Historical progress graph at bottom
     st.markdown("---")
+
+    st.markdown("""
+    <script>
+       window.scrollTo(0, 0);
+    </script>
+    """, unsafe_allow_html=True) 
     st.markdown("### 📊 Progress Over Time")
     
     if all_days_progress and len(all_days_progress) > 0:
