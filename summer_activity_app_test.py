@@ -203,7 +203,9 @@ def update_progress_data(current_day, answers, completed=False):
 def scroll_to_top():
     st.markdown("""
     <script>
-    window.scrollTo(0, 0);
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
     </script>
     """, unsafe_allow_html=True)
 
@@ -388,6 +390,7 @@ def play_audio_with_autoplay(s3_key, element_id="opening-audio"):
         st.markdown(audio_html, unsafe_allow_html=True)
 
 # Play audio hidden - fixed for multiple consecutive plays
+# Play audio hidden - fixed for multiple consecutive plays
 def play_audio_hidden(s3_key, audio_key=None):
     """Play audio with proper handling for multiple plays"""
     audio_content = read_s3_file(s3_key)
@@ -398,27 +401,34 @@ def play_audio_hidden(s3_key, audio_key=None):
         timestamp = str(time.time()).replace('.', '')
         unique_id = f"{audio_key}_{timestamp}" if audio_key else timestamp
         
-        # Create a placeholder for audio
-        audio_placeholder = st.empty()
+        # Create a container with unique key to force re-render
+        container_key = f"audio_container_{unique_id}"
+        audio_container = st.container()
         
-        # Use the placeholder to render audio
-        with audio_placeholder:
+        with audio_container:
             st.markdown(f"""
-            <audio id="audio_{unique_id}" autoplay>
+            <audio id="audio_{unique_id}" autoplay style="display: none;">
                 <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
             </audio>
             <script>
                 (function() {{
                     var audio = document.getElementById('audio_{unique_id}');
                     if (audio) {{
-                        audio.play().catch(function(e) {{
-                            console.log('Audio play error:', e);
-                        }});
+                        audio.load(); // Force reload the audio
+                        var playPromise = audio.play();
+                        if (playPromise !== undefined) {{
+                            playPromise.catch(function(e) {{
+                                console.log('Audio play error:', e);
+                            }});
+                        }}
                     }}
                 }})();
             </script>
             """, unsafe_allow_html=True)
-
+            
+        # Small delay to ensure audio starts before any potential rerun
+        time.sleep(0.1)
+        
 # Play story with highlight
 def play_story_with_highlight(story_text, audio_s3_key):
     """Play story audio with synchronized text highlighting"""
@@ -522,31 +532,37 @@ def is_valid_dictation_answer(user_answer, correct_answer):
 # Add this import at the top of your file with other imports
 
 # Replace the create_combined_progress_chart function with this updated version
-def create_combined_progress_chart(activities_data, all_days_progress=None):
+def create_combined_progress_chart(activities_data, all_days_progress=None, all_activities_historical=None):
     """Create a visually appealing combined progress visualization with proper plots"""
     if not activities_data:
         return
     
-    # Calculate total progress for current day
-    total_correct = sum(data['correct'] for data in activities_data.values())
-    total_questions = sum(data['total'] for data in activities_data.values())
-    overall_percentage = (total_correct / total_questions * 100) if total_questions > 0 else 0
+    # Calculate completion percentage (not correctness) for current day
+    total_answered = 0
+    total_questions = 0
     
-    # Display overall percentage with pie chart
-    if overall_percentage >= 80:
+    for activity_name, data in activities_data.items():
+        total_questions += data['total']
+        # Count answered questions (not just correct ones)
+        total_answered += data.get('answered', data['correct'])  # fallback to correct if answered not provided
+    
+    completion_percentage = (total_answered / total_questions * 100) if total_questions > 0 else 0
+    
+    # Display completion percentage with pie chart
+    if completion_percentage >= 90:
         emoji = "🌟"
         color = "#4CAF50"
-    elif overall_percentage >= 60:
+    elif completion_percentage >= 70:
         emoji = "👍"
         color = "#FFA500"
     else:
         emoji = "💪"
         color = "#FF6B6B"
     
-    # Create pie chart for today's completion
-    remaining = 100 - overall_percentage
+    # Create pie chart for today's completion (not correctness)
+    remaining = 100 - completion_percentage
     
-    # SVG pie chart with correct proportions (keeping this part as is)
+    # SVG pie chart
     st.markdown(f"""
     <div style="text-align: center; margin: 20px 0;">
         <div style="position: relative; width: 150px; height: 150px; margin: 0 auto;">
@@ -555,13 +571,13 @@ def create_combined_progress_chart(activities_data, all_days_progress=None):
                 <circle cx="75" cy="75" r="60" fill="none" stroke="#e0e0e0" stroke-width="20"></circle>
                 <!-- Progress arc -->
                 <circle cx="75" cy="75" r="60" fill="none" stroke="{color}" stroke-width="20"
-                        stroke-dasharray="{overall_percentage * 3.77} {remaining * 3.77}"
+                        stroke-dasharray="{completion_percentage * 3.77} {remaining * 3.77}"
                         stroke-linecap="round"
                         style="transition: stroke-dasharray 0.5s ease;">
                 </circle>
             </svg>
             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                <div style="font-size: 32px; font-weight: bold; color: {color};">{overall_percentage:.0f}%</div>
+                <div style="font-size: 32px; font-weight: bold; color: {color};">{completion_percentage:.0f}%</div>
                 <div style="font-size: 24px;">{emoji}</div>
             </div>
         </div>
@@ -569,76 +585,77 @@ def create_combined_progress_chart(activities_data, all_days_progress=None):
     </div>
     """, unsafe_allow_html=True)
     
-    # Show individual activities
+    # Show individual activities with both completion and correctness
     st.markdown("### 📚 Today's Activities")
     
     for activity_name, data in activities_data.items():
-        percentage = (data['correct'] / data['total'] * 100) if data['total'] > 0 else 0
+        answered = data.get('answered', data['correct'])
+        completion_pct = (answered / data['total'] * 100) if data['total'] > 0 else 0
+        correctness_pct = (data['correct'] / data['total'] * 100) if data['total'] > 0 else 0
         component = data.get('component', '')
         
         # Display activity name
         st.markdown(f"**{component}**")
         
-        # Use Streamlit's native progress bar
-        st.progress(percentage / 100)
+        # Completion bar
+        st.caption("Completion:")
+        st.progress(completion_pct / 100)
         
-        # Display score
-        st.caption(f"{data['correct']}/{data['total']} correct ({percentage:.0f}%)")
+        # Correctness info
+        if answered > 0:
+            st.caption(f"Score: {data['correct']}/{answered} correct ({correctness_pct:.0f}%)")
+        else:
+            st.caption("Not started")
     
-    # Historical progress graph at bottom
+    # Historical progress graph with activity breakdown
     st.markdown("---")
     st.markdown("### 📊 Progress Over Time")
     
-    if all_days_progress and len(all_days_progress) > 0:
-        # Prepare data for plotting
-        days = sorted(all_days_progress.keys())
+    if all_activities_historical and len(all_activities_historical) > 0:
+        # Prepare data for activity-level tracking
+        days = sorted(all_activities_historical.keys())
         day_labels = [day.replace('day', 'Day ') for day in days]
-        percentages = [all_days_progress[day] for day in days]
         
-        # Create color list based on performance
-        colors = ['#4CAF50' if p >= 80 else '#FFA500' if p >= 60 else '#FF6B6B' for p in percentages]
+        # Get unique components across all days
+        all_components = set()
+        for day_data in all_activities_historical.values():
+            for activity in day_data.get('activities', []):
+                all_components.add(activity.get('component', 'Unknown'))
         
-        # Create the line chart with markers
+        # Create traces for each component
         fig = go.Figure()
         
-        # Add line trace
-        fig.add_trace(go.Scatter(
-            x=day_labels,
-            y=percentages,
-            mode='lines+markers',
-            name='Progress',
-            line=dict(color='#2196F3', width=3),
-            marker=dict(
-                size=12,
-                color=colors,
-                line=dict(color='white', width=2)
-            ),
-            text=[f'{p:.0f}%' for p in percentages],
-            textposition="top center",
-            hovertemplate='<b>%{x}</b><br>Score: %{y:.1f}%<extra></extra>'
-        ))
+        colors = px.colors.qualitative.Set3  # Use a nice color palette
         
-        # Add bar chart as background
-        fig.add_trace(go.Bar(
-            x=day_labels,
-            y=percentages,
-            name='Daily Score',
-            marker_color=colors,
-            opacity=0.3,
-            showlegend=False,
-            hovertemplate='<b>%{x}</b><br>Score: %{y:.1f}%<extra></extra>'
-        ))
+        for idx, component in enumerate(sorted(all_components)):
+            component_scores = []
+            
+            for day in days:
+                day_data = all_activities_historical[day]
+                component_score = None
+                
+                # Find score for this component on this day
+                for activity in day_data.get('activities', []):
+                    if activity.get('component') == component:
+                        if activity.get('total', 0) > 0:
+                            component_score = (activity.get('correct', 0) / activity.get('total', 0)) * 100
+                        break
+                
+                component_scores.append(component_score)
+            
+            # Add bar trace for this component
+            fig.add_trace(go.Bar(
+                name=component,
+                x=day_labels,
+                y=component_scores,
+                marker_color=colors[idx % len(colors)],
+                hovertemplate='<b>%{x}</b><br>' + component + ': %{y:.1f}%<extra></extra>'
+            ))
         
-        # Add target lines
-        fig.add_hline(y=80, line_dash="dash", line_color="green", opacity=0.5,
-                      annotation_text="Excellent (80%)", annotation_position="right")
-        fig.add_hline(y=60, line_dash="dash", line_color="orange", opacity=0.5,
-                      annotation_text="Good (60%)", annotation_position="right")
-        
-        # Update layout
+        # Update layout for grouped bar chart
         fig.update_layout(
             title=dict(
-                text='Daily Progress Chart',
+                text='Activity Performance Across Days',
                 font=dict(size=20, color='#2c3e50'),
                 x=0.5,
                 xanchor='center'
@@ -659,102 +676,87 @@ def create_combined_progress_chart(activities_data, all_days_progress=None):
             plot_bgcolor='rgba(250,250,250,0.8)',
             paper_bgcolor='white',
             hovermode='x unified',
-            showlegend=False,
+            barmode='group',  # Group bars side by side
+            showlegend=True,
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1
+            ),
             margin=dict(l=50, r=50, t=80, b=50),
             height=400
         )
         
-        # Add gradient fill under the line
-        fig.add_trace(go.Scatter(
-            x=day_labels,
-            y=percentages,
-            fill='tozeroy',
-            fillcolor='rgba(33, 150, 243, 0.1)',
-            line=dict(color='rgba(255,255,255,0)'),
-            showlegend=False,
-            hoverinfo='skip'
-        ))
-        
         # Display the plot
         st.plotly_chart(fig, use_container_width=True)
         
-        # Calculate and display statistics
-        avg_percentage = sum(percentages) / len(percentages)
-        max_percentage = max(percentages)
-        min_percentage = min(percentages)
+        # Component-specific statistics
+        st.markdown("#### 📈 Component Analysis")
         
-        # Statistics cards
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            avg_color = "#4CAF50" if avg_percentage >= 80 else "#FFA500" if avg_percentage >= 60 else "#FF6B6B"
-            st.markdown(f"""
-            <div style="text-align: center; padding: 20px; background-color: #f8f9fa; border-radius: 10px; border-left: 4px solid {avg_color};">
-                <h3 style="margin: 0; color: {avg_color};">{avg_percentage:.0f}%</h3>
-                <p style="margin: 5px 0 0 0; color: #666;">Average Score</p>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with col2:
-            st.markdown(f"""
-            <div style="text-align: center; padding: 20px; background-color: #f8f9fa; border-radius: 10px; border-left: 4px solid #4CAF50;">
-                <h3 style="margin: 0; color: #4CAF50;">{max_percentage:.0f}%</h3>
-                <p style="margin: 5px 0 0 0; color: #666;">Best Day</p>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with col3:
-            improvement = percentages[-1] - percentages[0] if len(percentages) > 1 else 0
-            improvement_color = "#4CAF50" if improvement > 0 else "#FF6B6B" if improvement < 0 else "#FFA500"
-            improvement_icon = "📈" if improvement > 0 else "📉" if improvement < 0 else "➡️"
-            st.markdown(f"""
-            <div style="text-align: center; padding: 20px; background-color: #f8f9fa; border-radius: 10px; border-left: 4px solid {improvement_color};">
-                <h3 style="margin: 0; color: {improvement_color};">{improvement_icon} {abs(improvement):.0f}%</h3>
-                <p style="margin: 5px 0 0 0; color: #666;">Overall Change</p>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        # Optional: Add a secondary chart showing activity breakdown over days
-        if st.checkbox("Show detailed activity breakdown", value=False):
-            # This would require storing activity-level data for each day
-            # For now, showing a placeholder message
-            st.info("Activity-level tracking will be available in future updates!")
+        # Calculate average score per component
+        component_averages = {}
+        for component in sorted(all_components):
+            scores = []
+            for day in days:
+                day_data = all_activities_historical[day]
+                for activity in day_data.get('activities', []):
+                    if activity.get('component') == component and activity.get('total', 0) > 0:
+                        score = (activity.get('correct', 0) / activity.get('total', 0)) * 100
+                        scores.append(score)
             
+            if scores:
+                component_averages[component] = sum(scores) / len(scores)
+        
+        # Display component averages in columns
+        cols = st.columns(min(3, len(component_averages)))
+        for idx, (component, avg_score) in enumerate(component_averages.items()):
+            col_idx = idx % len(cols)
+            with cols[col_idx]:
+                avg_color = "#4CAF50" if avg_score >= 80 else "#FFA500" if avg_score >= 60 else "#FF6B6B"
+                st.markdown(f"""
+                <div style="text-align: center; padding: 15px; background-color: #f8f9fa; border-radius: 10px; border-left: 4px solid {avg_color};">
+                    <h5 style="margin: 0; color: #333;">{component}</h5>
+                    <h3 style="margin: 5px 0; color: {avg_color};">{avg_score:.0f}%</h3>
+                    <p style="margin: 0; color: #666; font-size: 0.8em;">Average</p>
+                </div>
+                """, unsafe_allow_html=True)
+        
     else:
-        st.info("Complete more days to see your progress over time!")
-        
-        # Show a preview chart with example data
-        st.markdown("#### 📊 What your progress chart will look like:")
-        
-        # Example data
-        example_days = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5']
-        example_percentages = [65, 72, 78, 85, 88]
-        example_colors = ['#FF6B6B', '#FFA500', '#FFA500', '#4CAF50', '#4CAF50']
-        
-        fig_example = go.Figure()
-        
-        fig_example.add_trace(go.Scatter(
-            x=example_days,
-            y=example_percentages,
-            mode='lines+markers',
-            line=dict(color='#2196F3', width=3, dash='dot'),
-            marker=dict(size=10, color=example_colors),
-            text=[f'{p}%' for p in example_percentages],
-            textposition="top center",
-            name='Example Progress'
-        ))
-        
-        fig_example.update_layout(
-            title='Example Progress Chart',
-            xaxis_title='Days',
-            yaxis=dict(title='Score (%)', range=[0, 100]),
-            height=300,
-            showlegend=False,
-            plot_bgcolor='rgba(250,250,250,0.5)'
-        )
-        
-        st.plotly_chart(fig_example, use_container_width=True)
-
+        # If no historical data available, show overall progress only
+        if all_days_progress and len(all_days_progress) > 0:
+            # Show simple line chart of overall progress
+            days = sorted(all_days_progress.keys())
+            day_labels = [day.replace('day', 'Day ') for day in days]
+            percentages = [all_days_progress[day] for day in days]
+            
+            fig = go.Figure()
+            
+            fig.add_trace(go.Scatter(
+                x=day_labels,
+                y=percentages,
+                mode='lines+markers',
+                name='Overall Progress',
+                line=dict(color='#2196F3', width=3),
+                marker=dict(size=12),
+                text=[f'{p:.0f}%' for p in percentages],
+                textposition="top center"
+            ))
+            
+            fig.update_layout(
+                title='Overall Progress',
+                xaxis_title='Days',
+                yaxis=dict(title='Score (%)', range=[0, 105]),
+                height=300,
+                showlegend=False
+            )
+            
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Complete more days to see your progress over time!")
+            
+# Progress sidebar
 # Progress sidebar
 def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_prefix):
     """Create a sidebar with progress tracking"""
@@ -779,6 +781,69 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
             day_data = day_to_content[current_day]
             activities_data = {}
             
+            # Calculate progress for all completed days with activity breakdown
+            all_days_progress = {}
+            all_activities_historical = {}
+            
+            if st.session_state.student_progress:
+                for day in st.session_state.completed_days:
+                    if day in day_to_content:
+                        day_data_hist = day_to_content[day]
+                        day_correct = 0
+                        day_total = 0
+                        day_activities = []
+                        
+                        for field in day_data_hist['fields']:
+                            if field.get('type') == 'enhanced_structured_literacy_session':
+                                content = field.get('content', {})
+                                
+                                for activity in content.get('activities', []):
+                                    activity_correct = 0
+                                    activity_total = 0
+                                    activity_answered = 0
+                                    
+                                    for q_idx, q in enumerate(activity.get('questions', [])):
+                                        activity_total += 1
+                                        day_total += 1
+                                        
+                                        # Find the answer for this question
+                                        for global_idx, (act, _, question) in enumerate([(a, i, qu) for a in content.get('activities', []) for i, qu in enumerate(a.get('questions', []))]):
+                                            if act == activity and question == q:
+                                                answer_key = f"answer_{day}_{global_idx}"
+                                                user_answer = st.session_state.answers.get(answer_key)
+                                                
+                                                if user_answer:  # Question was answered
+                                                    activity_answered += 1
+                                                    
+                                                    if q.get('answer_type') == 'single_select':
+                                                        if user_answer == q.get('correct_answer'):
+                                                            activity_correct += 1
+                                                            day_correct += 1
+                                                    elif q.get('answer_type') == 'text_input':
+                                                        # For text inputs, count as correct if valid
+                                                        if q.get('question_type') == 'text_input_dictation':
+                                                            if is_valid_dictation_answer(user_answer, q.get('correct_answer', ''))[0] or user_answer.lower() == "i don't know":
+                                                                activity_correct += 1
+                                                                day_correct += 1
+                                                        else:
+                                                            # For regular text inputs
+                                                            activity_correct += 1
+                                                            day_correct += 1
+                                                break
+                                    
+                                    # Store activity data
+                                    day_activities.append({
+                                        'component': activity.get('component', ''),
+                                        'correct': activity_correct,
+                                        'total': activity_total,
+                                        'answered': activity_answered
+                                    })
+                        
+                        if day_total > 0:
+                            all_days_progress[day] = (day_correct / day_total) * 100
+                            all_activities_historical[day] = {'activities': day_activities}
+            
+            # Process current day activities
             for field in day_data['fields']:
                 if field.get('type') == 'enhanced_structured_literacy_session':
                     content = field.get('content', {})
@@ -789,6 +854,7 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
                         
                         correct = 0
                         total = 0
+                        answered = 0
                         
                         for q in activity.get('questions', []):
                             total += 1
@@ -797,67 +863,28 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
                                     answer_key = f"answer_{current_day}_{global_idx}"
                                     user_answer = st.session_state.answers.get(answer_key)
                                     
-                                    if q.get('answer_type') == 'single_select':
-                                        if user_answer == q.get('correct_answer'):
-                                            correct += 1
-                                    elif q.get('answer_type') == 'text_input':
-                                        if user_answer:
-                                            # For any text input, count as correct if answered
-                                            # This includes reading comprehension and dictation
+                                    if user_answer:  # Question was answered
+                                        answered += 1
+                                        
+                                        if q.get('answer_type') == 'single_select':
+                                            if user_answer == q.get('correct_answer'):
+                                                correct += 1
+                                        elif q.get('answer_type') == 'text_input':
                                             if q.get('question_type') == 'text_input_dictation':
                                                 if is_valid_dictation_answer(user_answer, q.get('correct_answer', ''))[0] or user_answer.lower() == "i don't know":
                                                     correct += 1
                                             else:
-                                                # For regular text inputs like reading comprehension, count as correct if answered
                                                 correct += 1
                         
                         activities_data[f"activity_{activity_num}"] = {
                             'correct': correct,
                             'total': total,
+                            'answered': answered,
                             'component': component
                         }
             
-            # Calculate progress for all completed days
-            all_days_progress = {}
-            if st.session_state.student_progress:
-                for day in st.session_state.completed_days:
-                    if day in day_to_content:
-                        day_data = day_to_content[day]
-                        day_correct = 0
-                        day_total = 0
-                        
-                        for field in day_data['fields']:
-                            if field.get('type') == 'enhanced_structured_literacy_session':
-                                content = field.get('content', {})
-                                
-                                for activity in content.get('activities', []):
-                                    for q_idx, q in enumerate(activity.get('questions', [])):
-                                        day_total += 1
-                                        # Find the answer for this question
-                                        for global_idx, (act, _, question) in enumerate([(a, i, qu) for a in content.get('activities', []) for i, qu in enumerate(a.get('questions', []))]):
-                                            if act == activity and question == q:
-                                                answer_key = f"answer_{day}_{global_idx}"
-                                                user_answer = st.session_state.answers.get(answer_key)
-                                                
-                                                if q.get('answer_type') == 'single_select':
-                                                    if user_answer == q.get('correct_answer'):
-                                                        day_correct += 1
-                                                elif q.get('answer_type') == 'text_input':
-                                                    if user_answer:
-                                                        # For any text input, count as correct if answered
-                                                        if q.get('question_type') == 'text_input_dictation':
-                                                            if is_valid_dictation_answer(user_answer, q.get('correct_answer', ''))[0] or user_answer.lower() == "i don't know":
-                                                                day_correct += 1
-                                                        else:
-                                                            # For regular text inputs like reading comprehension
-                                                            day_correct += 1
-                                                break
-                        
-                        if day_total > 0:
-                            all_days_progress[day] = (day_correct / day_total) * 100
-            
             # Create beautiful combined chart with historical data
-            create_combined_progress_chart(activities_data, all_days_progress)
+            create_combined_progress_chart(activities_data, all_days_progress, all_activities_historical)
         
         # Day status
         st.markdown("---")
@@ -872,7 +899,7 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
                 st.markdown(f"✅ {day.replace('day', 'Day ')}")
             else:
                 st.markdown(f"⭕ {day.replace('day', 'Day ')}")
-
+                
 # Welcome animation
 def show_welcome_animation(student_name):
     st.markdown(f"""
