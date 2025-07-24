@@ -200,15 +200,62 @@ def update_progress_data(current_day, answers, completed=False):
             save_student_progress(st.session_state.student_s3_prefix, st.session_state.student_progress)
 
 # Helper function to scroll to top
+# Replace the scroll_to_top function with this:
 def scroll_to_top():
-    st.markdown("""
+    """Force scroll to top of page"""
+    js = """
     <script>
-        window.scrollTo(0, 0);
-        document.body.scrollTop = 0;
-        document.documentElement.scrollTop = 0;
+        // Multiple methods to ensure scroll works
+        setTimeout(function() {
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+            
+            // Find main content area and scroll it too
+            const mainContent = document.querySelector('.main');
+            if (mainContent) {
+                mainContent.scrollTop = 0;
+            }
+            
+            // Also try the stApp container
+            const stApp = document.querySelector('.stApp');
+            if (stApp) {
+                stApp.scrollTop = 0;
+            }
+        }, 100);
+    </script>
+    """
+    st.components.v1.html(js, height=0)
+
+# Also add this CSS to the add_custom_css function (add at the end of the existing CSS):
+def add_custom_css():
+    st.markdown("""
+    <style>
+    /* Existing CSS ... */
+    
+    /* Force scroll position on load */
+    html, body {
+        scroll-behavior: auto !important;
+    }
+    
+    .main {
+        overflow-y: auto;
+    }
+    
+    /* Prevent layout shift during navigation */
+    .stApp > div {
+        min-height: 100vh;
+    }
+    </style>
+    
+    <script>
+        // Force scroll on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            window.scrollTo(0, 0);
+        });
     </script>
     """, unsafe_allow_html=True)
-
+    
 # Helper function to read files from S3
 def read_s3_file(s3_key):
     """Read a file from S3 and return its content"""
@@ -391,44 +438,66 @@ def play_audio_with_autoplay(s3_key, element_id="opening-audio"):
 
 # Play audio hidden - fixed for multiple consecutive plays
 # Play audio hidden - fixed for multiple consecutive plays
+# Replace the play_audio_hidden function with this improved version:
 def play_audio_hidden(s3_key, audio_key=None):
     """Play audio with proper handling for multiple plays"""
     audio_content = read_s3_file(s3_key)
     if audio_content:
         b64 = base64.b64encode(audio_content).decode()
         
-        # Create unique ID with timestamp to allow replay
-        timestamp = str(time.time()).replace('.', '')
-        unique_id = f"{audio_key}_{timestamp}" if audio_key else timestamp
+        # Create unique ID for each play
+        unique_id = f"audio_{int(time.time() * 1000)}_{random.randint(1000, 9999)}"
         
-        # Create a container with unique key to force re-render
-        container_key = f"audio_container_{unique_id}"
-        audio_container = st.container()
+        # Use st.empty() to create a placeholder that won't duplicate
+        audio_placeholder = st.empty()
         
-        with audio_container:
-            st.markdown(f"""
-            <audio id="audio_{unique_id}" autoplay style="display: none;">
-                <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-            </audio>
-            <script>
-                (function() {{
-                    var audio = document.getElementById('audio_{unique_id}');
-                    if (audio) {{
-                        audio.load(); // Force reload the audio
-                        var playPromise = audio.play();
-                        if (playPromise !== undefined) {{
-                            playPromise.catch(function(e) {{
-                                console.log('Audio play error:', e);
-                            }});
-                        }}
+        # Insert the audio element
+        audio_placeholder.markdown(f"""
+        <audio id="{unique_id}" style="display: none;">
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+        </audio>
+        <script>
+            (function() {{
+                const audio = document.getElementById('{unique_id}');
+                if (audio) {{
+                    // Reset the audio to beginning
+                    audio.currentTime = 0;
+                    // Force load
+                    audio.load();
+                    // Play with promise handling
+                    const playPromise = audio.play();
+                    if (playPromise !== undefined) {{
+                        playPromise.then(() => {{
+                            console.log('Audio playing: {unique_id}');
+                        }}).catch(error => {{
+                            console.log('Play error:', error);
+                        }});
                     }}
-                }})();
-            </script>
-            """, unsafe_allow_html=True)
-            
-        # Small delay to ensure audio starts before any potential rerun
-        time.sleep(0.1)
-        
+                    
+                    // Clean up after audio ends
+                    audio.addEventListener('ended', function() {{
+                        setTimeout(() => {{
+                            if (audio && audio.parentNode) {{
+                                audio.parentNode.removeChild(audio);
+                            }}
+                        }}, 100);
+                    }});
+                }}
+            }})();
+        </script>
+        """, unsafe_allow_html=True)
+
+# Also update the button click handlers to use unique keys. For example:
+# Change all audio button handlers to include a timestamp in the key to force refresh
+
+# Example for question audio button:
+if st.button(f"🔊 Play Question", key=f"q_{global_idx}_{page}_{int(time.time() * 1000)}"):
+    play_audio_hidden(audio_s3_key, f"q_{global_idx}")
+
+# Example for option audio button:
+if st.button("🔊", key=f"opt_audio_{global_idx}_{opt_idx}_{page}_{int(time.time() * 1000)}"):
+    play_audio_hidden(audio_s3_key, f"opt_audio_{global_idx}_{opt_idx}")
+    
 # Play story with highlight
 def play_story_with_highlight(story_text, audio_s3_key):
     """Play story audio with synchronized text highlighting"""
@@ -967,9 +1036,14 @@ def show_success_animation(message):
 # Main app
 # Main app
 # Main app
+# Main app
 def main():
     st.title("Lerna ReadTogether")
     add_custom_css()
+    
+    # Add interaction tracking
+    if 'last_interaction' not in st.session_state:
+        st.session_state.last_interaction = None
 
     student_to_group = _get_all_students()
 
@@ -1241,7 +1315,7 @@ def main():
                                     intro_container = st.container()
                                     with intro_container:
                                         if st.button("🎯 Activity Introduction", key=f"intro_{activity.get('activity_number')}_{page}", use_container_width=True):
-                                            play_audio_hidden(tutor_audio_key, f"intro_{activity.get('activity_number')}_{page}_{time.time()}")
+                                            play_audio_hidden(tutor_audio_key, f"intro_{activity.get('activity_number')}_{page}")
                             
                             # Teaching and practice buttons
                             col1, col2 = st.columns(2)
@@ -1252,7 +1326,7 @@ def main():
                                     teaching_audio_key = fix_audio_path(teaching_audio, student_s3_prefix, current_day)
                                     if teaching_audio_key:
                                         if st.button("📖 Teach Me", key=f"teach_{activity.get('activity_number')}_{page}", use_container_width=True, type="primary"):
-                                            play_audio_hidden(teaching_audio_key, f"teach_{activity.get('activity_number')}_{page}_{time.time()}")
+                                            play_audio_hidden(teaching_audio_key, f"teach_{activity.get('activity_number')}_{page}")
                             
                             with col2:
                                 multisensory_audio = activity.get('multisensory_audio', '')
@@ -1261,7 +1335,7 @@ def main():
                                     multi_clicked_key = f"multi_clicked_{current_day}_{activity.get('activity_number')}"
                                     
                                     if st.button("🤹 Multisensory Practice", key=f"multi_{activity.get('activity_number')}_{page}", use_container_width=True, type="secondary"):
-                                        play_audio_hidden(multisensory_audio_key, f"multi_{activity.get('activity_number')}_{page}_{time.time()}")
+                                        play_audio_hidden(multisensory_audio_key, f"multi_{activity.get('activity_number')}_{page}")
                                         # Mark that multisensory was clicked
                                         st.session_state[multi_clicked_key] = True
                             
@@ -1328,7 +1402,7 @@ def main():
                             audio_s3_key = fix_audio_path(q_audio, student_s3_prefix, current_day)
                             if audio_s3_key:
                                 if st.button(f"🔊 Play Question", key=f"q_{global_idx}_{page}"):
-                                    play_audio_hidden(audio_s3_key, f"q_{global_idx}_{page}_{time.time()}")
+                                    play_audio_hidden(audio_s3_key, f"q_{global_idx}_{page}")
 
                         answer_key = f"answer_{current_day}_{global_idx}"
                         
@@ -1355,7 +1429,7 @@ def main():
                                     if feedback_data.get('feedback_audio') and not st.session_state.get(fb_played_key, False):
                                         feedback_audio_key = fix_audio_path(feedback_data['feedback_audio'], student_s3_prefix, current_day)
                                         if feedback_audio_key:
-                                            play_audio_hidden(feedback_audio_key, f"fb_{global_idx}_{time.time()}")
+                                            play_audio_hidden(feedback_audio_key, f"fb_{global_idx}")
                                             st.session_state[fb_played_key] = True
                                 else:
                                     st.warning("❌ Try again!")
@@ -1385,7 +1459,7 @@ def main():
                                         audio_s3_key = fix_audio_path(opt_audio, student_s3_prefix, current_day)
                                         if audio_s3_key:
                                             if st.button("🔊", key=f"opt_audio_{global_idx}_{opt_idx}_{page}"):
-                                                play_audio_hidden(audio_s3_key, f"opt_audio_{global_idx}_{opt_idx}_{page}_{time.time()}")
+                                                play_audio_hidden(audio_s3_key, f"opt_audio_{global_idx}_{opt_idx}")
 
                         elif q.get('answer_type') == 'text_input':
                             if q.get('question_type') == 'text_input_dictation':
@@ -1398,54 +1472,71 @@ def main():
                                             st.info("📝 Click play to hear the sentence")
                                         with col2:
                                             if st.button("▶️ Play", key=f"dict_{global_idx}_{page}", type="primary"):
-                                                play_audio_hidden(dictation_key, f"dict_{global_idx}_{page}_{time.time()}")
+                                                play_audio_hidden(dictation_key, f"dict_{global_idx}")
                                 
                                 # Add attempt tracking
                                 attempt_key = f"dictation_attempts_{global_idx}_{page}"
                                 if attempt_key not in st.session_state:
                                     st.session_state[attempt_key] = 0
                                 
-                                current_answer = st.text_input("Your Answer:", key=answer_key, value=st.session_state.answers.get(answer_key, ""))
+                                # Create text input with proper handling
+                                current_answer = st.session_state.answers.get(answer_key, "")
                                 
-                                if current_answer and not current_answer.startswith("[Shown:"):
-                                    is_valid, message = is_valid_dictation_answer(current_answer, q.get('correct_answer', ''))
+                                # Use a form to prevent auto-rerun on every keystroke
+                                with st.form(key=f"text_form_{global_idx}_{page}"):
+                                    user_input = st.text_input("Your Answer:", value=current_answer, key=f"text_input_{global_idx}")
+                                    submitted = st.form_submit_button("Submit Answer")
                                     
-                                    if is_valid or current_answer.lower() == "i don't know":
-                                        st.session_state.answers[answer_key] = current_answer
-                                        # Reset attempts on success
-                                        st.session_state[attempt_key] = 0
-                                        # Save answer immediately
-                                        update_progress_data(current_day, {answer_key: current_answer})
-                                        st.success(message if current_answer.lower() != "i don't know" else "That's okay!")
-                                    else:
-                                        # Increment attempts
-                                        st.session_state[attempt_key] += 1
-                                        
-                                        if st.session_state[attempt_key] >= 2:
-                                            # After 2 attempts, show correct answer and auto-pass
-                                            correct_answer = q.get('correct_answer', '')
-                                            st.warning(f"The correct answer is: **{correct_answer}**")
-                                            st.info("Let's continue to the next question!")
-                                            # Auto-save "shown answer" to allow progression
-                                            st.session_state.answers[answer_key] = f"[Shown: {correct_answer}]"
-                                            update_progress_data(current_day, {answer_key: f"[Shown: {correct_answer}]"})
-                                            # Reset attempts
-                                            st.session_state[attempt_key] = 0
-                                            st.rerun()
-                                        else:
-                                            st.warning(f"{message} (Attempt {st.session_state[attempt_key]}/2)")
+                                    if submitted and user_input:
+                                        if user_input != current_answer:  # Only process if answer changed
+                                            is_valid, message = is_valid_dictation_answer(user_input, q.get('correct_answer', ''))
+                                            
+                                            if is_valid or user_input.lower() == "i don't know":
+                                                st.session_state.answers[answer_key] = user_input
+                                                st.session_state[attempt_key] = 0
+                                                update_progress_data(current_day, {answer_key: user_input})
+                                                st.success(message if user_input.lower() != "i don't know" else "That's okay!")
+                                                # Use rerun only when necessary
+                                                time.sleep(0.5)
+                                                st.rerun()
+                                            else:
+                                                st.session_state[attempt_key] += 1
+                                                
+                                                if st.session_state[attempt_key] >= 2:
+                                                    correct_answer = q.get('correct_answer', '')
+                                                    st.warning(f"The correct answer is: **{correct_answer}**")
+                                                    st.info("Let's continue to the next question!")
+                                                    st.session_state.answers[answer_key] = f"[Shown: {correct_answer}]"
+                                                    update_progress_data(current_day, {answer_key: f"[Shown: {correct_answer}]"})
+                                                    st.session_state[attempt_key] = 0
+                                                    time.sleep(1)
+                                                    st.rerun()
+                                                else:
+                                                    st.warning(f"{message} (Attempt {st.session_state[attempt_key]}/2)")
+                                
+                                # Show saved answer status
+                                if current_answer and not current_answer.startswith("[Shown:"):
+                                    st.success("✓ Answer saved")
                                 elif current_answer and current_answer.startswith("[Shown:"):
-                                    # If answer was shown, display success message
                                     st.success("Answer recorded. Let's continue!")
+                            
                             else:
-                                # Regular text input (e.g., reading comprehension)
-                                current_answer = st.text_input("Your Answer:", key=answer_key, value=st.session_state.answers.get(answer_key, ""))
+                                # Regular text input (e.g., reading comprehension) with form
+                                current_answer = st.session_state.answers.get(answer_key, "")
+                                
+                                with st.form(key=f"text_form_regular_{global_idx}_{page}"):
+                                    user_input = st.text_input("Your Answer:", value=current_answer, key=f"text_regular_{global_idx}")
+                                    submitted = st.form_submit_button("Submit Answer")
+                                    
+                                    if submitted and user_input and user_input != current_answer:
+                                        st.session_state.answers[answer_key] = user_input
+                                        update_progress_data(current_day, {answer_key: user_input})
+                                        st.success("Answer saved!")
+                                        time.sleep(0.5)
+                                        st.rerun()
                                 
                                 if current_answer:
-                                    st.session_state.answers[answer_key] = current_answer
-                                    # Save answer immediately
-                                    update_progress_data(current_day, {answer_key: current_answer})
-                                    st.success("Answer saved!")
+                                    st.success("✓ Answer saved")
                         
                         # Paragraph writing final display - UPDATED WITH COMPARISON
                         if activity.get('component') == 'Paragraph Writing':
@@ -1552,7 +1643,7 @@ def main():
                                     if para_key:
                                         st.markdown("---")
                                         if st.button("🎧 Listen to Model Paragraph", key=f"para_{activity.get('activity_number')}_{page}", use_container_width=True):
-                                            play_audio_hidden(para_key, f"para_{activity.get('activity_number')}_{page}_{time.time()}")
+                                            play_audio_hidden(para_key, f"para_{activity.get('activity_number')}_{page}")
                         
                         if i < len(current_questions) - 1:
                             st.divider()
@@ -1644,5 +1735,9 @@ def main():
                     with nav_col2_bottom:
                         if not all_answered:
                             st.warning("Answer all questions on this page to continue")
+                            
+                    # Call scroll to top after rendering
+                    scroll_to_top()
+                    
 if __name__ == "__main__":
     main()
