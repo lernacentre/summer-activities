@@ -758,6 +758,7 @@ def create_combined_progress_chart(activities_data, all_days_progress=None, all_
             
 # Progress sidebar
 # Progress sidebar
+# Progress sidebar
 def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_prefix):
     """Create a sidebar with progress tracking"""
     with st.sidebar:
@@ -785,63 +786,67 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
             all_days_progress = {}
             all_activities_historical = {}
             
-            if st.session_state.student_progress:
-                for day in st.session_state.completed_days:
-                    if day in day_to_content:
-                        day_data_hist = day_to_content[day]
-                        day_correct = 0
-                        day_total = 0
-                        day_activities = []
-                        
-                        for field in day_data_hist['fields']:
-                            if field.get('type') == 'enhanced_structured_literacy_session':
-                                content = field.get('content', {})
+            # Process ALL days that have any progress (completed + current)
+            days_to_process = list(st.session_state.completed_days)
+            if current_day and current_day not in days_to_process:
+                days_to_process.append(current_day)
+            
+            for day in days_to_process:
+                if day in day_to_content:
+                    day_data_hist = day_to_content[day]
+                    day_correct = 0
+                    day_total = 0
+                    day_activities = []
+                    
+                    for field in day_data_hist['fields']:
+                        if field.get('type') == 'enhanced_structured_literacy_session':
+                            content = field.get('content', {})
+                            
+                            for activity in content.get('activities', []):
+                                activity_correct = 0
+                                activity_total = 0
+                                activity_answered = 0
                                 
-                                for activity in content.get('activities', []):
-                                    activity_correct = 0
-                                    activity_total = 0
-                                    activity_answered = 0
+                                for q_idx, q in enumerate(activity.get('questions', [])):
+                                    activity_total += 1
+                                    day_total += 1
                                     
-                                    for q_idx, q in enumerate(activity.get('questions', [])):
-                                        activity_total += 1
-                                        day_total += 1
-                                        
-                                        # Find the answer for this question
-                                        for global_idx, (act, _, question) in enumerate([(a, i, qu) for a in content.get('activities', []) for i, qu in enumerate(a.get('questions', []))]):
-                                            if act == activity and question == q:
-                                                answer_key = f"answer_{day}_{global_idx}"
-                                                user_answer = st.session_state.answers.get(answer_key)
+                                    # Find the answer for this question
+                                    for global_idx, (act, _, question) in enumerate([(a, i, qu) for a in content.get('activities', []) for i, qu in enumerate(a.get('questions', []))]):
+                                        if act == activity and question == q:
+                                            answer_key = f"answer_{day}_{global_idx}"
+                                            user_answer = st.session_state.answers.get(answer_key)
+                                            
+                                            if user_answer:  # Question was answered
+                                                activity_answered += 1
                                                 
-                                                if user_answer:  # Question was answered
-                                                    activity_answered += 1
-                                                    
-                                                    if q.get('answer_type') == 'single_select':
-                                                        if user_answer == q.get('correct_answer'):
+                                                if q.get('answer_type') == 'single_select':
+                                                    if user_answer == q.get('correct_answer'):
+                                                        activity_correct += 1
+                                                        day_correct += 1
+                                                elif q.get('answer_type') == 'text_input':
+                                                    # For text inputs, count as correct if valid
+                                                    if q.get('question_type') == 'text_input_dictation':
+                                                        if is_valid_dictation_answer(user_answer, q.get('correct_answer', ''))[0] or user_answer.lower() == "i don't know":
                                                             activity_correct += 1
                                                             day_correct += 1
-                                                    elif q.get('answer_type') == 'text_input':
-                                                        # For text inputs, count as correct if valid
-                                                        if q.get('question_type') == 'text_input_dictation':
-                                                            if is_valid_dictation_answer(user_answer, q.get('correct_answer', ''))[0] or user_answer.lower() == "i don't know":
-                                                                activity_correct += 1
-                                                                day_correct += 1
-                                                        else:
-                                                            # For regular text inputs
-                                                            activity_correct += 1
-                                                            day_correct += 1
-                                                break
-                                    
-                                    # Store activity data
-                                    day_activities.append({
-                                        'component': activity.get('component', ''),
-                                        'correct': activity_correct,
-                                        'total': activity_total,
-                                        'answered': activity_answered
-                                    })
-                        
-                        if day_total > 0:
-                            all_days_progress[day] = (day_correct / day_total) * 100
-                            all_activities_historical[day] = {'activities': day_activities}
+                                                    else:
+                                                        # For regular text inputs
+                                                        activity_correct += 1
+                                                        day_correct += 1
+                                            break
+                                
+                                # Store activity data
+                                day_activities.append({
+                                    'component': activity.get('component', ''),
+                                    'correct': activity_correct,
+                                    'total': activity_total,
+                                    'answered': activity_answered
+                                })
+                    
+                    if day_total > 0:
+                        all_days_progress[day] = (day_correct / day_total) * 100
+                        all_activities_historical[day] = {'activities': day_activities}
             
             # Process current day activities
             for field in day_data['fields']:
