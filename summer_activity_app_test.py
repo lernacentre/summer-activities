@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
 import json
 import base64
 import boto3
@@ -229,29 +228,27 @@ def update_progress_data(current_day, answers, completed=False):
 # Helper function to scroll to top
 def scroll_to_top():
     """Force scroll to top of page"""
-    js = """
+    # Use a simpler approach with markdown
+    st.markdown("""
     <script>
         // Multiple methods to ensure scroll works
-        setTimeout(function() {
-            window.scrollTo(0, 0);
-            document.body.scrollTop = 0;
-            document.documentElement.scrollTop = 0;
-            
-            // Find main content area and scroll it too
-            const mainContent = document.querySelector('.main');
-            if (mainContent) {
-                mainContent.scrollTop = 0;
-            }
-            
-            // Also try the stApp container
-            const stApp = document.querySelector('.stApp');
-            if (stApp) {
-                stApp.scrollTop = 0;
-            }
-        }, 100);
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+        
+        // Find main content area and scroll it too
+        const mainContent = document.querySelector('.main');
+        if (mainContent) {
+            mainContent.scrollTop = 0;
+        }
+        
+        // Also try the stApp container
+        const stApp = document.querySelector('.stApp');
+        if (stApp) {
+            stApp.scrollTop = 0;
+        }
     </script>
-    """
-    components.html(js, height=0)
+    """, unsafe_allow_html=True)
 
 # Helper function to read files from S3
 def read_s3_file(s3_key):
