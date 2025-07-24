@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import json
 import base64
 import boto3
@@ -250,7 +251,7 @@ def scroll_to_top():
         }, 100);
     </script>
     """
-    st.components.v1.html(js, height=0)
+    components.html(js, height=0)
 
 # Helper function to read files from S3
 def read_s3_file(s3_key):
