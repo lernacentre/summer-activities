@@ -487,16 +487,6 @@ def play_audio_hidden(s3_key, audio_key=None):
         </script>
         """, unsafe_allow_html=True)
 
-# Also update the button click handlers to use unique keys. For example:
-# Change all audio button handlers to include a timestamp in the key to force refresh
-
-# Example for question audio button:
-if st.button(f"🔊 Play Question", key=f"q_{global_idx}_{page}"):
-    play_audio_hidden(audio_s3_key, f"q_{global_idx}")
-
-# Example for option audio button:
-if st.button("🔊", key=f"opt_audio_{global_idx}_{opt_idx}_{page}_{int(time.time() * 1000)}"):
-    play_audio_hidden(audio_s3_key, f"opt_audio_{global_idx}_{opt_idx}")
     
 # Play story with highlight
 def play_story_with_highlight(story_text, audio_s3_key):
