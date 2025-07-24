@@ -77,7 +77,7 @@ def add_custom_css():
     <style>
     /* Smooth transitions and prevent flashing */
     .stApp {
-        transition: opacity 0.3s ease;
+        transition: none !important;
     }
     
     /* Custom animations */
@@ -134,11 +134,37 @@ def add_custom_css():
         margin: 10px 0;
     }
     
-    /* Scroll to top */
-    html {
-        scroll-behavior: smooth;
+    /* Force scroll position on load */
+    html, body {
+        scroll-behavior: auto !important;
+    }
+    
+    .main {
+        overflow-y: auto;
+    }
+    
+    /* Prevent layout shift during navigation */
+    .stApp > div {
+        min-height: 100vh;
+    }
+    
+    /* Prevent duplicate elements */
+    .stTextInput > div {
+        position: relative;
+    }
+
+    /* Smooth form transitions */
+    form {
+        transition: opacity 0.2s ease;
     }
     </style>
+    
+    <script>
+        // Force scroll on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            window.scrollTo(0, 0);
+        });
+    </script>
     """, unsafe_allow_html=True)
 
 # Save student progress to S3
@@ -200,7 +226,6 @@ def update_progress_data(current_day, answers, completed=False):
             save_student_progress(st.session_state.student_s3_prefix, st.session_state.student_progress)
 
 # Helper function to scroll to top
-# Replace the scroll_to_top function with this:
 def scroll_to_top():
     """Force scroll to top of page"""
     js = """
@@ -227,35 +252,6 @@ def scroll_to_top():
     """
     st.components.v1.html(js, height=0)
 
-# Also add this CSS to the add_custom_css function (add at the end of the existing CSS):
-def add_custom_css():
-    st.markdown("""
-    <style>
-    /* Existing CSS ... */
-    
-    /* Force scroll position on load */
-    html, body {
-        scroll-behavior: auto !important;
-    }
-    
-    .main {
-        overflow-y: auto;
-    }
-    
-    /* Prevent layout shift during navigation */
-    .stApp > div {
-        min-height: 100vh;
-    }
-    </style>
-    
-    <script>
-        // Force scroll on page load
-        window.addEventListener('DOMContentLoaded', function() {
-            window.scrollTo(0, 0);
-        });
-    </script>
-    """, unsafe_allow_html=True)
-    
 # Helper function to read files from S3
 def read_s3_file(s3_key):
     """Read a file from S3 and return its content"""
@@ -437,8 +433,6 @@ def play_audio_with_autoplay(s3_key, element_id="opening-audio"):
         st.markdown(audio_html, unsafe_allow_html=True)
 
 # Play audio hidden - fixed for multiple consecutive plays
-# Play audio hidden - fixed for multiple consecutive plays
-# Replace the play_audio_hidden function with this improved version:
 def play_audio_hidden(s3_key, audio_key=None):
     """Play audio with proper handling for multiple plays"""
     audio_content = read_s3_file(s3_key)
@@ -487,7 +481,6 @@ def play_audio_hidden(s3_key, audio_key=None):
         </script>
         """, unsafe_allow_html=True)
 
-    
 # Play story with highlight
 def play_story_with_highlight(story_text, audio_s3_key):
     """Play story audio with synchronized text highlighting"""
@@ -587,10 +580,8 @@ def is_valid_dictation_answer(user_answer, correct_answer):
         return True, f"Good effort! ({similarity:.0f}% accurate)"
     else:
         return False, "Please try again or type 'I don't know'"
-# Create a beautiful combined progress chart with graph
-# Add this import at the top of your file with other imports
 
-# Replace the create_combined_progress_chart function with this updated version
+# Create a beautiful combined progress chart with graph
 def create_combined_progress_chart(activities_data, all_days_progress=None, all_activities_historical=None):
     """Create a visually appealing combined progress visualization with proper plots"""
     if not activities_data:
@@ -814,9 +805,7 @@ def create_combined_progress_chart(activities_data, all_days_progress=None, all_
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.info("Complete more days to see your progress over time!")
-            
-# Progress sidebar
-# Progress sidebar
+
 # Progress sidebar
 def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_prefix):
     """Create a sidebar with progress tracking"""
@@ -963,7 +952,7 @@ def create_progress_sidebar(all_days, day_to_content, current_day, student_s3_pr
                 st.markdown(f"✅ {day.replace('day', 'Day ')}")
             else:
                 st.markdown(f"⭕ {day.replace('day', 'Day ')}")
-                
+
 # Welcome animation
 def show_welcome_animation(student_name):
     st.markdown(f"""
@@ -1023,9 +1012,6 @@ def show_success_animation(message):
     {confetti_html}
     """, unsafe_allow_html=True)
 
-# Main app
-# Main app
-# Main app
 # Main app
 def main():
     st.title("Lerna ReadTogether")
@@ -1728,6 +1714,6 @@ def main():
                             
                     # Call scroll to top after rendering
                     scroll_to_top()
-                    
+
 if __name__ == "__main__":
     main()
