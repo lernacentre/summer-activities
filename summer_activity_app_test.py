@@ -195,10 +195,11 @@ def update_progress_data(current_day, answers, completed=False):
         if completed:
             st.session_state.student_progress[current_day]["completed"] = True
         
-        # Save to S3
+        # Save to S3 and return status
         if "student_s3_prefix" in st.session_state:
-            save_student_progress(st.session_state.student_s3_prefix, st.session_state.student_progress)
-
+            return save_student_progress(st.session_state.student_s3_prefix, st.session_state.student_progress)
+    return True  # Return True if no save needed
+    
 # Helper function to scroll to top
 def scroll_to_top():
     st.markdown("""
@@ -1593,27 +1594,28 @@ def main():
                                     st.rerun()
                             else:
                                 # Complete day button
+                                # Complete day button
                                 if st.button("✅ Complete Day", key="complete_day", type="primary", use_container_width=True):
                                     st.session_state.completed_days.add(current_day)
                                     # Mark day as completed in progress
                                     update_progress_data(current_day, st.session_state.answers, completed=True)
-                                    
+    
                                     current_index = all_days.index(current_day)
-                                    
+    
                                     if current_index + 1 < len(all_days):
-                                        st.session_state.current_day = all_days[current_index + 1]
-                                        st.session_state.question_page = 0
-                                        # Don't clear answers - keep them for progress tracking
-                                        st.session_state.day_started = False
-                                        st.session_state.audio_containers = {}
-                                        st.session_state.transition_audio_played = set()
-                                        st.session_state.practice_done = {}
-                                        st.success(f"Great job! Moving to next day...")
-                                        time.sleep(1)
-                                        st.rerun()
+                                       st.session_state.current_day = all_days[current_index + 1]
+                                       st.session_state.question_page = 0
+                                       # Don't clear answers - keep them for progress tracking
+                                       st.session_state.day_started = False
+                                       st.session_state.audio_containers = {}
+                                       st.session_state.transition_audio_played = set()
+                                       st.session_state.practice_done = {}
+                                       st.success(f"Great job! Moving to next day...")
+                                       time.sleep(1)
+                                       st.rerun()
                                     else:
-                                        show_success_animation("All activities completed! 🎉")
-                                        st.balloons()
+                                       show_success_animation("All activities completed! 🎉")
+                                       st.balloons()
                     
                     with nav_col2_bottom:
                         if not all_answered:
