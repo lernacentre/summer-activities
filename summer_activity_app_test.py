@@ -519,10 +519,8 @@ def is_valid_dictation_answer(user_answer, correct_answer):
         return True, f"Good effort! ({similarity:.0f}% accurate)"
     else:
         return False, "Please try again or type 'I don't know'"
-# Create a beautiful combined progress chart with graph
-# Add this import at the top of your file with other imports
 
-# Replace the create_combined_progress_chart function with this updated version
+# Create a beautiful combined progress chart with graph
 def create_combined_progress_chart(activities_data, all_days_progress=None):
     """Create a visually appealing combined progress visualization with proper plots"""
     if not activities_data:
@@ -939,8 +937,6 @@ def show_success_animation(message):
     {confetti_html}
     """, unsafe_allow_html=True)
 
-# Main app
-# Main app
 # Main app
 def main():
     st.title("Lerna ReadTogether")
@@ -1594,31 +1590,39 @@ def main():
                                     st.rerun()
                             else:
                                 # Complete day button
-                                # Complete day button
                                 if st.button("✅ Complete Day", key="complete_day", type="primary", use_container_width=True):
-                                    st.session_state.completed_days.add(current_day)
-                                    # Mark day as completed in progress
-                                    update_progress_data(current_day, st.session_state.answers, completed=True)
-    
-                                    current_index = all_days.index(current_day)
-    
-                                    if current_index + 1 < len(all_days):
-                                       st.session_state.current_day = all_days[current_index + 1]
-                                       st.session_state.question_page = 0
-                                       # Don't clear answers - keep them for progress tracking
-                                       st.session_state.day_started = False
-                                       st.session_state.audio_containers = {}
-                                       st.session_state.transition_audio_played = set()
-                                       st.session_state.practice_done = {}
-                                       st.success(f"Great job! Moving to next day...")
-                                       time.sleep(1)
-                                       st.rerun()
-                                    else:
-                                       show_success_animation("All activities completed! 🎉")
-                                       st.balloons()
+                                    # Show a spinner while saving
+                                    with st.spinner("Saving your progress..."):
+                                        st.session_state.completed_days.add(current_day)
+                                        
+                                        # Mark day as completed and wait for save confirmation
+                                        save_success = update_progress_data(current_day, st.session_state.answers, completed=True)
+                                        
+                                        if save_success:
+                                            # Add a small delay to ensure S3 write propagates
+                                            time.sleep(1.5)
+                                            
+                                            current_index = all_days.index(current_day)
+                                            
+                                            if current_index + 1 < len(all_days):
+                                                st.session_state.current_day = all_days[current_index + 1]
+                                                st.session_state.question_page = 0
+                                                st.session_state.day_started = False
+                                                st.session_state.audio_containers = {}
+                                                st.session_state.transition_audio_played = set()
+                                                st.session_state.practice_done = {}
+                                                st.success(f"Great job! Day completed! Moving to next day...")
+                                                time.sleep(1)
+                                                st.rerun()
+                                            else:
+                                                show_success_animation("All activities completed! 🎉")
+                                                st.balloons()
+                                        else:
+                                            st.error("Failed to save progress. Please try clicking 'Complete Day' again.")
                     
                     with nav_col2_bottom:
                         if not all_answered:
                             st.warning("Answer all questions on this page to continue")
+
 if __name__ == "__main__":
     main()
