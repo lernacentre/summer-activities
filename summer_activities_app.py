@@ -1000,6 +1000,7 @@ def show_success_animation(message):
     """, unsafe_allow_html=True)
 
 # Main app
+# Main app
 def main():
     st.title("Lerna ReadTogether")
     add_custom_css()
@@ -1142,22 +1143,33 @@ def main():
        
         all_days, day_to_content = load_day_packs(student_s3_prefix)
 
-        # Set current day - FIXED LOGIC
+        # Set current day - SIMPLIFIED LOGIC
         if st.session_state.current_day is None and all_days:
-            # First, check if we have a saved current day
-            if "_current_day" in st.session_state.student_progress:
-                saved_current = st.session_state.student_progress["_current_day"]
-                if saved_current in all_days:
-                    st.session_state.current_day = saved_current
+            # Find the highest completed day number
+            completed_day_numbers = []
+            for day in st.session_state.completed_days:
+                if day.startswith('day'):
+                    try:
+                        day_num = int(day.replace('day', ''))
+                        completed_day_numbers.append(day_num)
+                    except:
+                        pass
             
-            # If still None, find the first uncompleted day
-            if st.session_state.current_day is None:
-                for day in all_days:
-                    if day not in st.session_state.completed_days:
-                        st.session_state.current_day = day
-                        break
+            if completed_day_numbers:
+                # Get the highest completed day
+                highest_completed = max(completed_day_numbers)
+                # Try to load the next day
+                next_day_num = highest_completed + 1
+                next_day = f"day{next_day_num}"
+                
+                if next_day in all_days:
+                    st.session_state.current_day = next_day
                 else:
-                    st.session_state.current_day = all_days[-1]
+                    # If next day doesn't exist, stay on the last available day
+                    st.session_state.current_day = f"day{highest_completed}"
+            else:
+                # No days completed, start with day1
+                st.session_state.current_day = "day1"
 
         current_day = st.session_state.current_day
 
@@ -1692,6 +1704,6 @@ def main():
                     with nav_col2_bottom:
                         if not all_answered:
                             st.warning("Answer all questions on this page to continue")
-
+                            
 if __name__ == "__main__":
     main()
