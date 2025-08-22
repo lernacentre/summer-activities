@@ -45,6 +45,8 @@ if "audio_timestamps" not in st.session_state:
     st.session_state.audio_timestamps = {}
 if "student_progress" not in st.session_state:
     st.session_state.student_progress = {}
+if "session_id" not in st.session_state:
+    st.session_state.session_id = str(time.time())
 
 # S3 Configuration
 BUCKET_NAME = "summer-activities-streamli-app"
@@ -141,12 +143,46 @@ def add_custom_css():
     </style>
     """, unsafe_allow_html=True)
 
-# Save student progress to S3
+# Safe save student progress to S3
 def save_student_progress(student_s3_prefix, progress_data):
-    """Save student progress to S3 as JSON"""
+    """Save student progress to S3 as JSON - SAFE VERSION"""
     try:
         progress_key = f"{student_s3_prefix}/progress.json"
-        progress_json = json.dumps(progress_data, indent=2)
+        
+        # CRITICAL: Load existing progress first
+        try:
+            existing_response = s3.get_object(Bucket=BUCKET_NAME, Key=progress_key)
+            existing_content = existing_response['Body'].read()
+            existing_progress = json.loads(existing_content.decode('utf-8')) if existing_content else {}
+        except:
+            existing_progress = {}
+        
+        # Merge with new data (new data takes precedence for conflicts)
+        merged_progress = existing_progress.copy()
+        
+        # Update with new progress data
+        for day, data in progress_data.items():
+            if day not in merged_progress:
+                merged_progress[day] = data
+            else:
+                # Merge the day's data
+                if "answers" in data:
+                    if "answers" not in merged_progress[day]:
+                        merged_progress[day]["answers"] = {}
+                    merged_progress[day]["answers"].update(data["answers"])
+                
+                # Update completed status and timestamp
+                if data.get("completed", False):
+                    merged_progress[day]["completed"] = True
+                if "last_updated" in data:
+                    merged_progress[day]["last_updated"] = data["last_updated"]
+        
+        # Save current day
+        if "_current_day" in progress_data:
+            merged_progress["_current_day"] = progress_data["_current_day"]
+        
+        # Save the merged data
+        progress_json = json.dumps(merged_progress, indent=2)
         
         s3.put_object(
             Bucket=BUCKET_NAME,
@@ -156,7 +192,7 @@ def save_student_progress(student_s3_prefix, progress_data):
         )
         return True
     except Exception as e:
-        st.error("Error saving progress")
+        st.error(f"Error saving progress: {str(e)}")
         return False
 
 # Load student progress from S3
@@ -172,11 +208,35 @@ def load_student_progress(student_s3_prefix):
     except:
         return None
 
-# Update progress data
+# Safe update progress data
 def update_progress_data(current_day, answers, completed=False):
-    """Update the student's progress data"""
+    """Update the student's progress data - SAFE VERSION that doesn't overwrite"""
     if "student_progress" not in st.session_state:
         st.session_state.student_progress = {}
+    
+    # CRITICAL: Always load existing progress first to avoid overwriting
+    if "student_s3_prefix" in st.session_state:
+        existing_progress = load_student_progress(st.session_state.student_s3_prefix)
+        if existing_progress:
+            # Merge existing progress with current session state
+            for day, data in existing_progress.items():
+                if day not in st.session_state.student_progress:
+                    st.session_state.student_progress[day] = data
+                else:
+                    # Merge answers from existing progress
+                    if "answers" in data:
+                        if "answers" not in st.session_state.student_progress[day]:
+                            st.session_state.student_progress[day]["answers"] = {}
+                        # Only update answers that don't exist in session state
+                        for key, value in data["answers"].items():
+                            if key not in st.session_state.student_progress[day]["answers"]:
+                                st.session_state.student_progress[day]["answers"][key] = value
+                    # Preserve completed status
+                    if data.get("completed", False):
+                        st.session_state.student_progress[day]["completed"] = True
+    
+    # Save current day
+    st.session_state.student_progress["_current_day"] = st.session_state.current_day
     
     if current_day:
         # Initialize day data if not exists
@@ -189,7 +249,10 @@ def update_progress_data(current_day, answers, completed=False):
         
         # Update answers for the day
         if answers:
+            if "answers" not in st.session_state.student_progress[current_day]:
+                st.session_state.student_progress[current_day]["answers"] = {}
             st.session_state.student_progress[current_day]["answers"].update(answers)
+        
         st.session_state.student_progress[current_day]["last_updated"] = time.strftime("%Y-%m-%d %H:%M:%S")
         
         if completed:
@@ -518,10 +581,8 @@ def is_valid_dictation_answer(user_answer, correct_answer):
         return True, f"Good effort! ({similarity:.0f}% accurate)"
     else:
         return False, "Please try again or type 'I don't know'"
-# Create a beautiful combined progress chart with graph
-# Add this import at the top of your file with other imports
 
-# Replace the create_combined_progress_chart function with this updated version
+# Create a beautiful combined progress chart with graph
 def create_combined_progress_chart(activities_data, all_days_progress=None):
     """Create a visually appealing combined progress visualization with proper plots"""
     if not activities_data:
@@ -939,8 +1000,6 @@ def show_success_animation(message):
     """, unsafe_allow_html=True)
 
 # Main app
-# Main app
-# Main app
 def main():
     st.title("Lerna ReadTogether")
     add_custom_css()
@@ -1002,12 +1061,16 @@ def main():
                             # Restore completed days
                             st.session_state.completed_days = set(
                                 day for day, data in saved_progress.items() 
-                                if data.get("completed", False)
+                                if day != "_current_day" and data.get("completed", False)
                             )
                             # Restore all answers
                             for day, day_data in saved_progress.items():
-                                if "answers" in day_data:
+                                if day != "_current_day" and "answers" in day_data:
                                     st.session_state.answers.update(day_data["answers"])
+                            
+                            # Restore current day
+                            if "_current_day" in saved_progress:
+                                st.session_state.current_day = saved_progress["_current_day"]
                         
                         st.balloons()
                         show_welcome_animation(selected_student)
@@ -1079,14 +1142,22 @@ def main():
        
         all_days, day_to_content = load_day_packs(student_s3_prefix)
 
-        # Set current day
+        # Set current day - FIXED LOGIC
         if st.session_state.current_day is None and all_days:
-            for day in all_days:
-                if day not in st.session_state.completed_days:
-                    st.session_state.current_day = day
-                    break
-            else:
-                st.session_state.current_day = all_days[-1]
+            # First, check if we have a saved current day
+            if "_current_day" in st.session_state.student_progress:
+                saved_current = st.session_state.student_progress["_current_day"]
+                if saved_current in all_days:
+                    st.session_state.current_day = saved_current
+            
+            # If still None, find the first uncompleted day
+            if st.session_state.current_day is None:
+                for day in all_days:
+                    if day not in st.session_state.completed_days:
+                        st.session_state.current_day = day
+                        break
+                else:
+                    st.session_state.current_day = all_days[-1]
 
         current_day = st.session_state.current_day
 
@@ -1601,14 +1672,17 @@ def main():
                                     current_index = all_days.index(current_day)
                                     
                                     if current_index + 1 < len(all_days):
-                                        st.session_state.current_day = all_days[current_index + 1]
+                                        next_day = all_days[current_index + 1]
+                                        st.session_state.current_day = next_day
                                         st.session_state.question_page = 0
                                         # Don't clear answers - keep them for progress tracking
                                         st.session_state.day_started = False
                                         st.session_state.audio_containers = {}
                                         st.session_state.transition_audio_played = set()
                                         st.session_state.practice_done = {}
-                                        st.success(f"Great job! Moving to next day...")
+                                        # Save the new current day
+                                        update_progress_data(next_day, {})
+                                        st.success(f"Great job! Moving to {next_day}...")
                                         time.sleep(1)
                                         st.rerun()
                                     else:
@@ -1618,5 +1692,6 @@ def main():
                     with nav_col2_bottom:
                         if not all_answered:
                             st.warning("Answer all questions on this page to continue")
+
 if __name__ == "__main__":
     main()
